@@ -1,0 +1,43 @@
+.container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+h2 {
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+// Estilo del selector
+select.form-select {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+// Botón de continuar
+button.btn {
+  width: 100%;
+  font-weight: 500;
+  padding: 0.6rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease-in-out;
+}
+
+button.btn:hover {
+  background-color: #0d6efd;
+  color: #fff;
+}
+
+// Alerta si no hay roles
+.alert-warning {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+}
