@@ -1,0 +1,19 @@
+<div class="container mt-5">
+  <h2>Selecciona tu rol</h2>
+  <div *ngIf="roles">
+    <div *ngIf="roles.length > 1">
+      <label for="roleSelect">Rol:</label>
+      <select class="form-select" [(ngModel)]="selectedRole" id="roleSelect">
+        <option [ngValue]="role" *ngFor="let role of roles">{{ role }}</option>
+      </select>
+
+      <button class="btn btn-primary mt-3" (click)="onRoleSelected()" [disabled]="!selectedRole">
+        Continuar
+      </button>
+    </div>
+
+    <div *ngIf="roles.length === 0" class="alert alert-warning mt-3">
+      No se encontraron roles disponibles. Contacta al administrador.
+    </div>
+  </div>
+</div>
