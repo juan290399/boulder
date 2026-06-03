@@ -1,9 +1,9 @@
 package com.boulder.boulder.entities;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Column;
@@ -26,23 +26,34 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "usuario_rol", schema = "base", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"id_usuario", "id_rol"})
+@Table(name = "prf_proyecto_maquina", schema = "operacional", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"proyecto_id", "maquina_id", "fecha_ingreso"})
 })
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class UsuarioRol implements Serializable {
+public class ProyectoMaquina implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id")
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_usuario", nullable = false)
-    @JsonBackReference
-    private Usuario usuario;
+    @Column(name = "numero_interno", insertable = false, updatable = false)
+    private Integer numeroInterno;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_rol", nullable = false)
-    private Rol rol;
+    @JoinColumn(name = "proyecto_id", nullable = false)
+    private Proyecto proyecto;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "maquina_id", nullable = false)
+    private Maquina maquina;
+
+    @Column(name = "fecha_ingreso", nullable = false)
+    private LocalDate fechaIngreso;
+
+    @Column(name = "fecha_salida")
+    private LocalDate fechaSalida;
+
+    @Column(length = 30)
+    private String estado;
 }

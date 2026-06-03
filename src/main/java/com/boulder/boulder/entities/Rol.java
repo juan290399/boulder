@@ -1,5 +1,6 @@
 package com.boulder.boulder.entities;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -20,16 +21,17 @@ import lombok.NoArgsConstructor;
 @Entity
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Table(name = "rol", schema = "base")
-public class Rol {
-
+public class Rol implements Serializable{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id")
     private UUID id;
 
-    @Column(name = "codigo", nullable = false, unique = true)
+    @Column(name = "numero_interno", insertable = false, updatable = false)
+    private Integer numeroInterno;
+
+    @Column(nullable = false, length = 255)
     private String codigo;
 
-    @Column(name = "nombre", nullable = false, unique = true)
+    @Column(nullable = false, length = 255)
     private String nombre;
 }

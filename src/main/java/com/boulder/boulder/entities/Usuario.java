@@ -42,5 +42,5 @@ public class Usuario implements Serializable {
 
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
-    private List<UsuarioRol> UsuarioRoles = new ArrayList<>();
+    private List<UsuarioRol> usuarioRol = new ArrayList<>();
 }

@@ -26,8 +26,9 @@ public class ProgramaSondaje implements Serializable {
     @Column(name = "numero_interno", insertable = false, updatable = false)
     private Integer numeroInterno;
 
-    @Column(name = "proyecto_id", nullable = false)
-    private UUID proyectoId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "proyecto_id", nullable = false)
+    private Proyecto proyecto;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "plataforma_id", nullable = false)

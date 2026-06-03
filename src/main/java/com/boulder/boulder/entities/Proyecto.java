@@ -2,6 +2,7 @@ package com.boulder.boulder.entities;
 
 import java.io.Serializable;
 import java.util.UUID;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -36,7 +37,6 @@ public class Proyecto implements Serializable {
 
     private Integer srid;
 
-    // Relación ManyToOne: Muchos proyectos pertenecen a una empresa
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_empresa", referencedColumnName = "id", nullable = false)
     private Empresa empresa;
