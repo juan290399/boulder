@@ -30,19 +30,19 @@ public class Sondaje implements Serializable {
     @Column(name = "proyecto_id", nullable = false)
     private UUID proyectoId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "programa_sondaje_id")
     private ProgramaSondaje programaSondaje;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "collar_id")
     private Collar collar;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "plataforma_id")
     private Plataforma plataforma;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "maquina_id")
     private Maquina maquina;
 
