@@ -1,8 +1,68 @@
-<div class="page-container">
-  <h1>Bienvenida a Distribuidora Nacional</h1>
-  <p>Ofrecemos productos importados de calidad para tu tienda. Sabemos lo importante que es tener una atención clara, rápida y personalizada.</p>
+<div class="container-fluid py-4">
 
-  <p>Explora nuestros productos, realiza pedidos con facilidad y forma parte de una comunidad que confía en nuestro servicio.</p>
+  <div class="card shadow-sm border-0 p-4">
 
-  <a class="btn btn-primary" routerLink="/about-us">Conócenos</a>
+    <h1>Prueba Backend</h1>
+
+    <button
+      class="btn btn-primary mb-4"
+      (click)="cargarMaquinas()"
+    >
+      Cargar maquinas
+    </button>
+
+    <div class="row" *ngIf="maquinas.length > 0">
+
+      <div
+        class="col-md-4 mb-3"
+        *ngFor="let maquina of maquinas"
+      >
+        <div class="card shadow-sm h-100">
+
+          <div class="card-body">
+
+            <h5 class="fw-bold">
+              {{ maquina.nombre }}
+            </h5>
+
+            <p>
+              <strong>Código:</strong>
+              {{ maquina.codigo }}
+            </p>
+
+            <p>
+              <strong>Tipo:</strong>
+              {{ maquina.tipo }}
+            </p>
+
+            <span
+              class="badge bg-success"
+              *ngIf="maquina.estado === 'DISPONIBLE'"
+            >
+              Disponible
+            </span>
+
+            <span
+              class="badge bg-warning text-dark"
+              *ngIf="maquina.estado === 'MANTENIMIENTO'"
+            >
+              Mantenimiento
+            </span>
+
+            <span
+              class="badge bg-primary"
+              *ngIf="maquina.estado === 'OPERANDO'"
+            >
+              Operando
+            </span>
+
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
 </div>
