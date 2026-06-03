@@ -20,7 +20,7 @@ import com.boulder.boulder.services.MaquinaService;
 
 @RestController
 @RequestMapping("/api/operacional/maquinas")
-@CrossOrigin(origins = "*") // Ajustar según las políticas de seguridad de tu frontend
+@CrossOrigin(origins = "*")
 public class MaquinaController {
 
     @Autowired
