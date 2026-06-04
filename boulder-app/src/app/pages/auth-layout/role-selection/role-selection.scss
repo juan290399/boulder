@@ -1,43 +1,80 @@
-.container {
-  max-width: 500px;
-  margin: 0 auto;
-  padding: 2rem;
-  background-color: #ffffff;
-  border-radius: 1rem;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
 h2 {
-  margin-bottom: 1.5rem;
+  margin-top: 0;
+  color: #1e293b;
+  font-size: 1.75rem;
   font-weight: 600;
-  color: #333;
 }
 
-// Estilo del selector
-select.form-select {
-  padding: 0.5rem;
-  font-size: 1rem;
-  border-radius: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-// Botón de continuar
-button.btn {
-  width: 100%;
-  font-weight: 500;
-  padding: 0.6rem;
-  border-radius: 0.5rem;
-  transition: all 0.3s ease-in-out;
-}
-
-button.btn:hover {
-  background-color: #0d6efd;
-  color: #fff;
-}
-
-// Alerta si no hay roles
-.alert-warning {
-  margin-top: 1rem;
+.subtitle {
+  color: #64748b;
   font-size: 0.95rem;
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+  
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #475569;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+  
+  input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+    
+    &:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+  }
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #007bff; // Azul idéntico a tu botón "Actualizar"
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 0.5rem;
+
+  &:hover {
+    background-color: #0056b3;
+  }
+
+  &:disabled {
+    background-color: #94a3b8;
+    cursor: not-allowed;
+  }
+}
+
+.footer-links {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: #64748b;
+
+  a {
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 500;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }

@@ -15,6 +15,21 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Representa un rol de usuario dentro del sistema.
+ *
+ * <p>
+ * Define los perfiles de acceso utilizados para control de permisos
+ * y autorización dentro de la plataforma.
+ * </p>
+ *
+ * <p>
+ * Se almacena en la tabla {@code base.rol}.
+ * </p>
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

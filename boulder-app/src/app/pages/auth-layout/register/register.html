@@ -1,1 +1,27 @@
-<p>register works!</p>
+ <h2>Crear Cuenta</h2>
+    <p class="subtitle">Regístrate para empezar a operar</p>
+
+    <form (ngSubmit)="onRegister()">
+      <div class="form-group">
+        <label>Nombre Completo</label>
+        <input type="text" [(ngModel)]="user.nombre" name="nombre" required placeholder="Juan Pérez">
+      </div>
+
+      <div class="form-group">
+        <label>Correo Electrónico</label>
+        <input type="email" [(ngModel)]="user.email" name="email" required placeholder="juan@correo.com">
+      </div>
+
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" [(ngModel)]="user.password" name="password" required placeholder="Mínimo 6 caracteres">
+      </div>
+
+      <button type="submit" [disabled]="loading" class="btn-primary">
+        {{ loading ? 'Registrando...' : 'Registrarse' }}
+      </button>
+    </form>
+
+    <div class="footer-links">
+      ¿Ya tienes cuenta? <a routerLink="/auth/login">Inicia sesión</a>
+    </div>

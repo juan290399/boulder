@@ -21,6 +21,22 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Representa la asignación de un rol a un usuario dentro del sistema.
+ *
+ * <p>
+ * Es una entidad intermedia (tabla de relación muchos a muchos)
+ * entre Usuario y Rol, con restricción de unicidad para evitar
+ * duplicados de asignación.
+ * </p>
+ *
+ * <p>
+ * Se persiste en la tabla {@code base.usuario_rol}.
+ * </p>
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
 @Entity
 @Data
 @NoArgsConstructor

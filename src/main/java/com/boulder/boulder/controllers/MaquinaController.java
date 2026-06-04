@@ -32,22 +32,30 @@ public class MaquinaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MaquinaDTO> obtenerPorId(@PathVariable UUID id) {
+    public ResponseEntity<MaquinaDTO> obtenerPorId(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(maquinaService.obtenerPorId(id));
     }
 
     @GetMapping("/codigo/{codigo}")
-    public ResponseEntity<MaquinaDTO> obtenerPorCodigo(@PathVariable String codigo) {
+    public ResponseEntity<MaquinaDTO> obtenerPorCodigo(@PathVariable("codigo") String codigo) {
         return ResponseEntity.ok(maquinaService.obtenerPorCodigo(codigo));
     }
 
     @PostMapping
     public ResponseEntity<MaquinaDTO> crear(@RequestBody MaquinaDTO maquinaDTO) {
-        return new ResponseEntity<>(maquinaService.guardar(maquinaDTO), HttpStatus.CREATED);
+        return new ResponseEntity<>(
+                maquinaService.guardar(maquinaDTO),
+                HttpStatus.CREATED
+        );
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<MaquinaDTO> actualizar(@PathVariable UUID id, @RequestBody MaquinaDTO maquinaDTO) {
-        return ResponseEntity.ok(maquinaService.actualizar(id, maquinaDTO));
+    public ResponseEntity<MaquinaDTO> actualizar(
+            @PathVariable("id") UUID id,
+            @RequestBody MaquinaDTO maquinaDTO) {
+
+        return ResponseEntity.ok(
+                maquinaService.actualizar(id, maquinaDTO)
+        );
     }
 }

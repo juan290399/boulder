@@ -14,6 +14,22 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 
+/**
+ * Representa un registro de medición (survey) asociado a un sondaje.
+ *
+ * <p>
+ * Almacena datos de control de trayectoria del sondaje como profundidad,
+ * azimut e inclinación, permitiendo el seguimiento geológico de la perforación
+ * a lo largo del tiempo.
+ * </p>
+ *
+ * <p>
+ * Se persiste en la tabla {@code operacional.prf_survey}.
+ * </p>
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
 @Entity
 @Table(name = "prf_survey", schema = "operacional")
 @Data

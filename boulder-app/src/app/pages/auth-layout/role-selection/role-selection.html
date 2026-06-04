@@ -1,19 +1,29 @@
-<div class="container mt-5">
-  <h2>Selecciona tu rol</h2>
-  <div *ngIf="roles">
-    <div *ngIf="roles.length > 1">
-      <label for="roleSelect">Rol:</label>
-      <select class="form-select" [(ngModel)]="selectedRole" id="roleSelect">
-        <option [ngValue]="role" *ngFor="let role of roles">{{ role }}</option>
-      </select>
+<div class="container-fluid p-0">
+  <h2 class="text-center mb-1">Selecciona tu rol</h2>
+  <p class="subtitle text-center mb-4">Elige el entorno de trabajo para esta sesión</p>
 
-      <button class="btn btn-primary mt-3" (click)="onRoleSelected()" [disabled]="!selectedRole">
+  <div *ngIf="roles">
+    
+    <div *ngIf="roles.length > 1">
+      <div class="form-group mb-3">
+        <label for="roleSelect" class="form-label fw-semibold text-secondary">Rol disponible:</label>
+        <select class="form-select custom-select" [(ngModel)]="selectedRole" id="roleSelect">
+          <option [ngValue]="null" disabled selected>-- Elige un rol --</option>
+          <option [ngValue]="role" *ngFor="let role of roles">
+            {{ role === 'GEOLOGO' ? '🪨 Geólogo / Exploración' : role === 'ADMIN' ? '⚙️ Administrador' : role }}
+          </option>
+        </select>
+      </div>
+
+      <button class="btn-primary-auth w-100 mt-2" (click)="onRoleSelected()" [disabled]="!selectedRole">
         Continuar
       </button>
     </div>
 
-    <div *ngIf="roles.length === 0" class="alert alert-warning mt-3">
-      No se encontraron roles disponibles. Contacta al administrador.
+    <div *ngIf="roles.length === 0" class="alert alert-warning-custom text-center p-3 mt-2">
+      <span class="alert-icon">⚠️</span>
+      <p class="mb-0 fw-medium">No se encontraron roles disponibles. Por favor, contacta al administrador del sistema.</p>
     </div>
+    
   </div>
 </div>

@@ -21,6 +21,26 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Relación entre proyectos y máquinas de perforación.
+ *
+ * <p>
+ * Permite controlar la asignación de máquinas a un proyecto,
+ * registrando fechas de ingreso y salida, así como su estado operativo
+ * dentro del proyecto.
+ * </p>
+ *
+ * <p>
+ * Incluye una restricción de unicidad por proyecto, máquina y fecha de ingreso.
+ * </p>
+ *
+ * <p>
+ * Se almacena en la tabla {@code operacional.prf_proyecto_maquina}.
+ * </p>
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
 @Entity
 @Data
 @NoArgsConstructor

@@ -11,6 +11,19 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
 
+/**
+ * Representa una empresa registrada en el sistema.
+ *
+ * <p>Almacena la información básica de identificación y contacto utilizada
+ * para gestionar clientes, contratistas, proveedores u otras organizaciones
+ * relacionadas con los proyectos.</p>
+ *
+ * <p>Se persiste en la tabla {@code base.empresa}.</p>
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
 @Entity
 @Table(name = "empresa", schema = "base")
 @Data

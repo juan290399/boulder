@@ -12,6 +12,19 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
 
+/**
+ * Representa un collar de perforación dentro de una campaña de exploración.
+ *
+ * <p>Un collar corresponde al punto georreferenciado donde inicia un sondaje,
+ * almacenando sus coordenadas, elevación y datos asociados a la medición
+ * topográfica.</p>
+ *
+ * <p>Se persiste en la tabla {@code operacional.prf_collar}.</p>
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
 @Entity
 @Table(name = "prf_collar", schema = "operacional")
 @Data
