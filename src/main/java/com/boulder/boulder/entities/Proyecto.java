@@ -14,6 +14,21 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 
+/**
+ * Representa un proyecto de exploración geológica.
+ *
+ * <p>
+ * Contiene la información base del proyecto, su ubicación, sistema de
+ * referencia espacial y la empresa responsable de su ejecución.
+ * </p>
+ *
+ * <p>
+ * Se almacena en la tabla {@code base.proyecto}.
+ * </p>
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
 @Entity
 @Table(name = "proyecto", schema = "base")
 @Data

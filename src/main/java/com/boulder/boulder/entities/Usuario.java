@@ -21,6 +21,21 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Representa un usuario del sistema.
+ *
+ * <p>
+ * Contiene las credenciales de acceso y la relación con los roles asignados,
+ * permitiendo la gestión de autenticación y autorización dentro del sistema.
+ * </p>
+ *
+ * <p>
+ * Se persiste en la tabla {@code base.usuario}.
+ * </p>
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
 @Entity
 @JsonIgnoreProperties({"usuarioRol"})
 @Table(name = "\"usuario\"", schema = "base")

@@ -14,6 +14,19 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 
+/**
+ * Representa una plataforma de perforación dentro de un proyecto.
+ *
+ * <p>Una plataforma corresponde al área acondicionada para la ejecución
+ * de uno o más sondajes, incluyendo su ubicación geográfica, dimensiones
+ * y características operacionales.</p>
+ *
+ * <p>Se persiste en la tabla {@code operacional.prf_plataforma}.</p>
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
 @Entity
 @Table(name = "prf_plataforma", schema = "operacional")
 @Data

@@ -1,29 +1,46 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule
-  ],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })
 export class Login {
-  loginForm: FormGroup;
-  errorMessage = '';
+  credentials = { email: '', password: '' };
+  loading = false;
 
-  constructor(private fb: FormBuilder) {
-    this.loginForm = this.fb.group({
-      username: ['', Validators.required],
-      password: ['', Validators.required]
-    });
-  }
+  constructor(
+    private http: HttpClient, 
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {}
 
-  login() {
-    console.log(this.loginForm.value);
+  onLogin(): void {
+    this.loading = true;
+    
+    this.http.post<any>('http://localhost:8080/api/auth/login', this.credentials)
+      .subscribe({
+        next: (res) => {
+          this.loading = false;
+          console.log('Login exitoso', res);
+
+          localStorage.setItem('token', res.token); 
+          
+          this.router.navigate(['/auth/role-selection']);
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.loading = false;
+          console.error('Error en login', err);
+          alert('Credenciales incorrectas');
+          this.cdr.detectChanges();
+        }
+      });
   }
 }

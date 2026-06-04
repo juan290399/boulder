@@ -12,6 +12,18 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
 
+/**
+ * Representa una máquina de perforación utilizada en operaciones de sondaje.
+ *
+ * <p>Contiene información técnica, capacidades operativas y estado de
+ * disponibilidad de los equipos utilizados en proyectos de exploración.</p>
+ *
+ * <p>Se persiste en la tabla {@code operacional.prf_maquina}.</p>
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
 @Entity
 @Table(name = "prf_maquina", schema = "operacional")
 @Data

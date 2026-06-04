@@ -14,6 +14,23 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 
+/**
+ * Representa un programa de sondajes dentro de un proyecto de exploración.
+ *
+ * <p>
+ * Define la planificación de perforaciones asociadas a una plataforma,
+ * incluyendo su ubicación, parámetros geométricos (azimut, inclinación,
+ * profundidad) y clasificación operativa (prioridad, zona, flanco).
+ * </p>
+ *
+ * <p>
+ * Se almacena en la tabla {@code operacional.prf_programa_sondaje}.
+ * </p>
+ * 
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
 @Entity
 @Table(name = "prf_programa_sondaje", schema = "operacional")
 @Data

@@ -15,6 +15,24 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 
+/**
+ * Entidad que representa un sondaje de exploración geológica.
+ *
+ * <p>
+ * Un sondaje corresponde a una perforación ejecutada dentro de un proyecto,
+ * asociada a un programa de sondaje, collar, plataforma y máquina de perforación.
+ * Permite registrar información de diseño, avance y control operacional.
+ * </p>
+ *
+ * <p>
+ * La entidad se almacena en la tabla
+ * <p>Se persiste en la tabla {@code operacional.prf_sondaje}.</p>
+ * </p>
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
 @Entity
 @Table(name = "prf_sondaje", schema = "operacional")
 @Data
