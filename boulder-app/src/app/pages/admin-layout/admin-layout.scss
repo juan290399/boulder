@@ -1,0 +1,112 @@
+.admin-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: #f4f6f9;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.admin-sidebar {
+  width: 260px;
+  background-color: #1e293b;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+.sidebar-brand {
+  h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #38bdf8; // Celeste tecnológico
+  }
+  .badge-role {
+    font-size: 0.75rem;
+    background-color: #334155;
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: #cbd5e1;
+  }
+}
+
+.sidebar-menu {
+  margin-top: 30px;
+  flex-grow: 1;
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    li {
+      margin-bottom: 8px;
+      a {
+        display: flex;
+        align-items: center;
+        color: #94a3b8;
+        text-decoration: none;
+        padding: 10px 12px;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        
+        &:hover, &.active-link {
+          background-color: #334155;
+          color: #ffffff;
+        }
+        .icon {
+          margin-right: 10px;
+        }
+      }
+    }
+  }
+}
+
+.btn-logout {
+  display: flex;
+  align-items: center;
+  color: #fca5a5;
+  text-decoration: none;
+  padding: 10px;
+  border-radius: 6px;
+  &:hover {
+    background-color: #ef444422;
+  }
+}
+
+.admin-main-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.admin-top-navbar {
+  height: 60px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+}
+
+.environment-indicator {
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.user-profile-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.admin-view-port {
+  flex-grow: 1;
+  padding: 24px;
+  overflow-y: auto;
+}

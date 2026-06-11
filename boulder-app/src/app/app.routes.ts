@@ -1,16 +1,24 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './guards/auth';
 import { MainLayout } from './pages/main-layout/main-layout';
 import { AuthLayout } from './pages/auth-layout/auth-layout';
+import { AdminLayout } from './pages/admin-layout/admin-layout';
 import { Home } from './pages/main-layout/home/home';
 import { Register } from './pages/auth-layout/register/register';
 import { RoleSelection } from './pages/auth-layout/role-selection/role-selection';
 import { Login } from './pages/auth-layout/login/login';
+import { Plataforma } from './pages/main-layout/plataforma/plataforma';
+import { Maquina } from './pages/main-layout/maquina/maquina';
+import { Proyecto } from './pages/main-layout/proyecto/proyecto';
+import { Empresa } from './pages/main-layout/empresa/empresa';
+import { Sondaje } from './pages/main-layout/sondaje/sondaje';
+
 
 export const routes: Routes = [
-  // 1. MÓDULO DE AUTENTICACIÓN (Independiente y Limpio)
+
   { 
     path: 'auth', 
-    component: AuthLayout, // 👈 Este layout NO debe tener el menú izquierdo ni el header en su HTML
+    component: AuthLayout,
     children: [
       { path: 'login', component: Login },
       { path: 'register', component: Register },
@@ -19,17 +27,32 @@ export const routes: Routes = [
       { path: '', redirectTo: 'login', pathMatch: 'full' }
     ]
   },
-
-  // 2. MÓDULO PRIVADO (Con el menú lateral, Sondajes, Equipos, etc.)
+  {
+    path: 'admin',
+    component: AdminLayout,
+    canActivate: [authGuard],
+    data: { roles: ['ROLE_ADMIN'] },
+    children: [
+      { path: '', redirectTo: 'usuarios', pathMatch: 'full' },
+      
+      { path: 'usuarios', component: AdminLayout }, 
+      { path: 'auditoria', component: AdminLayout }
+    ]
+  },
   { 
     path: '', 
-    component: MainLayout, // 👈 Este es el que contiene el Sidebar, Navbar y el <router-outlet> para el Home
+    component: MainLayout,
+    canActivate: [authGuard],
     children: [
       { path: 'maquinas', component: Home },
-      { path: '', redirectTo: 'maquinas', pathMatch: 'full' } // Al entrar a '/' te lleva a las máquinas
+      { path: 'plataformas', component: Plataforma },
+      { path: 'maquina', component: Maquina },
+      { path: 'empresas', component: Empresa },
+      { path: 'proyectos', component: Proyecto },
+      { path: 'sondajes', component: Sondaje },
+      { path: '', redirectTo: 'maquinas', pathMatch: 'full' }
     ],    
   },
 
-  // 3. Redirección por defecto si escriben cualquier otra ruta
   { path: '**', redirectTo: 'auth/login' }
 ];

@@ -10,6 +10,5 @@ import com.boulder.boulder.entities.UsuarioRol;
 
 @Repository
 public interface UsuarioRolRepository extends JpaRepository<UsuarioRol, UUID> {
-
     List<UsuarioRol> findByUsuarioId(UUID usuarioId);
 }

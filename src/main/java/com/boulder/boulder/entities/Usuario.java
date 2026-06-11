@@ -49,11 +49,26 @@ public class Usuario implements Serializable {
     @Column(name = "id")
     private UUID id;
 
+    @Column(name = "numero_interno", insertable = false, updatable = false)
+    private Integer numeroInterno;
+
+    @Column(name = "nombres", nullable = false, length = 100)
+    private String nombres;
+
+    @Column(name = "apellidos", nullable = false, length = 100)
+    private String apellidos;
+
+    @Column(name = "correo", nullable = false, unique = true, length = 100)
+    private String correo;
+
     @Column(name = "usuario", nullable = false, unique = true)
     private String usuario;
 
     @Column(name = "contrasenia", nullable = false)
     private String contrasenia;
+
+    @Column(name = "estado", nullable = false)
+    private Boolean estado = true;
 
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference

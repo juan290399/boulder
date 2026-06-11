@@ -1,46 +1,76 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule], 
   templateUrl: './login.html',
-  styleUrl: './login.scss',
+  styleUrl: './login.scss'
 })
 export class Login {
-  credentials = { email: '', password: '' };
+  @Output() loginExitoso = new EventEmitter<string[]>();
+  @Output() cerrar = new EventEmitter<void>();
+
+  loginForm: FormGroup;
   loading = false;
+  errorMessage: string = '';
 
   constructor(
-    private http: HttpClient, 
-    private router: Router,
-    private cdr: ChangeDetectorRef
-  ) {}
-
-  onLogin(): void {
-    this.loading = true;
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router
+  ) {
     
-    this.http.post<any>('http://localhost:8080/api/auth/login', this.credentials)
-      .subscribe({
-        next: (res) => {
-          this.loading = false;
-          console.log('Login exitoso', res);
+    this.loginForm = this.fb.group({
+      usuario: ['', [Validators.required, Validators.minLength(4)]],
+      contrasenia: ['', [Validators.required, Validators.minLength(4)]],
+    });
+  }
 
-          localStorage.setItem('token', res.token); 
-          
-          this.router.navigate(['/auth/role-selection']);
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          this.loading = false;
-          console.error('Error en login', err);
-          alert('Credenciales incorrectas');
-          this.cdr.detectChanges();
-        }
-      });
+  onLogin(event: Event): void {
+    event.preventDefault();
+
+    if (this.loginForm.invalid) {
+      this.errorMessage = 'Por favor complete correctamente los campos.';
+      return;
+    }
+
+    this.loading = true;
+    this.errorMessage = '';
+    this.loginForm.disable(); 
+
+    this.authService.login(this.loginForm.value).subscribe({
+      next: (res: any) => {
+        this.loading = false;
+        this.authService.saveToken(res.token);
+        
+        const roles = this.authService.getRolesFromToken();
+        console.log('Login Exitoso. Roles detectados:', roles);
+        this.loginExitoso.emit(roles);
+
+        this.router.navigate(['/auth/seleccionar-rol']).then((navigated) => {
+          if (navigated) {
+            console.log('¡Navegación exitosa a la pantalla de selección de roles!');
+          } else {
+            console.error('El Router no completó la navegación.');
+          }
+        });
+      },
+      error: (err: any) => {
+        this.loading = false;
+        this.loginForm.enable(); 
+        console.error(err);
+        this.errorMessage = err.error?.mensaje || 'Credenciales incorrectas o usuario inactivo';
+        alert(this.errorMessage);
+      },
+    });
+  }
+
+  cerrarModal(): void {
+    this.cerrar.emit();
   }
 }
