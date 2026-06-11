@@ -15,7 +15,7 @@ import { FormsModule } from '@angular/forms';
 })
 export class Home {
 
-  private baseUrl = 'http://localhost:8080/api/operacional/maquinas';
+  private baseUrl = 'http://localhost:8080/maquina';
 
   maquinas: any[] = [];
 
@@ -48,12 +48,12 @@ export class Home {
             console.log('INFO: Máquinas cargadas', data.length);
             this.loading = false;
             
-            this.cdr.detectChanges(); // 🔥 3. Fuerza a Angular a pintar los cambios AQUÍ
+            this.cdr.detectChanges();
           },
           error: (err) => {
             console.error('ERROR: listarMaquinas', err);
             this.loading = false;
-            this.cdr.detectChanges(); // También en caso de error para liberar el 'loading'
+            this.cdr.detectChanges();
           }
         });
     }
@@ -67,7 +67,7 @@ export class Home {
           console.log('INFO: Máquina creada', res);
           this.listarMaquinas();
           this.limpiarFormulario();
-          this.cdr.detectChanges(); // 🔥 Fuerza el renderizado del formulario limpio
+          this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('ERROR: crearMaquina', err);
@@ -89,7 +89,7 @@ export class Home {
           console.log('INFO: Máquina actualizada', res);
           this.listarMaquinas();
           this.limpiarFormulario();
-          this.cdr.detectChanges(); // 🔥 Fuerza el renderizado del formulario limpio
+          this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('ERROR: actualizarMaquina', err);
@@ -109,12 +109,12 @@ export class Home {
           this.maquinas = [res];
           console.log('INFO: Resultado por código:', res);
           this.loading = false;
-          this.cdr.detectChanges(); // 🔥 Fuerza a Angular a pintar la máquina encontrada
+          this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('ERROR: buscarPorCodigo', err);
           this.loading = false;
-          this.cdr.detectChanges(); // Quita el estado 'loading' visualmente
+          this.cdr.detectChanges();
         }
       });
   }
@@ -131,12 +131,12 @@ export class Home {
           this.maquinas = [res];
           console.log('INFO: Resultado por ID:', res);
           this.loading = false;
-          this.cdr.detectChanges(); // 🔥 Fuerza a Angular a pintar la máquina encontrada
+          this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('ERROR: buscarPorId', err);
           this.loading = false;
-          this.cdr.detectChanges(); // Quita el estado 'loading' visualmente
+          this.cdr.detectChanges();
         }
       });
   }
@@ -144,7 +144,7 @@ export class Home {
   editar(maquina: any): void {
     console.log('DEBUG: Editando máquina', maquina);
     this.form = { ...maquina };
-    this.cdr.detectChanges(); // 🔥 Sube los datos al formulario de inmediato al hacer clic en "Editar"
+    this.cdr.detectChanges();
   }
 
   limpiarFormulario(): void {
@@ -157,6 +157,6 @@ export class Home {
       marca: '',
       estado: 'DISPONIBLE'
     };
-    this.cdr.detectChanges(); // 🔥 Asegura el reset visual de los inputs
+    this.cdr.detectChanges(); 
   }
 }

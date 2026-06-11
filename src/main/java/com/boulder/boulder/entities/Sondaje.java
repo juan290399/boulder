@@ -26,7 +26,7 @@ import lombok.Data;
  *
  * <p>
  * La entidad se almacena en la tabla
- * <p>Se persiste en la tabla {@code operacional.prf_sondaje}.</p>
+ * Se persiste en la tabla {@code operacional.prf_sondaje}.
  * </p>
  *
  * @author jvelazco
@@ -45,22 +45,23 @@ public class Sondaje implements Serializable {
     @Column(name = "numero_interno", insertable = false, updatable = false)
     private Integer numeroInterno;
 
-    @Column(name = "proyecto_id", nullable = false)
-    private UUID proyectoId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "proyecto_id", referencedColumnName = "id", nullable = false)
+    private Proyecto proyecto;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "programa_sondaje_id")
     private ProgramaSondaje programaSondaje;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "collar_id")
     private Collar collar;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "plataforma_id")
     private Plataforma plataforma;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "maquina_id")
     private Maquina maquina;
 

@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class MaquinaService {
 
-  private baseUrl = 'http://localhost:8080/api/maquinas';
+  private baseUrl = 'http://localhost:8080/maquina';
 
   constructor(private http: HttpClient) {}
 

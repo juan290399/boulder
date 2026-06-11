@@ -1,1 +1,60 @@
-<p>admin-layout works!</p>
+<div class="admin-container">
+  
+  <aside class="admin-sidebar">
+    <div class="sidebar-brand">
+      <h3>Boulder Admin</h3>
+      <span class="badge-role">Panel de Control</span>
+    </div>
+    
+    <nav class="sidebar-menu">
+      <ul>
+        <li>
+          <a routerLink="/admin/dashboard" routerLinkActive="active-link">
+            <span class="icon">📊</span> Dashboard Global
+          </a>
+        </li>
+        <li>
+          <a routerLink="/admin/usuarios" routerLinkActive="active-link">
+            <span class="icon">👥</span> Gestión de Usuarios
+          </a>
+        </li>
+        <li>
+          <a routerLink="/admin/auditoria" routerLinkActive="active-link">
+            <span class="icon">📜</span> Logs de Auditoría
+          </a>
+        </li>
+        <li>
+          <a routerLink="/admin/configuracion" routerLinkActive="active-link">
+            <span class="icon">⚙️</span> Ajustes del Sistema
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a routerLink="/auth/logout" class="btn-logout">
+        <span class="icon">🚪</span> Cerrar Sesión
+      </a>
+    </div>
+  </aside>
+
+  <div class="admin-main-content">
+    
+    <header class="admin-top-navbar">
+      <div class="navbar-left">
+        <span class="environment-indicator">Entorno: Producción / Configuración</span>
+      </div>
+      <div class="navbar-right">
+        <div class="user-profile-info">
+          <span class="user-avatar">💻</span>
+          <span class="user-name">{{ usuarioAdmin }}</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="admin-view-port">
+      <router-outlet></router-outlet> 
+    </main>
+
+  </div>
+</div>

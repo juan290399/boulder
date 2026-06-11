@@ -1,22 +1,36 @@
-    <h2>Iniciar Sesión</h2>
-    <p class="subtitle">Ingresa tus credenciales para acceder</p>
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <h2>Plataforma Boulder</h2>
+      <p>Control Operativo de Sondajes Mineros</p>
+    </div>
 
-    <form (ngSubmit)="onLogin()">
+    <form [formGroup]="loginForm" (ngSubmit)="onLogin($event)">
+      
       <div class="form-group">
-        <label>Correo Electrónico</label>
-        <input type="email" [(ngModel)]="credentials.email" name="email" required placeholder="ejemplo@correo.com">
-      </div>
+      <label for="usuario">Usuario / Identificador</label>
+      <input 
+        type="text" 
+        id="usuario" 
+        formControlName="usuario" 
+        placeholder="Ingrese su cuenta de usuario" 
+        class="form-control" /> </div>
 
-      <div class="form-group">
-        <label>Contraseña</label>
-        <input type="password" [(ngModel)]="credentials.password" name="password" required placeholder="••••••••">
-      </div>
+    <div class="form-group">
+      <label for="contrasenia">Contraseña</label>
+      <input 
+        type="password" 
+        id="contrasenia" 
+        formControlName="contrasenia" 
+        placeholder="••••••••" 
+        class="form-control" /> </div>
 
-      <button type="submit" [disabled]="loading" class="btn-primary">
-        {{ loading ? 'Cargando...' : 'Ingresar' }}
+      <p *ngIf="errorMessage" class="text-danger small mt-2">{{ errorMessage }}</p>
+
+      <button type="submit" class="btn-login" [disabled]="loginForm.invalid || loading">
+        <span *ngIf="!loading">Iniciar Sesión</span>
+        <span *ngIf="loading" class="spinner">Autenticando...</span>
       </button>
     </form>
-
-    <div class="footer-links">
-      ¿No tienes cuenta? <a routerLink="/auth/register">Regístrate aquí</a>
-    </div>
+  </div>
+</div>

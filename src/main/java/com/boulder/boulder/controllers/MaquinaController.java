@@ -19,7 +19,7 @@ import com.boulder.boulder.dto.MaquinaDTO;
 import com.boulder.boulder.services.MaquinaService;
 
 @RestController
-@RequestMapping("/api/operacional/maquinas")
+@RequestMapping("/maquina")
 @CrossOrigin(origins = "*")
 public class MaquinaController {
 
@@ -42,7 +42,7 @@ public class MaquinaController {
     }
 
     @PostMapping
-    public ResponseEntity<MaquinaDTO> crear(@RequestBody MaquinaDTO maquinaDTO) {
+    public ResponseEntity<MaquinaDTO> guardar(@RequestBody MaquinaDTO maquinaDTO) {
         return new ResponseEntity<>(
                 maquinaService.guardar(maquinaDTO),
                 HttpStatus.CREATED

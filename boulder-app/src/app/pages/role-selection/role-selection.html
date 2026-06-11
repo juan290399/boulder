@@ -1,0 +1,36 @@
+<div class="container-fluid p-0">
+  <h2 class="text-center mb-1">Selecciona tu rol</h2>
+  <p class="subtitle text-center mb-4">Elige el entorno de trabajo para esta sesión</p>
+
+  <div *ngIf="roles">
+    
+    <div *ngIf="roles.length > 1">
+      <div class="form-group mb-3">
+        <label for="roleSelect" class="form-label fw-semibold text-secondary">Rol disponible:</label>
+        
+        <select 
+          class="form-select custom-select" 
+          #htmlSelect
+          id="roleSelect">
+          <option [value]="null" disabled selected>-- Elige un rol --</option>
+          <option [value]="role" *ngFor="let role of roles">
+            {{ role === 'GEOLOGO' || role === 'VISITANTE' ? '🪨 Geólogo / Exploración' : role === 'ADMIN' ? '⚙️ Administrador' : role }}
+          </option>
+        </select>
+      </div>
+
+      <button 
+        type="button" 
+        class="btn-primary-auth w-100 mt-2" 
+        (click)="onRoleSelected(htmlSelect.value, $event)">
+        Continuar
+      </button>
+    </div>
+
+    <div *ngIf="roles.length === 0" class="alert alert-warning-custom text-center p-3 mt-2">
+      <span class="alert-icon">⚠️</span>
+      <p class="mb-0 fw-medium">No se encontraron roles disponibles. Por favor, contacta al administrador del sistema.</p>
+    </div>
+    
+  </div>
+</div>

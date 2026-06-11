@@ -1,0 +1,140 @@
+<div class="container-fluid py-4">
+
+  <div class="card shadow-sm border-0 p-4">
+
+    <h1 class="mb-4">Máquinas</h1>
+
+    <div class="row mb-4">
+
+      <div class="col-md-3">
+        <input class="form-control"
+               placeholder="Código"
+               [(ngModel)]="form.codigo">
+      </div>
+
+      <div class="col-md-3">
+        <input class="form-control"
+               placeholder="Nombre"
+               [(ngModel)]="form.nombre">
+      </div>
+
+      <div class="col-md-2">
+        <input class="form-control"
+               placeholder="Tipo"
+               [(ngModel)]="form.tipo">
+      </div>
+
+      <div class="col-md-2">
+        <input class="form-control"
+               placeholder="Marca"
+               [(ngModel)]="form.marca">
+      </div>
+
+      <div class="col-md-2">
+        <select class="form-select"
+                [(ngModel)]="form.estado">
+          <option value="DISPONIBLE">Disponible</option>
+          <option value="MANTENIMIENTO">Mantenimiento</option>
+          <option value="OPERANDO">Operando</option>
+        </select>
+      </div>
+
+    </div>
+
+    <div class="mb-4">
+
+      <button class="btn btn-success me-2"
+              (click)="crearMaquina()">
+        Crear
+      </button>
+
+      <button class="btn btn-primary me-2"
+              (click)="actualizarMaquina()">
+        Actualizar
+      </button>
+
+      <button class="btn btn-secondary"
+              (click)="limpiarFormulario()">
+        Limpiar
+      </button>
+
+    </div>
+
+    <div class="row mb-4">
+
+      <div class="col-md-6">
+        <input class="form-control"
+               placeholder="Buscar por código"
+               [(ngModel)]="busquedaCodigo">
+
+        <button class="btn btn-dark mt-2"
+                (click)="buscarPorCodigo()">
+          Buscar
+        </button>
+      </div>
+
+      <div class="col-md-6">
+        <input class="form-control"
+               placeholder="Buscar por ID"
+               [(ngModel)]="busquedaId">
+
+        <button class="btn btn-info mt-2"
+                (click)="buscarPorId()">
+          Buscar
+        </button>
+      </div>
+      
+    </div>
+
+    <button class="btn btn-outline-primary mb-3"
+            (click)="listarMaquinas()">
+      Cargar listado
+    </button>
+
+    <div class="row" *ngIf="maquinas.length > 0">
+
+      <div class="col-md-4 mb-3"
+           *ngFor="let maquina of maquinas">
+
+        <div class="card shadow-sm">
+
+          <div class="card-body">
+
+            <h5>{{ maquina.nombre }}</h5>
+
+            <p><b>Código:</b> {{ maquina.codigo }}</p>
+            <p><b>Tipo:</b> {{ maquina.tipo }}</p>
+
+            <p><b>Marca:</b> {{ maquina.marca }}</p>
+
+            <span class="badge bg-success"
+                  *ngIf="maquina.estado === 'DISPONIBLE'">
+              Disponible
+            </span>
+
+            <span class="badge bg-warning text-dark"
+                  *ngIf="maquina.estado === 'MANTENIMIENTO'">
+              Mantenimiento
+            </span>
+
+            <span class="badge bg-primary"
+                  *ngIf="maquina.estado === 'OPERANDO'">
+              Operando
+            </span>
+
+            <button class="btn btn-sm btn-warning mt-2"
+                    (click)="editar(maquina)">
+              Editar
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

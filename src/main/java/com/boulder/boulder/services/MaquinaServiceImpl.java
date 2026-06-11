@@ -15,6 +15,19 @@ import com.boulder.boulder.entities.Maquina;
 import com.boulder.boulder.repositories.MaquinaRepository;
 
 import jakarta.persistence.EntityNotFoundException;
+
+/**
+ * Implementación de los servicios de negocio para la gestión de máquinas.
+ *
+ * <p>
+ * Gestiona las operaciones de consulta, registro y actualización de máquinas
+ * utilizadas en los proyectos de exploración.
+ * </p>
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
 @Service
 public class MaquinaServiceImpl implements MaquinaService {
 

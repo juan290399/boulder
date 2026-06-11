@@ -16,23 +16,24 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
+
+    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, JwtUtils jwtUtils) {
+        this.authenticationManager = authenticationManager;
+        this.jwtUtils = jwtUtils;
+    }
 
     @Override
     public Authentication attemptAuthentication(
             HttpServletRequest request,
             HttpServletResponse response
     ) throws AuthenticationException {
-
         try {
-            Usuario credentials =
-                    new ObjectMapper().readValue(request.getInputStream(), Usuario.class);
+            Usuario credentials = new ObjectMapper().readValue(request.getInputStream(), Usuario.class);
 
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(
@@ -43,7 +44,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             return authenticationManager.authenticate(authToken);
 
         } catch (IOException e) {
-            throw new RuntimeException("Authentication failed", e);
+            throw new RuntimeException("Error en la lectura del flujo de credenciales", e);
         }
     }
 
@@ -58,13 +59,12 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String token = jwtUtils.generateToken(authResult);
 
         response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
 
         response.getWriter().write(
                 new ObjectMapper().writeValueAsString(
                         Map.of("token", token)
                 )
         );
-
-        chain.doFilter(request, response);
     }
 }

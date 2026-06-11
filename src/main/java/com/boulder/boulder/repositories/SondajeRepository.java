@@ -9,12 +9,21 @@ import org.springframework.stereotype.Repository;
 
 import com.boulder.boulder.entities.Sondaje;
 
+/**
+ * Repositorio de acceso a datos para Sondaje.
+ *
+ * <p>
+ * Gestiona información de perforaciones ejecutadas en campo.
+ * </p>
+ */
 @Repository
 public interface SondajeRepository extends JpaRepository<Sondaje, UUID> {
-    Optional<Sondaje> findByCodigo(String codigo);
-    
-    // Buscar los pozos reales que se desprenden de un programa de planificación
-    List<Sondaje> findByProgramaSondajeId(UUID programaSondajeId);
-    
+
     List<Sondaje> findByProyectoId(UUID proyectoId);
+    List<Sondaje> findByProgramaSondajeId(UUID programaSondajeId);
+    Optional<Sondaje> findByCollarId(UUID collarId);
+    List<Sondaje> findByPlataformaId(UUID plataformaId);
+    List<Sondaje> findByMaquinaId(UUID maquinaId);
+    Optional<Sondaje> findByCodigo(String codigo);
+    boolean existsByCodigo(String codigo);
 }
