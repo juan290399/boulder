@@ -16,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.boulder.boulder.config.CuentasActivas;
 import com.boulder.boulder.dto.RegistroDTO;
 import com.boulder.boulder.dto.UsuarioDTO;
 import com.boulder.boulder.entities.Empleado;
@@ -63,6 +64,10 @@ public class UsuarioServiceImpl implements UsuarioService {
     /** La contraseña nunca se guarda tal como llega: siempre pasa por aquí. */
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    /** Al cambiar el estado de una cuenta, sus tokens dejan de valer en el acto. */
+    @Autowired
+    private CuentasActivas cuentasActivas;
 
     @Override
     @Transactional(readOnly = true)
@@ -188,6 +193,7 @@ public class UsuarioServiceImpl implements UsuarioService {
             aplicarEmpleado(dto, usuario);
 
             Usuario actualizado = usuarioRepository.saveAndFlush(usuario);
+            cuentasActivas.olvidar(usuario.getUsuario());
 
             // `actualizar` deliberadamente NO toca los roles: se gestionan por
             // PUT /api/base/usuarios/{id}/roles, para que un formulario de datos
@@ -213,6 +219,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         usuario.setEstado(estado);
         usuarioRepository.saveAndFlush(usuario);
+        cuentasActivas.olvidar(usuario.getUsuario());
 
         verificarQuedaAlgunAdmin();
 

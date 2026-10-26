@@ -5,8 +5,12 @@ import java.time.Duration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.boulder.boulder.entities.Usuario;
 import com.boulder.boulder.repositories.UsuarioRepository;
 import com.google.common.base.Ticker;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 /**
  * Responde si la cuenta de un token sigue existiendo y activa.
@@ -20,7 +24,7 @@ import com.google.common.base.Ticker;
 @Component
 public class CuentasActivas {
 
-    private final UsuarioRepository usuarios;
+    private final LoadingCache<String, Boolean> activas;
 
     @Autowired
     public CuentasActivas(UsuarioRepository usuarios) {
@@ -28,15 +32,23 @@ public class CuentasActivas {
     }
 
     public CuentasActivas(UsuarioRepository usuarios, Duration recordar, Ticker reloj) {
-        this.usuarios = usuarios;
+        this.activas = CacheBuilder.newBuilder()
+                .expireAfterWrite(recordar)
+                .maximumSize(1_000)
+                .ticker(reloj)
+                .build(CacheLoader.from((String usuario) -> usuarios.findByUsuario(usuario)
+                        .map(Usuario::getEstado)
+                        .map(Boolean.TRUE::equals)
+                        .orElse(false)));
     }
 
     /** @return {@code true} si la cuenta existe y está activa */
     public boolean activa(String usuario) {
-        return true;
+        return activas.getUnchecked(usuario);
     }
 
     /** Descarta lo recordado de una cuenta, para que el próximo pedido la relea. */
     public void olvidar(String usuario) {
+        activas.invalidate(usuario);
     }
 }
