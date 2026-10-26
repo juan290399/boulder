@@ -57,6 +57,7 @@ export class Navbar {
       titulo: 'Datos',
       items: [
         { etiqueta: 'Cargar datos', ruta: '/importar', icono: 'bi-upload' },
+        { etiqueta: 'Reporte diario', ruta: '/reportes', icono: 'bi-file-earmark-bar-graph' },
       ],
     },
     {

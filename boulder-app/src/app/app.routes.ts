@@ -21,6 +21,7 @@ import { Quicklog } from './pages/main-layout/quicklog/quicklog';
 import { Importacion } from './pages/main-layout/importacion/importacion';
 import { Fotos } from './pages/main-layout/fotos/fotos';
 import { MiCuenta } from './pages/main-layout/mi-cuenta/mi-cuenta';
+import { ReporteDiarioPage } from './pages/main-layout/reporte-diario/reporte-diario';
 
 export const routes: Routes = [
   {
@@ -64,6 +65,7 @@ export const routes: Routes = [
       { path: 'quicklog', component: Quicklog },
       { path: 'fotos', component: Fotos },
       { path: 'importar', component: Importacion },
+      { path: 'reportes', component: ReporteDiarioPage },
       { path: 'plataformas', component: Plataforma },
       { path: 'maquinas', component: Maquina },
       { path: 'mi-cuenta', component: MiCuenta },
