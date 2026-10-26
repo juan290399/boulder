@@ -43,7 +43,9 @@ class ReporteDiarioExcelTest {
             Sheet hoja = libro.getSheet("2026-09-07");
             assertThat(hoja).isNotNull();
             assertThat(hoja.getRow(2).getCell(0).getStringCellValue()).isEqualTo("Sondaje");
-            assertThat(hoja.getRow(3).getCell(0).getStringCellValue()).isEqualTo("DDH-VERO-S-040-26");
+            // Ordenadas por código: el 038 va antes que el 040.
+            assertThat(hoja.getRow(3).getCell(0).getStringCellValue()).isEqualTo("DDH-VERO-S-038-26");
+            assertThat(hoja.getRow(4).getCell(0).getStringCellValue()).isEqualTo("DDH-VERO-S-040-26");
             assertThat(hoja.getRow(5).getCell(0).getStringCellValue()).isEqualTo("Total");
             assertThat(hoja.getRow(5).getCell(1).getNumericCellValue()).isEqualTo(48.50);
         }
