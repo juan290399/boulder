@@ -27,6 +27,11 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6")
 
+	// Lectura de las plantillas .xlsx que alimentan el importador. Solo se usa
+	// poi-ooxml (formato moderno); el .xls binario no se acepta a propósito,
+	// porque las plantillas llevan validación de datos y eso es xlsx.
+	implementation("org.apache.poi:poi-ooxml:5.5.1")
+
 	implementation("org.postgresql:postgresql:42.6.0")
     implementation("jakarta.validation:jakarta.validation-api:3.0.2")
 
@@ -45,6 +50,17 @@ dependencies {
 	implementation("com.fasterxml.jackson.core:jackson-databind")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.13.0")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.13.0")
+}
+
+// Spring resuelve @PathVariable("id") y @RequestParam("area") por el nombre del
+// parámetro cuando no se declara explícitamente, y ese nombre solo sobrevive en
+// el bytecode si se compila con -parameters. El plugin de Spring Boot ya lo
+// añade, pero se deja explícito porque es un requisito del código, no un detalle
+// del plugin: sin la bandera, todos los endpoints con parámetros fallan en
+// tiempo de ejecución. El equivalente para el compilador del IDE está en
+// .settings/org.eclipse.jdt.core.prefs.
+tasks.withType<JavaCompile> {
+	options.compilerArgs.add("-parameters")
 }
 
 tasks.withType<Test> {
