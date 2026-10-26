@@ -20,7 +20,7 @@
       <div class="toolbar__field" style="min-width: 300px;">
         <label class="form-label" for="sel-sondaje-fotos">Sondaje</label>
         <select id="sel-sondaje-fotos" class="form-select form-select-sm" [(ngModel)]="sondajeId" (change)="cargar()">
-          <option value="">— Elegí un sondaje —</option>
+          <option value="">— Elige un sondaje —</option>
           @for (s of sondajes(); track s.id) {
             <option [value]="s.id">{{ s.codigo }}</option>
           }
@@ -120,7 +120,7 @@
   @if (cargando()) {
     <div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Cargando…</p></div>
   } @else if (!sondajeId) {
-    <div class="empty-state"><i class="bi bi-camera"></i><p>Elegí un sondaje para ver sus fotos.</p></div>
+    <div class="empty-state"><i class="bi bi-camera"></i><p>Elige un sondaje para ver sus fotos.</p></div>
   } @else if (!fotos().length) {
     <div class="empty-state"><i class="bi bi-image"></i><p>Este sondaje todavía no tiene fotos. Agregalas con el botón de arriba o desde un tablet.</p></div>
   } @else {

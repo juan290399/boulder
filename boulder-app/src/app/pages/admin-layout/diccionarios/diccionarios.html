@@ -122,7 +122,7 @@
         <label class="form-label" for="grupo">Grupo litológico *</label>
         <select id="grupo" name="grupo" class="form-select mb-3"
                 [ngModel]="form().grupoId" (ngModelChange)="actualizarForm({ grupoId: $event })">
-          <option [ngValue]="null">— Elegí un grupo —</option>
+          <option [ngValue]="null">— Elige un grupo —</option>
           @for (g of gruposLitologicos(); track g.id) {
             <option [ngValue]="g.id">{{ g.codigo }} · {{ g.nombre }}</option>
           }
