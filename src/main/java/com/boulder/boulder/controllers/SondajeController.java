@@ -28,7 +28,7 @@ import com.boulder.boulder.services.SondajeService;
  * @since 1.0
  */
 @RestController
-@RequestMapping("/sondaje")
+@RequestMapping("/api/operacional/sondajes")
 @CrossOrigin(origins = "*")
 public class SondajeController {
 
@@ -49,13 +49,13 @@ public class SondajeController {
         return ResponseEntity.ok(sondajeService.obtenerPorId(id));
     }
 
-    @GetMapping("/{codigo}")
+    @GetMapping("/codigo/{codigo}")
     public ResponseEntity<SondajeDTO> obtenerPorCodigo(@PathVariable String codigo) {
         log.info("HTTP GET - Consultando sondaje individual por codigo: {}", codigo);
         return ResponseEntity.ok(sondajeService.obtenerPorCodigo(codigo));
     }
 
-    @GetMapping("/{collarId}")
+    @GetMapping("/collar/{collarId}")
     public ResponseEntity<SondajeDTO> obtenerPorCollar(@PathVariable UUID collarId) {
         log.info("HTTP GET - Recuperando sondajes ejecutados en la Collar ID: {}", collarId);
         return ResponseEntity.ok(sondajeService.obtenerPorCollar(collarId));
