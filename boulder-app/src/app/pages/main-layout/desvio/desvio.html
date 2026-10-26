@@ -76,7 +76,7 @@
           <label class="form-label" for="sel-sondaje-grafico">Sondaje</label>
           <select id="sel-sondaje-grafico" class="form-select form-select-sm"
                   [(ngModel)]="sondajeGrafico" (change)="graficarSondaje()">
-            <option value="">— Elegí un sondaje —</option>
+            <option value="">— Elige un sondaje —</option>
             @for (s of sondajes(); track s.id) {
               <option [value]="s.id">{{ s.codigo }} · {{ s.nombre }}</option>
             }
@@ -184,7 +184,7 @@
       } @else if (!sondajeGrafico) {
         <div class="empty-state">
           <i class="bi bi-graph-up"></i>
-          <p>Elegí un sondaje para ver su trayectoria planificada contra la medida.</p>
+          <p>Elige un sondaje para ver su trayectoria planificada contra la medida.</p>
         </div>
       } @else if (trayectoria(); as t) {
         @if (!t.estaciones.length) {
