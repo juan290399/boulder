@@ -41,6 +41,34 @@
 
     </appender>
 
+    <!--
+        Bitácora de seguridad: inicios de sesión correctos, fallidos y bloqueados.
+        Va a su propio archivo y se conserva 90 días, más que la bitácora general,
+        porque es la que se revisa después de un incidente. Nunca contiene
+        contraseñas ni tokens: el filtro de login solo registra usuario, IP y motivo.
+    -->
+    <appender name="SEGURIDAD"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+
+        <file>${LOG_PATH}/seguridad.log</file>
+
+        <rollingPolicy
+            class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/seguridad-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>90</maxHistory>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %msg%n</pattern>
+        </encoder>
+
+    </appender>
+
+    <logger name="com.boulder.boulder.seguridad" level="INFO" additivity="false">
+        <appender-ref ref="SEGURIDAD"/>
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
     <root level="INFO">
 
         <appender-ref ref="CONSOLE"/>

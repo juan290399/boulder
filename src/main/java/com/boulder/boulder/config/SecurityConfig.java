@@ -1,8 +1,11 @@
 package com.boulder.boulder.config;
 
+import java.time.Duration;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
+
+import com.google.common.base.Ticker;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -71,12 +74,21 @@ public class SecurityConfig {
         return codificador;
     }
 
+    /**
+     * Cinco fallos seguidos bloquean la cuenta quince minutos desde el último
+     * intento. Ver {@link LimiteIntentosLogin}.
+     */
+    @Bean
+    public LimiteIntentosLogin limiteIntentosLogin() {
+        return new LimiteIntentosLogin(5, Duration.ofMinutes(15), Ticker.systemTicker());
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         
         AuthenticationManager authManager = authenticationManager();
 
-        JwtAuthenticationFilter jwtAuthFilter = new JwtAuthenticationFilter(authManager, jwtUtils);
+        JwtAuthenticationFilter jwtAuthFilter = new JwtAuthenticationFilter(authManager, jwtUtils, limiteIntentosLogin());
         jwtAuthFilter.setFilterProcessesUrl("/api/auth/login");
 
         JwtAuthorizationFilter jwtAuthorizationFilter = new JwtAuthorizationFilter(jwtUtils);
