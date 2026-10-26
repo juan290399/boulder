@@ -2,11 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { catchError, debounceTime } from 'rxjs/operators';
 
 import { EventosService } from '../../../services/eventos.service';
 
+import { AvancePerforacionService } from '../../../services/avance-perforacion.service';
 import { FrenteAvanceService } from '../../../services/frente-avance.service';
 import {
   AvanceDensidadService,
@@ -18,14 +19,16 @@ import {
   CorteMuestraService,
   RecepcionCajaService,
 } from '../../../services/avance-operativo.service';
-import { AvanceOperativo, FrenteAvance } from '../../../models/operacional';
+import { AvanceOperativo, AvancePerforacion, FrenteAvance } from '../../../models/operacional';
+import { PartePerforacionForm } from './parte-perforacion/parte-perforacion';
 
-/** Descriptor de cada uno de los siete partes, para la pestaña de detalle. */
+/** Descriptor de cada parte (perforación y los siete de testigo), para la pestaña de detalle. */
 interface TipoParte {
   clave: string;
   etiqueta: string;
   icono: string;
-  api: AvanceOperativoApi<AvanceOperativo>;
+  /** Basta con poder listar por sondaje; el parte de perforación no hereda de AvanceOperativoApi. */
+  api: Pick<AvanceOperativoApi<AvanceOperativo>, 'listar'>;
   /** Columnas propias del parte, además de la cabecera común. */
   columnas: { campo: string; titulo: string; numerica?: boolean }[];
 }
@@ -42,7 +45,7 @@ interface TipoParte {
 @Component({
   selector: 'app-avance-operativo',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PartePerforacionForm],
   templateUrl: './avance-operativo.html',
   styleUrl: './avance-operativo.scss',
 })
@@ -51,6 +54,7 @@ export class AvanceOperativoPage implements OnInit {
   private readonly frenteService = inject(FrenteAvanceService);
   private readonly eventos = inject(EventosService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly perforacion = inject(AvancePerforacionService);
 
   readonly cargando = signal(false);
   readonly error = signal<string | null>(null);
@@ -62,8 +66,24 @@ export class AvanceOperativoPage implements OnInit {
   readonly partes = signal<AvanceOperativo[]>([]);
   readonly cargandoPartes = signal(false);
 
-  /** Los siete partes, en el orden real del flujo de testigo. */
+  /** Formulario del parte de perforación abierto: nuevo (parte null) o corrección. */
+  readonly formulario = signal<{ parte: AvancePerforacion | null } | null>(null);
+  readonly aviso = signal<string | null>(null);
+
+  /** La perforación y los siete partes de testigo, en el orden real del flujo. */
   readonly tipos: TipoParte[] = [
+    {
+      clave: 'perforacion', etiqueta: 'Perforación', icono: 'bi-arrow-down-circle',
+      api: { listar: (filtro): Observable<AvanceOperativo[]> => this.perforacion.buscar(filtro) },
+      columnas: [
+        { campo: 'responsable', titulo: 'Responsable' },
+        { campo: 'maquinaCodigo', titulo: 'Máquina' },
+        { campo: 'desde', titulo: 'Desde', numerica: true },
+        { campo: 'hasta', titulo: 'Hasta', numerica: true },
+        { campo: 'avance', titulo: 'Avance', numerica: true },
+        { campo: 'retornoPct', titulo: 'Retorno %', numerica: true },
+      ],
+    },
     {
       clave: 'recepcion', etiqueta: 'Recepción de cajas', icono: 'bi-box-seam',
       api: inject(RecepcionCajaService),
@@ -168,7 +188,7 @@ export class AvanceOperativoPage implements OnInit {
   });
 
   get tipoActual(): TipoParte {
-    return this.tipos.find(t => t.clave === this.tipoActivo()) ?? this.tipos[1];
+    return this.tipos.find(t => t.clave === this.tipoActivo()) ?? this.tipos[2];
   }
 
   ngOnInit(): void {
@@ -212,6 +232,8 @@ export class AvanceOperativoPage implements OnInit {
   }
 
   seleccionar(fila: FrenteAvance): void {
+    this.formulario.set(null);
+    this.aviso.set(null);
     if (this.seleccionado()?.sondajeId === fila.sondajeId) {
       this.seleccionado.set(null);
       return;
@@ -223,6 +245,29 @@ export class AvanceOperativoPage implements OnInit {
   elegirTipo(clave: string): void {
     this.tipoActivo.set(clave);
     this.cargarPartes();
+  }
+
+  /** Abre el formulario en la pestaña de perforación, para ver el parte entre los demás al guardarlo. */
+  nuevoParte(): void {
+    this.aviso.set(null);
+    if (this.tipoActivo() !== 'perforacion') {
+      this.elegirTipo('perforacion');
+    }
+    this.formulario.set({ parte: null });
+  }
+
+  editarParte(parte: AvanceOperativo): void {
+    this.aviso.set(null);
+    this.formulario.set({ parte: parte as unknown as AvancePerforacion });
+  }
+
+  parteGuardado(parte: AvancePerforacion): void {
+    const corregido = !!this.formulario()?.parte;
+    this.formulario.set(null);
+    this.aviso.set(`Parte N.º ${parte.numeroInterno} ${corregido ? 'corregido' : 'registrado'}: `
+      + `${parte.desde} → ${parte.hasta} m (${parte.avance} m).`);
+    this.cargarPartes();
+    this.cargarFrente(true);
   }
 
   private cargarPartes(): void {

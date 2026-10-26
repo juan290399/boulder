@@ -1,0 +1,175 @@
+<form class="parte" (ngSubmit)="guardar()">
+  <div class="panel__head">
+    <h2 class="panel__title">
+      {{ editando ? 'Corregir parte de perforación' : 'Nuevo parte de perforación' }}
+      · <span class="mono">{{ sondajeCodigo() }}</span>
+    </h2>
+    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cancelado.emit()" aria-label="Cerrar">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  @if (cargando()) {
+    <div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Preparando el parte…</p></div>
+  } @else {
+    <div class="panel__body">
+
+      @if (error(); as mensaje) {
+        <div class="alert-inline"><i class="bi bi-exclamation-triangle"></i>{{ mensaje }}</div>
+      }
+
+      <fieldset class="bloque">
+        <legend>Turno</legend>
+        <div class="row g-2">
+          <div class="col-6 col-md-3">
+            <label class="form-label" for="pp-fecha">Fecha *</label>
+            <input id="pp-fecha" name="fecha" type="date" class="form-control form-control-sm"
+                   [max]="hoyIso" required [(ngModel)]="f.fecha">
+          </div>
+          <div class="col-6 col-md-3">
+            <span class="form-label d-block">Turno *</span>
+            <div class="btn-group btn-group-sm w-100" role="group" aria-label="Turno">
+              <input type="radio" class="btn-check" name="turno" id="pp-dia" value="dia" [(ngModel)]="f.turno">
+              <label class="btn btn-outline-primary" for="pp-dia"><i class="bi bi-sun me-1"></i>Día</label>
+              <input type="radio" class="btn-check" name="turno" id="pp-noche" value="noche" [(ngModel)]="f.turno">
+              <label class="btn btn-outline-primary" for="pp-noche"><i class="bi bi-moon me-1"></i>Noche</label>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="pp-responsable">Responsable del turno</label>
+            <input id="pp-responsable" name="responsable" class="form-control form-control-sm" maxlength="80"
+                   [(ngModel)]="f.responsable">
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="bloque">
+        <legend>Equipo</legend>
+        <div class="row g-2">
+          <div class="col-12 col-md-5">
+            <label class="form-label" for="pp-maquina">Máquina</label>
+            <select id="pp-maquina" name="maquinaId" class="form-select form-select-sm" [(ngModel)]="f.maquinaId">
+              <option [ngValue]="undefined">—</option>
+              @for (m of maquinas(); track m.id) {
+                <option [ngValue]="m.id">{{ m.codigo }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-8 col-md-5">
+            <label class="form-label" for="pp-plataforma">Plataforma</label>
+            <select id="pp-plataforma" name="plataformaId" class="form-select form-select-sm" [(ngModel)]="f.plataformaId">
+              <option [ngValue]="undefined">—</option>
+              @for (p of plataformas(); track p.id) {
+                <option [ngValue]="p.id">{{ p.codigo }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-4 col-md-2">
+            <label class="form-label" for="pp-linea">Línea</label>
+            <input id="pp-linea" name="linea" class="form-control form-control-sm text-uppercase" maxlength="10"
+                   list="pp-lineas" [(ngModel)]="f.linea">
+            <datalist id="pp-lineas">
+              @for (l of lineas; track l) { <option [value]="l"></option> }
+            </datalist>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="bloque">
+        <legend>Avance</legend>
+        <div class="row g-2 align-items-end">
+          <div class="col-6 col-md-3">
+            <label class="form-label" for="pp-desde">Desde (m) *</label>
+            <input id="pp-desde" name="desde" type="number" step="0.01" min="0" class="form-control form-control-sm num"
+                   required [(ngModel)]="f.desde">
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label" for="pp-hasta">Hasta (m) *</label>
+            <input id="pp-hasta" name="hasta" type="number" step="0.01" min="0" class="form-control form-control-sm num"
+                   required [(ngModel)]="f.hasta">
+          </div>
+          <div class="col-6 col-md-3">
+            <span class="form-label d-block">Avance del turno</span>
+            <div class="avance" [class.avance--vacio]="avance() === null">
+              {{ avance() === null ? '—' : (avance() | number:'1.2-2') + ' m' }}
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label" for="pp-retorno">Retorno de agua (%)</label>
+            <input id="pp-retorno" name="retornoPct" type="number" step="1" min="0" max="100"
+                   class="form-control form-control-sm num" [(ngModel)]="f.retornoPct">
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="bloque">
+        <legend>Casing <span class="tenue">(si se entubó en el turno)</span></legend>
+        <div class="row g-2">
+          <div class="col-12 col-md-4">
+            <label class="form-label" for="pp-casing">Tipo</label>
+            <input id="pp-casing" name="casingTipo" class="form-control form-control-sm" maxlength="15"
+                   placeholder="HW, NW…" [(ngModel)]="f.casingTipo">
+          </div>
+          <div class="col-6 col-md-4">
+            <label class="form-label" for="pp-casing-desde">Desde (m)</label>
+            <input id="pp-casing-desde" name="casingDesde" type="number" step="0.01" min="0"
+                   class="form-control form-control-sm num" [(ngModel)]="f.casingDesde">
+          </div>
+          <div class="col-6 col-md-4">
+            <label class="form-label" for="pp-casing-hasta">Hasta (m)</label>
+            <input id="pp-casing-hasta" name="casingHasta" type="number" step="0.01" min="0"
+                   class="form-control form-control-sm num" [(ngModel)]="f.casingHasta">
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="bloque">
+        <legend>Dotación</legend>
+        <datalist id="pp-empleados">
+          @for (e of empleados(); track e.id) { <option [value]="nombreCompleto(e)"></option> }
+        </datalist>
+        <datalist id="pp-cargos">
+          @for (c of cargos; track c) { <option [value]="c"></option> }
+        </datalist>
+
+        @for (p of f.personal; track $index; let i = $index) {
+          <div class="integrante">
+            <input class="form-control form-control-sm" placeholder="Nombre" list="pp-empleados" maxlength="80"
+                   [name]="'nombre' + i" [(ngModel)]="p.nombre" (change)="enlazar(p)"
+                   [attr.aria-label]="'Nombre del integrante ' + (i + 1)">
+            <input class="form-control form-control-sm" placeholder="Cargo" list="pp-cargos" maxlength="40"
+                   [name]="'cargo' + i" [(ngModel)]="p.cargo"
+                   [attr.aria-label]="'Cargo del integrante ' + (i + 1)">
+            <span class="integrante__estado" [title]="p.perforistaId ? 'Empleado registrado' : 'Nombre libre'">
+              <i class="bi" [class.bi-person-check]="p.perforistaId" [class.bi-person]="!p.perforistaId"></i>
+            </span>
+            <button type="button" class="btn btn-sm btn-link" (click)="quitarIntegrante(i)"
+                    [attr.aria-label]="'Quitar integrante ' + (i + 1)">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        }
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="agregarIntegrante()">
+          <i class="bi bi-person-plus me-1"></i>Agregar integrante
+        </button>
+      </fieldset>
+
+      <label class="form-label" for="pp-comentarios">Comentarios</label>
+      <textarea id="pp-comentarios" name="comentarios" rows="2" class="form-control form-control-sm mb-3"
+                placeholder="Paradas, cambios de broca, pérdida de circulación…" [(ngModel)]="f.comentarios"></textarea>
+
+      @if (avisos().length) {
+        <ul class="avisos">
+          @for (a of avisos(); track a) { <li><i class="bi bi-exclamation-circle me-1"></i>{{ a }}</li> }
+        </ul>
+      }
+
+      <div class="acciones">
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cancelado.emit()">Cancelar</button>
+        <button type="submit" class="btn btn-sm btn-primary" [disabled]="!completo() || guardando()">
+          <i class="bi bi-check-lg me-1"></i>{{ guardando() ? 'Guardando…' : (editando ? 'Guardar corrección' : 'Registrar parte') }}
+        </button>
+      </div>
+    </div>
+  }
+</form>

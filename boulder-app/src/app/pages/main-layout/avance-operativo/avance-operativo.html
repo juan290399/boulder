@@ -154,16 +154,36 @@
 </div>
 
 @if (seleccionado(); as fila) {
+  @if (formulario(); as fm) {
+    <div class="panel">
+      <app-parte-perforacion
+        [sondajeId]="fila.sondajeId" [sondajeCodigo]="fila.sondajeCodigo" [parte]="fm.parte"
+        (guardado)="parteGuardado($event)" (cancelado)="formulario.set(null)" />
+    </div>
+  }
+
   <div class="panel">
     <div class="panel__head">
       <h2 class="panel__title">
         Partes de <span class="mono">{{ fila.sondajeCodigo }}</span>
       </h2>
-      <button type="button" class="btn btn-sm btn-outline-secondary"
-              (click)="seleccionar(fila)" aria-label="Cerrar detalle">
-        <i class="bi bi-x-lg"></i>
-      </button>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-sm btn-primary" (click)="nuevoParte()" [disabled]="formulario()">
+          <i class="bi bi-plus-lg me-1"></i>Parte de perforación
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary"
+                (click)="seleccionar(fila)" aria-label="Cerrar detalle">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
     </div>
+
+    @if (aviso(); as a) {
+      <div class="alert alert-success py-2 mx-3 mt-3 mb-0 d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-check-circle me-1"></i>{{ a }}</span>
+        <button type="button" class="btn-close" aria-label="Cerrar" (click)="aviso.set(null)"></button>
+      </div>
+    }
 
     <div class="tabs">
       @for (tipo of tipos; track tipo.clave) {
@@ -195,6 +215,7 @@
                 <th [class.num]="col.numerica">{{ col.titulo }}</th>
               }
               <th>Estado</th>
+              @if (tipoActivo() === 'perforacion') { <th></th> }
             </tr>
           </thead>
           <tbody>
@@ -207,6 +228,14 @@
                   <td [class.num]="col.numerica">{{ valor(parte, col.campo) ?? '—' }}</td>
                 }
                 <td><span class="chip chip--brand">{{ parte.estado }}</span></td>
+                @if (tipoActivo() === 'perforacion') {
+                  <td class="text-end">
+                    <button type="button" class="btn btn-sm btn-link" title="Corregir" (click)="editarParte(parte)"
+                            [attr.aria-label]="'Corregir parte ' + parte.numeroInterno">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                  </td>
+                }
               </tr>
             }
           </tbody>

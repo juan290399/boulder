@@ -1,0 +1,63 @@
+/* Solo lo propio del formulario; panel, botones y campos salen del sistema de diseño. */
+
+.bloque {
+  border: 0;
+  margin: 0 0 1rem;
+  padding: 0;
+
+  legend {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--bo-ink-3);
+    margin-bottom: 0.4rem;
+  }
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* El avance no se teclea: se muestra calculado, con el peso de un resultado. */
+.avance {
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--bo-brand-600);
+  padding: 0.15rem 0;
+
+  &--vacio {
+    color: var(--bo-ink-3);
+    font-weight: 500;
+  }
+}
+
+.integrante {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto auto;
+  gap: 0.4rem;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+
+.integrante__estado {
+  color: var(--bo-ink-3);
+}
+
+.avisos {
+  list-style: none;
+  padding: 0.5rem 0.75rem;
+  margin: 0 0 1rem;
+  border-radius: 6px;
+  background: var(--bo-warn-soft);
+  color: var(--bo-warn);
+  font-size: 0.85rem;
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
