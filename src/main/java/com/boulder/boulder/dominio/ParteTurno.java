@@ -1,6 +1,7 @@
 package com.boulder.boulder.dominio;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,6 +13,8 @@ import java.util.List;
  * el formulario y para la carga desde Excel.</p>
  */
 public final class ParteTurno {
+
+    private static final BigDecimal CIEN = BigDecimal.valueOf(100);
 
     private ParteTurno() {
     }
@@ -29,6 +32,29 @@ public final class ParteTurno {
      */
     public static List<String> errores(BigDecimal desde, BigDecimal hasta, BigDecimal avance,
             BigDecimal retornoPct, BigDecimal casingDesde, BigDecimal casingHasta) {
-        return List.of();
+        List<String> errores = new ArrayList<>();
+        if (desde != null && desde.signum() < 0) {
+            errores.add("desde (" + desde.toPlainString() + ") no puede ser negativo");
+        }
+        if (desde != null && hasta != null && hasta.compareTo(desde) < 0) {
+            errores.add("hasta (" + hasta.toPlainString() + ") no puede ser menor que desde ("
+                    + desde.toPlainString() + ")");
+        } else if (desde != null && hasta != null && avance != null
+                && hasta.subtract(desde).compareTo(avance) != 0) {
+            errores.add("avance (" + avance.toPlainString() + ") no coincide con hasta menos desde ("
+                    + hasta.subtract(desde).toPlainString() + ")");
+        }
+        if (retornoPct != null && (retornoPct.signum() < 0 || retornoPct.compareTo(CIEN) > 0)) {
+            errores.add("retorno_pct: tiene que estar entre 0 y 100");
+        }
+        if (casingDesde != null && casingHasta != null && casingHasta.compareTo(casingDesde) < 0) {
+            errores.add("casing: termina (" + casingHasta.toPlainString() + ") antes de empezar ("
+                    + casingDesde.toPlainString() + ")");
+        }
+        if (casingHasta != null && hasta != null && casingHasta.compareTo(hasta) > 0) {
+            errores.add("casing: baja hasta " + casingHasta.toPlainString() + " m y el pozo llega a "
+                    + hasta.toPlainString() + " m");
+        }
+        return errores;
     }
 }
