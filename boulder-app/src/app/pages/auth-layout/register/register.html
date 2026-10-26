@@ -1,27 +1,45 @@
- <h2>Crear Cuenta</h2>
-    <p class="subtitle">Regístrate para empezar a operar</p>
+<h2>Crear Cuenta</h2>
+<p class="subtitle">Regístrate para empezar a operar</p>
 
-    <form (ngSubmit)="onRegister()">
-      <div class="form-group">
-        <label>Nombre Completo</label>
-        <input type="text" [(ngModel)]="user.nombre" name="nombre" required placeholder="Juan Pérez">
-      </div>
+<div *ngIf="okMessage" class="alert alert-success p-3 mb-3">
+  {{ okMessage }}
+  <button type="button" class="btn btn-link p-0 ms-1" (click)="irAlLogin()">Ir al inicio de sesión</button>
+</div>
 
-      <div class="form-group">
-        <label>Correo Electrónico</label>
-        <input type="email" [(ngModel)]="user.email" name="email" required placeholder="juan@correo.com">
-      </div>
+<div *ngIf="errorMessage" class="alert alert-danger p-3 mb-3">{{ errorMessage }}</div>
 
-      <div class="form-group">
-        <label>Contraseña</label>
-        <input type="password" [(ngModel)]="user.password" name="password" required placeholder="Mínimo 6 caracteres">
-      </div>
+<form (ngSubmit)="onRegister()">
+  <div class="form-group">
+    <label>Nombres</label>
+    <input type="text" [(ngModel)]="user.nombres" name="nombres" required placeholder="Juan Carlos">
+  </div>
 
-      <button type="submit" [disabled]="loading" class="btn-primary">
-        {{ loading ? 'Registrando...' : 'Registrarse' }}
-      </button>
-    </form>
+  <div class="form-group">
+    <label>Apellidos</label>
+    <input type="text" [(ngModel)]="user.apellidos" name="apellidos" required placeholder="Pérez Quispe">
+  </div>
 
-    <div class="footer-links">
-      ¿Ya tienes cuenta? <a routerLink="/auth/login">Inicia sesión</a>
-    </div>
+  <div class="form-group">
+    <label>Correo Electrónico</label>
+    <input type="email" [(ngModel)]="user.correo" name="correo" required placeholder="juan@correo.com">
+  </div>
+
+  <div class="form-group">
+    <label>Usuario</label>
+    <input type="text" [(ngModel)]="user.usuario" name="usuario" required minlength="4" placeholder="jperez">
+  </div>
+
+  <div class="form-group">
+    <label>Contraseña</label>
+    <input type="password" [(ngModel)]="user.contrasenia" name="contrasenia" required minlength="6"
+           placeholder="Mínimo 6 caracteres">
+  </div>
+
+  <button type="submit" [disabled]="loading" class="btn-primary">
+    {{ loading ? 'Registrando...' : 'Registrarse' }}
+  </button>
+</form>
+
+<div class="footer-links">
+  ¿Ya tienes cuenta? <a routerLink="/auth/login">Inicia sesión</a>
+</div>

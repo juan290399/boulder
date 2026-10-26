@@ -1,80 +1,29 @@
-<div class="sidebar d-flex flex-column">
+<aside class="app-sidebar">
 
-  <!-- Logo -->
-  <div class="sidebar-header px-4 py-4">
-    <div class="d-flex align-items-center">
-      <div class="logo-icon me-3">
-        <i class="bi bi-gem"></i>
-      </div>
-
-      <div>
-        <h4 class="logo-title mb-0">Boulder</h4>
-        <small class="logo-subtitle">
-          Gestión Geológica
-        </small>
-      </div>
+  <div class="app-sidebar__brand">
+    <div class="app-sidebar__mark">
+      <i class="bi bi-gem"></i>
+    </div>
+    <div>
+      <h1 class="app-sidebar__title">Boulder</h1>
+      <span class="app-sidebar__subtitle">Gestión geológica</span>
     </div>
   </div>
 
-  <!-- Menu -->
-  <ul class="nav flex-column sidebar-menu px-3 mt-3">
-
-    <li class="nav-item">
-      <a class="nav-link active" href="#">
-        <i class="bi bi-grid"></i>
-        Dashboard
+  <!-- El menú se arma en el componente y no a mano en la plantilla: así el
+       orden de las entradas se decide en un solo lugar y agregar una pantalla
+       no obliga a tocar el HTML. -->
+  <nav class="app-sidebar__nav">
+    <ng-container *ngFor="let grupo of grupos">
+      <div class="app-sidebar__section">{{ grupo.titulo }}</div>
+      <a *ngFor="let item of grupo.items"
+         class="app-sidebar__link"
+         [routerLink]="item.ruta"
+         routerLinkActive="active">
+        <i class="bi" [ngClass]="item.icono"></i>
+        <span>{{ item.etiqueta }}</span>
       </a>
-    </li>
+    </ng-container>
+  </nav>
 
-    <li class="nav-item">
-      <a class="nav-link" href="#">
-        <i class="bi bi-folder2-open"></i>
-        Proyectos
-      </a>
-    </li>
-
-    <li class="nav-item">
-      <a class="nav-link" href="#">
-        <i class="bi bi-geo-alt"></i>
-        Sondajes
-      </a>
-    </li>
-
-    <li class="nav-item">
-      <a class="nav-link" href="#">
-        <i class="bi bi-people"></i>
-        Personal
-      </a>
-    </li>
-
-    <li class="nav-item">
-      <a class="nav-link" href="#">
-        <i class="bi bi-tools"></i>
-        Equipos
-      </a>
-    </li>
-
-    <li class="nav-item">
-      <a class="nav-link" href="#">
-        <i class="bi bi-bezier2"></i>
-        Geología
-      </a>
-    </li>
-
-    <li class="nav-item">
-      <a class="nav-link" href="#">
-        <i class="bi bi-clipboard-data"></i>
-        Reportes
-      </a>
-    </li>
-
-    <li class="nav-item">
-      <a class="nav-link" href="#">
-        <i class="bi bi-box-seam"></i>
-        Inventario
-      </a>
-    </li>
-
-  </ul>
-
-</div>
+</aside>

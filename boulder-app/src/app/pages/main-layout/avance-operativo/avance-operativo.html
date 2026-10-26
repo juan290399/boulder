@@ -1,0 +1,217 @@
+<div class="page-head">
+  <div>
+    <h1 class="page-head__title">Avances operativos</h1>
+    <p class="page-head__sub">
+      Hasta dónde llegó cada etapa del flujo de testigo, sondaje por sondaje.
+    </p>
+  </div>
+
+  <div class="page-head__actions">
+    <button type="button" class="btn btn-sm"
+            [class.btn-primary]="soloActivos()"
+            [class.btn-outline-secondary]="!soloActivos()"
+            (click)="alternarActivos()">
+      <i class="bi bi-funnel me-1"></i>
+      {{ soloActivos() ? 'Solo activos' : 'Todos los sondajes' }}
+    </button>
+    <button type="button" class="btn btn-sm btn-outline-secondary"
+            (click)="cargarFrente()" [disabled]="cargando()">
+      <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
+    </button>
+  </div>
+</div>
+
+@if (error(); as mensaje) {
+  <div class="alert-inline">
+    <i class="bi bi-exclamation-triangle"></i>{{ mensaje }}
+  </div>
+}
+
+<div class="metric-grid">
+  <div class="metric">
+    <div class="metric__label"><i class="bi bi-record-circle"></i>Sondajes activos</div>
+    <div class="metric__value">{{ resumen().activos }}</div>
+    <div class="metric__hint">sin fecha de cierre</div>
+  </div>
+
+  <div class="metric">
+    <div class="metric__label"><i class="bi bi-journal-text"></i>Rezago de logueo</div>
+    <div class="metric__value">{{ resumen().rezagoLogueo | number:'1.0-1' }} m</div>
+    <div class="metric__hint">perforado y todavía sin describir</div>
+  </div>
+
+  <div class="metric">
+    <div class="metric__label"><i class="bi bi-bag"></i>Muestras embolsadas</div>
+    <div class="metric__value">{{ resumen().muestras | number }}</div>
+    <div class="metric__hint">acumulado de los sondajes en lista</div>
+  </div>
+
+  <div class="metric">
+    <div class="metric__label"><i class="bi bi-pause-circle"></i>Sin movimiento</div>
+    <div class="metric__value">{{ resumen().detenidos }}</div>
+    <div class="metric__hint">activos con más de 7 días sin partes</div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel__head">
+    <h2 class="panel__title">Frente de avance</h2>
+    <span class="text-muted small">{{ frente().length }} sondajes</span>
+  </div>
+
+  @if (cargando()) {
+    <div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Cargando…</p></div>
+  } @else if (!frente().length) {
+    <div class="empty-state">
+      <i class="bi bi-inbox"></i>
+      <p>No hay sondajes que mostrar con este filtro.</p>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Sondaje</th>
+            <th class="num">Perforado</th>
+            <th class="num">Programa</th>
+            <th style="min-width: 380px;">Etapas del flujo</th>
+            <th>Etapa crítica</th>
+            <th>Último parte</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (fila of frente(); track fila.sondajeId) {
+            <tr class="fila-sondaje"
+                [class.fila-sondaje--abierta]="seleccionado()?.sondajeId === fila.sondajeId"
+                (click)="seleccionar(fila)">
+
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi"
+                     [class.bi-chevron-right]="seleccionado()?.sondajeId !== fila.sondajeId"
+                     [class.bi-chevron-down]="seleccionado()?.sondajeId === fila.sondajeId"></i>
+                  <div>
+                    <div class="mono fw-semibold">{{ fila.sondajeCodigo }}</div>
+                    <div class="text-muted small">{{ fila.sondajeNombre }}</div>
+                  </div>
+                </div>
+              </td>
+
+              <td class="num">{{ fila.etapas[0].profundidad | number:'1.0-2' }} m</td>
+
+              <td class="num">
+                {{ fila.profundidadFinal | number:'1.0-1' }} m
+                @if (fila.pctProgramado !== null) {
+                  <div class="text-muted small">{{ fila.pctProgramado }}%</div>
+                }
+              </td>
+
+              <!-- Siete barras, una por etapa, en el orden del flujo. Se lee de
+                   un vistazo dónde se corta la cadena. -->
+              <td>
+                <div class="etapas">
+                  @for (etapa of fila.etapas; track etapa.clave) {
+                    <div class="etapas__item"
+                         [title]="etapa.nombre + ': ' + (etapa.profundidad ?? 0) + ' m'
+                                  + (etapa.rezago ? '  ·  ' + etapa.rezago + ' m de atraso' : '')">
+                      <div class="track">
+                        <div class="track__fill" [ngClass]="tonoEtapa(etapa.pctSobrePerforado)"
+                             [style.width.%]="etapa.pctSobrePerforado ?? 0"></div>
+                      </div>
+                      <span class="etapas__cap">{{ abrevia(etapa.clave) }}</span>
+                    </div>
+                  }
+                </div>
+              </td>
+
+              <td>
+                @if (fila.etapaCritica) {
+                  <span class="chip chip--warn">
+                    {{ nombreEtapa(fila, fila.etapaCritica) }}
+                    · {{ fila.rezagoMaximo | number:'1.0-1' }} m
+                  </span>
+                } @else {
+                  <span class="chip chip--ok">Al día</span>
+                }
+              </td>
+
+              <td>
+                @if (fila.ultimaActividad) {
+                  <span [ngClass]="tonoDias(fila.diasSinMovimiento)">
+                    {{ fila.diasSinMovimiento }} d
+                  </span>
+                  <div class="text-muted small">{{ fila.ultimaActividad }}</div>
+                } @else {
+                  <span class="chip">sin partes</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+@if (seleccionado(); as fila) {
+  <div class="panel">
+    <div class="panel__head">
+      <h2 class="panel__title">
+        Partes de <span class="mono">{{ fila.sondajeCodigo }}</span>
+      </h2>
+      <button type="button" class="btn btn-sm btn-outline-secondary"
+              (click)="seleccionar(fila)" aria-label="Cerrar detalle">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="tabs">
+      @for (tipo of tipos; track tipo.clave) {
+        <button type="button" class="tabs__btn"
+                [class.tabs__btn--activo]="tipoActivo() === tipo.clave"
+                (click)="elegirTipo(tipo.clave)">
+          <i class="bi" [ngClass]="tipo.icono"></i>
+          <span>{{ tipo.etiqueta }}</span>
+        </button>
+      }
+    </div>
+
+    @if (cargandoPartes()) {
+      <div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Cargando partes…</p></div>
+    } @else if (!partes().length) {
+      <div class="empty-state">
+        <i class="bi bi-file-earmark-x"></i>
+        <p>Este sondaje no tiene partes de {{ tipoActual.etiqueta | lowercase }}.</p>
+      </div>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="num">N.º</th>
+              <th>Fecha</th>
+              <th>Turno</th>
+              @for (col of tipoActual.columnas; track col.campo) {
+                <th [class.num]="col.numerica">{{ col.titulo }}</th>
+              }
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (parte of partes(); track parte.id) {
+              <tr>
+                <td class="num text-muted">{{ parte.numeroInterno }}</td>
+                <td>{{ parte.fecha }}</td>
+                <td>{{ parte.turno ?? '—' }}</td>
+                @for (col of tipoActual.columnas; track col.campo) {
+                  <td [class.num]="col.numerica">{{ valor(parte, col.campo) ?? '—' }}</td>
+                }
+                <td><span class="chip chip--brand">{{ parte.estado }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+}

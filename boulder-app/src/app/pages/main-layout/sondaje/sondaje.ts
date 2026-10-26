@@ -1,162 +1,150 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
+
+import { SondajeService } from '../../../services/sondaje.service';
+import { ProyectoService } from '../../../services/proyecto.service';
+import { CollarService } from '../../../services/collar.service';
+import { PlataformaService } from '../../../services/plataforma.service';
+import { MaquinaService } from '../../../services/maquina.service';
+import {
+  Sondaje as SondajeModel,
+  Proyecto,
+  Collar,
+  Plataforma,
+  Maquina,
+} from '../../../models/operacional';
+
+const FORM_VACIO = (): SondajeModel => ({
+  codigo: '',
+  nombre: '',
+  proyectoId: '',
+  collarId: '',
+  plataformaId: '',
+  maquinaId: '',
+  programaSondajeId: '',
+  azimutSetup: undefined,
+  inclinacionSetup: undefined,
+  profundidadActual: 0,
+  profundidadFinal: undefined,
+  fechaInicio: undefined,
+  fechaFin: undefined,
+  campania: '',
+  notas: '',
+});
 
 @Component({
   selector: 'app-sondaje',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule
-  ],
+  imports: [CommonModule, FormsModule],
   templateUrl: './sondaje.html',
-  styleUrl: './sondaje.scss'
+  styleUrl: './sondaje.scss',
 })
 export class Sondaje implements OnInit {
+  private readonly service = inject(SondajeService);
+  private readonly proyectoService = inject(ProyectoService);
+  private readonly collarService = inject(CollarService);
+  private readonly plataformaService = inject(PlataformaService);
+  private readonly maquinaService = inject(MaquinaService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
-  private baseUrl = 'http://localhost:8080/sondaje'; 
+  sondajes: SondajeModel[] = [];
+  proyectos: Proyecto[] = [];
+  collares: Collar[] = [];
+  plataformas: Plataforma[] = [];
+  maquinas: Maquina[] = [];
 
-  sondajes: any[] = [];
+  form: SondajeModel & { id?: string } = FORM_VACIO();
 
-  form: any = {
-    id: null,
-    codigo: '',
-    profundidadMaxima: null,
-    inclinacion: null,      
-    plataformaId: null,    
-    estado: 'EN_PROGRESO'
-  };
-
-  busquedaCodigo: string = '';
-  busquedaId: string = '';
+  busquedaCodigo = '';
+  busquedaId = '';
   loading = false;
-
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
+  mensaje = '';
 
   ngOnInit(): void {
-    this.listarSondajes();
+    forkJoin({
+      proyectos: this.proyectoService.listar(),
+      collares: this.collarService.listar(),
+      plataformas: this.plataformaService.listar(),
+      maquinas: this.maquinaService.listar(),
+    }).subscribe({
+      next: (r) => {
+        this.proyectos = r.proyectos;
+        this.collares = r.collares;
+        this.plataformas = r.plataformas;
+        this.maquinas = r.maquinas;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('No se pudieron cargar los catálogos', err),
+    });
+    this.listar();
   }
 
-  listarSondajes(): void {
-    if (this.loading) return;
+  listar(): void {
     this.loading = true;
-
-    console.log('DEBUG: Listando sondajes desde:', this.baseUrl);
-
-    this.http.get<any[]>(this.baseUrl)
-      .subscribe({
-        next: (data) => {
-          this.sondajes = Array.isArray(data) ? [...data] : [data];
-          console.log('INFO: Sondajes cargados', this.sondajes.length);
-          this.loading = false;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('ERROR: listarSondajes', err);
-          this.loading = false;
-          this.cdr.detectChanges();
-        }
-      });
+    this.service.listar().subscribe({
+      next: (data) => this.setLista(data),
+      error: (err) => this.fallo('No se pudo cargar el listado de sondajes', err),
+    });
   }
 
-  crearSondaje(): void {
-    console.log('DEBUG: Creando registro de sondaje', this.form);
-
-    this.http.post(this.baseUrl, this.form)
-      .subscribe({
-        next: (res: any) => {
-          console.log('INFO: Sondaje creado', res);
-          this.listarSondajes();
-          this.limpiarFormulario();
-        },
-        error: (err) => {
-          console.error('ERROR: crearSondaje', err);
-        }
-      });
-  }
-
-  actualizarSondaje(): void {
-    if (!this.form.id) {
-      console.warn('WARN: No hay ID para actualizar');
-      return;
-    }
-
-    console.log('DEBUG: Actualizando sondaje con ID:', this.form.id);
-
-    this.http.put(`${this.baseUrl}/${this.form.id}`, this.form)
-      .subscribe({
-        next: (res: any) => {
-          console.log('INFO: Sondaje actualizado', res);
-          this.listarSondajes();
-          this.limpiarFormulario();
-        },
-        error: (err) => {
-          console.error('ERROR: actualizarSondaje', err);
-        }
-      });
+  guardar(): void {
+    const op$ = this.form.id
+      ? this.service.actualizar(this.form.id, this.form)
+      : this.service.crear(this.form);
+    op$.subscribe({
+      next: () => {
+        this.mensaje = this.form.id ? 'Sondaje actualizado' : 'Sondaje registrado';
+        this.limpiar();
+        this.listar();
+      },
+      error: (err) => this.fallo('No se pudo guardar el sondaje', err),
+    });
   }
 
   buscarPorCodigo(): void {
     if (!this.busquedaCodigo.trim()) return;
-    if (this.loading) return;
     this.loading = true;
-
-    console.log('DEBUG: Buscando sondaje por código', this.busquedaCodigo);
-
-    this.http.get<any>(`${this.baseUrl}/codigo/${this.busquedaCodigo.trim()}`)
-      .subscribe({
-        next: (res) => {
-          this.sondajes = res ? [res] : [];
-          this.loading = false;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('ERROR: buscarPorCodigo', err);
-          this.loading = false;
-          this.cdr.detectChanges();
-        }
-      });
+    this.service.obtenerPorCodigo(this.busquedaCodigo.trim()).subscribe({
+      next: (s) => this.setLista(s ? [s] : []),
+      error: (err) => this.fallo('Sin resultados por código', err),
+    });
   }
 
   buscarPorId(): void {
     if (!this.busquedaId.trim()) return;
-    if (this.loading) return;
     this.loading = true;
-
-    console.log('DEBUG: Buscando sondaje por ID', this.busquedaId);
-
-    this.http.get<any>(`${this.baseUrl}/${this.busquedaId.trim()}`)
-      .subscribe({
-        next: (res) => {
-          this.sondajes = res ? [res] : [];
-          this.loading = false;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('ERROR: buscarPorId', err);
-          this.loading = false;
-          this.cdr.detectChanges();
-        }
-      });
+    this.service.obtenerPorId(this.busquedaId.trim()).subscribe({
+      next: (s) => this.setLista(s ? [s] : []),
+      error: (err) => this.fallo('Sin resultados por ID', err),
+    });
   }
 
-  editar(sondaje: any): void {
-    console.log('DEBUG: Cargando sondaje al formulario', sondaje);
+  nombreProyecto(id?: string): string {
+    return this.proyectos.find((p) => p.id === id)?.nombre ?? '—';
+  }
+
+  editar(sondaje: SondajeModel): void {
     this.form = { ...sondaje };
     this.cdr.detectChanges();
   }
 
-  limpiarFormulario(): void {
-    console.log('DEBUG: Limpiando formulario de sondajes');
-    this.form = {
-      id: null,
-      codigo: '',
-      profundidadMaxima: null,
-      inclinacion: null,
-      plataformaId: null,
-      estado: 'EN_PROGRESO'
-    };
-    this.cdr.detectChanges(); 
+  limpiar(): void {
+    this.form = FORM_VACIO();
+    this.cdr.detectChanges();
+  }
+
+  private setLista(data: SondajeModel[]): void {
+    this.sondajes = [...data];
+    this.loading = false;
+    this.cdr.detectChanges();
+  }
+
+  private fallo(msg: string, err: unknown): void {
+    console.error(msg, err);
+    this.mensaje = msg;
+    this.loading = false;
+    this.cdr.detectChanges();
   }
 }

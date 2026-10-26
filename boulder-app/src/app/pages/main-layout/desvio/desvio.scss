@@ -1,0 +1,34 @@
+/* Casi todo sale del sistema de diseño. Acá queda lo propio de la pantalla. */
+
+.fila-medicion {
+  cursor: pointer;
+
+  &--abierta {
+    background: var(--bo-brand-soft) !important;
+  }
+}
+
+/* Las dos comparativas, lado a lado en pantalla ancha y apiladas en angosta.
+   Van juntas a propósito: el azimut y la inclinación se leen en pareja, igual
+   que en la imagen que hoy circula por WhatsApp. */
+.graficos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.seccion {
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: var(--bo-ink);
+  margin: 0 0 0.9rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--bo-border);
+}
+
+/* El código de sondaje se partía en cuatro renglones: la columna es angosta y
+   los guiones son puntos de corte válidos para el navegador. */
+.fila-medicion .mono {
+  white-space: nowrap;
+}

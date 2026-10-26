@@ -1,0 +1,103 @@
+/* Solo lo propio de esta pantalla: el resto sale de las primitivas de
+   styles.scss. */
+
+/* El número de paso delante del título del panel. Los tres pasos van en orden
+   y el orden es la pantalla: elegir, subir, leer el resultado. */
+.paso {
+  display: inline-grid;
+  place-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  margin-right: 0.55rem;
+  border-radius: 50%;
+  background: var(--bo-brand-soft);
+  color: var(--bo-brand-600);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.plantillas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.75rem;
+}
+
+.plantilla {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  text-align: left;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--bo-border);
+  border-radius: var(--bo-r-sm);
+  background: var(--bo-surface);
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+
+  &:hover { border-color: var(--bo-border-strong); }
+}
+
+.plantilla--activa {
+  border-color: var(--bo-brand);
+  background: var(--bo-brand-soft);
+}
+
+.plantilla__nombre {
+  font-family: var(--bo-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--bo-ink);
+  word-break: break-all;
+}
+
+.plantilla__desc {
+  font-size: 0.8rem;
+  color: var(--bo-ink-2);
+  line-height: 1.35;
+}
+
+/* El input de archivo real va oculto: el botón es la etiqueta. */
+.archivo-btn {
+  margin: 0;
+  cursor: pointer;
+}
+
+.archivo-nombre {
+  font-family: var(--bo-mono);
+  font-size: 0.8rem;
+  color: var(--bo-ink);
+}
+
+.archivo-nombre--vacio {
+  color: var(--bo-ink-3, var(--bo-ink-2));
+  font-style: italic;
+}
+
+.nota {
+  margin: 0.9rem 0 0;
+  font-size: 0.8rem;
+  color: var(--bo-ink-2);
+  line-height: 1.5;
+  max-width: 68ch;
+}
+
+.data-table {
+  .num { text-align: right; }
+  .tenue { color: var(--bo-ink-2); }
+  .malo { color: var(--bo-danger); font-weight: 600; }
+
+  /* El número de fila es lo primero que se busca para ir al Excel. */
+  .col-fila { width: 5rem; }
+
+  .mono {
+    font-family: var(--bo-mono);
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
+  .motivo {
+    font-size: 0.82rem;
+    line-height: 1.45;
+    min-width: 28rem;
+  }
+}

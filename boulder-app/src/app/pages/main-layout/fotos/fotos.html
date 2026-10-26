@@ -1,0 +1,172 @@
+<div class="page-head">
+  <div>
+    <h1 class="page-head__title">Fotos de testigo</h1>
+    <p class="page-head__sub">Las cajas de cada sondaje, ordenadas por profundidad.</p>
+  </div>
+  <div class="page-head__actions">
+    <span class="en-vivo" [class.en-vivo--on]="canal() === 'conectado'">
+      <span class="en-vivo__punto"></span>{{ canal() === 'conectado' ? 'En vivo' : 'Sin conexión en vivo' }}
+    </span>
+  </div>
+</div>
+
+@if (error(); as mensaje) {
+  <div class="alert-inline"><i class="bi bi-exclamation-triangle"></i>{{ mensaje }}</div>
+}
+
+<div class="panel">
+  <div class="panel__head">
+    <div class="toolbar">
+      <div class="toolbar__field" style="min-width: 300px;">
+        <label class="form-label" for="sel-sondaje-fotos">Sondaje</label>
+        <select id="sel-sondaje-fotos" class="form-select form-select-sm" [(ngModel)]="sondajeId" (change)="cargar()">
+          <option value="">— Elegí un sondaje —</option>
+          @for (s of sondajes(); track s.id) {
+            <option [value]="s.id">{{ s.codigo }}</option>
+          }
+        </select>
+      </div>
+      <span class="toolbar__spacer"></span>
+      @if (sondajeId) {
+        <label class="btn btn-sm btn-primary mb-0 subir-btn">
+          <i class="bi bi-cloud-arrow-up me-1"></i>Agregar fotos
+          <input type="file" accept="image/jpeg,image/png" multiple hidden (change)="elegirArchivos($event)">
+        </label>
+      }
+    </div>
+  </div>
+</div>
+
+@if (porSubir().length) {
+  <div class="panel">
+    <div class="panel__head">
+      <h2 class="panel__title">Por subir <span class="chip chip--info ms-2">{{ porSubir().length }}</span></h2>
+      <div class="toolbar">
+        <select class="form-select form-select-sm" style="width: 160px;" [(ngModel)]="condicionLote" (change)="aplicarCondicionALote()">
+          <option value="">Condición a todas…</option>
+          <option value="seco">Seco</option>
+          <option value="humedo">Húmedo</option>
+        </select>
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="limpiarSubidas()">Quitar las subidas</button>
+        <button type="button" class="btn btn-sm btn-primary" [disabled]="subiendo() || !listasParaSubir()" (click)="subirTodo()">
+          <i class="bi bi-upload me-1"></i>{{ subiendo() ? 'Subiendo…' : 'Subir ' + listasParaSubir() }}
+        </button>
+      </div>
+    </div>
+    <p class="nota">
+      Si el nombre del archivo sigue la convención <code>SONDAJE_C133-142_247.25-283.95_S.jpg</code>,
+      las cajas, el tramo y la condición se completan solos. Revisalos antes de subir.
+    </p>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr><th></th><th>Archivo</th><th>Cajas</th><th>Tramo (m)</th><th>Condición</th><th>Estado</th><th></th></tr>
+        </thead>
+        <tbody>
+          @for (p of porSubir(); track p.id) {
+            <tr>
+              <td><img class="previa" [src]="p.previa" alt=""></td>
+              <td class="mono">{{ p.archivo.name }}<br><span class="tenue">{{ tamanio(p.archivo.size) }}</span></td>
+              <td class="rango">
+                <input type="number" class="form-control form-control-sm" [(ngModel)]="p.cajaDesde" [disabled]="p.estado === 'subida'">
+                <span>–</span>
+                <input type="number" class="form-control form-control-sm" [(ngModel)]="p.cajaHasta" [disabled]="p.estado === 'subida'">
+              </td>
+              <td class="rango">
+                <input type="number" step="0.01" class="form-control form-control-sm" [(ngModel)]="p.desde" [disabled]="p.estado === 'subida'">
+                <span>–</span>
+                <input type="number" step="0.01" class="form-control form-control-sm" [(ngModel)]="p.hasta" [disabled]="p.estado === 'subida'">
+              </td>
+              <td>
+                <select class="form-select form-select-sm" [(ngModel)]="p.condicion" [disabled]="p.estado === 'subida'">
+                  <option [ngValue]="null">—</option>
+                  <option value="seco">Seco</option>
+                  <option value="humedo">Húmedo</option>
+                </select>
+              </td>
+              <td>
+                @switch (p.estado) {
+                  @case ('lista') { <span class="chip">Lista</span> }
+                  @case ('subiendo') { <span class="chip chip--info">Subiendo…</span> }
+                  @case ('subida') { <span class="chip chip--ok">Subida</span> }
+                  @case ('error') { <span class="chip chip--danger" [title]="p.error ?? ''">Error</span><div class="error-fila">{{ p.error }}</div> }
+                }
+              </td>
+              <td>
+                @if (p.estado !== 'subiendo' && p.estado !== 'subida') {
+                  <button type="button" class="btn btn-sm btn-link text-danger" (click)="quitar(p)" title="Quitar de la lista"><i class="bi bi-x-lg"></i></button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}
+
+@if (sondajeId && fotos().length) {
+  <div class="metric-grid">
+    <div class="metric"><div class="metric__label"><i class="bi bi-images"></i>Fotos</div><div class="metric__value">{{ resumen().total }}</div></div>
+    <div class="metric"><div class="metric__label"><i class="bi bi-sun"></i>Seco / húmedo</div><div class="metric__value">{{ resumen().secas }} / {{ resumen().humedas }}</div></div>
+    <div class="metric"><div class="metric__label"><i class="bi bi-arrow-down"></i>Fotografiado hasta</div><div class="metric__value">{{ resumen().hasta | number:'1.0-2' }} m</div></div>
+    <div class="metric"><div class="metric__label"><i class="bi bi-question-circle"></i>Sin tramo</div><div class="metric__value">{{ resumen().sinTramo }}</div>
+      <div class="metric__hint">no cuentan para el frente de avance</div></div>
+  </div>
+}
+
+<div class="panel">
+  <div class="panel__head"><h2 class="panel__title">Galería</h2></div>
+  @if (cargando()) {
+    <div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Cargando…</p></div>
+  } @else if (!sondajeId) {
+    <div class="empty-state"><i class="bi bi-camera"></i><p>Elegí un sondaje para ver sus fotos.</p></div>
+  } @else if (!fotos().length) {
+    <div class="empty-state"><i class="bi bi-image"></i><p>Este sondaje todavía no tiene fotos. Agregalas con el botón de arriba o desde un tablet.</p></div>
+  } @else {
+    <div class="galeria">
+      @for (f of fotos(); track f.id) {
+        <button type="button" class="foto" (click)="ampliar(f)">
+          <div class="foto__img">
+            @if (miniaturas()[f.id]; as url) {
+              <img [src]="url" [alt]="'Cajas ' + f.cajaDesde + '–' + f.cajaHasta">
+            } @else {
+              <i class="bi bi-image"></i>
+            }
+            @if (f.condicion) {
+              <span class="foto__cond" [class.foto__cond--h]="f.condicion === 'humedo'">{{ f.condicion === 'seco' ? 'Seco' : 'Húmedo' }}</span>
+            }
+          </div>
+          <div class="foto__pie">
+            <span class="mono">{{ f.desde !== null ? (f.desde | number:'1.2-2') + ' – ' + (f.hasta | number:'1.2-2') + ' m' : 'Sin tramo' }}</span>
+            <span class="tenue">Cajas {{ f.cajaDesde ?? '?' }}–{{ f.cajaHasta ?? '?' }}</span>
+          </div>
+        </button>
+      }
+    </div>
+  }
+</div>
+
+@if (ampliada(); as a) {
+  <div class="visor" (click)="ampliada.set(null)">
+    <div class="visor__caja" (click)="$event.stopPropagation()">
+      <div class="visor__barra">
+        <div>
+          <strong>Cajas {{ a.foto.cajaDesde ?? '?' }}–{{ a.foto.cajaHasta ?? '?' }}</strong>
+          @if (a.foto.desde !== null) { · {{ a.foto.desde | number:'1.2-2' }} – {{ a.foto.hasta | number:'1.2-2' }} m }
+          @if (a.foto.condicion) { · {{ a.foto.condicion === 'seco' ? 'seco' : 'húmedo' }} }
+          <div class="tenue">{{ a.foto.archivoOriginal }} · {{ a.foto.ancho }}×{{ a.foto.alto }} · {{ tamanio(a.foto.bytes) }} · {{ a.foto.autor ?? '' }}</div>
+        </div>
+        <div>
+          <button type="button" class="btn btn-sm btn-outline-danger" (click)="eliminar(a.foto)"><i class="bi bi-trash me-1"></i>Quitar</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary ms-2" (click)="ampliada.set(null)"><i class="bi bi-x-lg"></i></button>
+        </div>
+      </div>
+      @if (a.url) {
+        <img class="visor__img" [src]="a.url" alt="Foto ampliada">
+      } @else {
+        <div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Cargando la foto original…</p></div>
+      }
+    </div>
+  </div>
+}

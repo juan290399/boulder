@@ -1,0 +1,203 @@
+<div class="page-head">
+  <div>
+    <h1 class="page-head__title">Quicklog</h1>
+    <p class="page-head__sub">
+      Logueo rápido que sube la aplicación móvil desde el almacén de testigos.
+    </p>
+  </div>
+  <div class="page-head__actions">
+    <span class="en-vivo" [class.en-vivo--on]="canal() === 'conectado'"
+          [title]="canal() === 'conectado' ? 'Los tramos que suban los tablets aparecen solos' : 'Sin conexión en vivo: recargá para ver lo nuevo'">
+      <span class="en-vivo__punto"></span>
+      {{ canal() === 'conectado' ? 'En vivo' : (canal() === 'reconectando' ? 'Reconectando…' : 'Sin conexión en vivo') }}
+    </span>
+  </div>
+</div>
+
+@if (ultimoAviso(); as a) {
+  <div class="alert-inline alert-inline--ok">
+    <i class="bi bi-tablet"></i>
+    Llegaron {{ a.filas }} tramo(s) {{ a.origen === 'tablet' ? 'desde un tablet' : '' }} a las {{ a.momento | date:'HH:mm:ss' }}. La tabla ya está actualizada.
+  </div>
+}
+
+@if (error(); as mensaje) {
+  <div class="alert-inline"><i class="bi bi-exclamation-triangle"></i>{{ mensaje }}</div>
+}
+
+<div class="panel">
+  <div class="panel__head">
+    <div class="toolbar">
+      <div class="toolbar__field" style="min-width: 300px;">
+        <label class="form-label" for="sel-sondaje">Sondaje</label>
+        <select id="sel-sondaje" class="form-select form-select-sm"
+                [(ngModel)]="sondajeId" (change)="cargar()">
+          <option value="">— Elegí un sondaje —</option>
+          @for (s of sondajes(); track s.id) {
+            <option [value]="s.id">{{ s.codigo }} · {{ s.nombre }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    @if (tramos().length) {
+      <span class="text-muted small">{{ resumen().tramos }} tramos</span>
+    }
+  </div>
+</div>
+
+@if (tramos().length) {
+  <div class="metric-grid">
+    <div class="metric">
+      <div class="metric__label"><i class="bi bi-layers"></i>Tramos descritos</div>
+      <div class="metric__value">{{ resumen().tramos }}</div>
+    </div>
+    <div class="metric">
+      <div class="metric__label"><i class="bi bi-rulers"></i>Metros descritos</div>
+      <div class="metric__value">{{ resumen().metros | number:'1.0-2' }} m</div>
+    </div>
+    <div class="metric">
+      <div class="metric__label"><i class="bi bi-arrow-down"></i>Profundidad alcanzada</div>
+      <div class="metric__value">{{ resumen().hasta | number:'1.0-2' }} m</div>
+    </div>
+    <div class="metric">
+      <div class="metric__label"><i class="bi bi-gem"></i>Litologías distintas</div>
+      <div class="metric__value">{{ resumen().litologias }}</div>
+    </div>
+  </div>
+}
+
+<div class="panel">
+  <div class="panel__head">
+    <h2 class="panel__title">Tramos</h2>
+  </div>
+
+  @if (cargando()) {
+    <div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Cargando…</p></div>
+  } @else if (!sondajeId) {
+    <div class="empty-state">
+      <i class="bi bi-journal-richtext"></i>
+      <p>Elegí un sondaje para ver su quicklog.</p>
+    </div>
+  } @else if (!tramos().length) {
+    <div class="empty-state">
+      <i class="bi bi-inbox"></i>
+      <p>Este sondaje todavía no tiene quicklog cargado.</p>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Foto</th>
+            <th class="num">Desde</th>
+            <th class="num">Hasta</th>
+            <th class="num">Long.</th>
+            <th>Litología</th>
+            <th>Alteración 1</th>
+            <th>Intens. 1</th>
+            <th>Alteración 2</th>
+            <th>Intens. 2</th>
+            <th>Mineral 1</th>
+            <th>Mineral 2</th>
+            <th>Mineral 3</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (t of tramos(); track t.id) {
+            <tr>
+              <td class="celda-foto">
+                @if (fotoPorTramo().get(t.id); as f) {
+                  <button type="button" class="mini" (click)="ampliar(f)"
+                          [title]="'Cajas ' + f.cajaDesde + '–' + f.cajaHasta + ' · ' + f.desde + '–' + f.hasta + ' m'">
+                    @if (miniaturas()[f.id]) {
+                      <img [src]="miniaturas()[f.id]" alt="">
+                    } @else {
+                      <i class="bi bi-image"></i>
+                    }
+                  </button>
+                } @else {
+                  <span class="sin-foto" title="Sin foto que cubra este tramo">—</span>
+                }
+              </td>
+              <td class="num">{{ t.desde | number:'1.0-2' }}</td>
+              <td class="num">{{ t.hasta | number:'1.0-2' }}</td>
+              <td class="num">{{ t.longitud | number:'1.0-2' }}</td>
+              <td>
+                <span class="lito">
+                  <!-- El color sale del propio diccionario, el mismo que se usa
+                       en perfiles y secciones. -->
+                  <span class="lito__swatch"
+                        [style.background]="colorLito(t.litoId) ?? 'var(--bo-border-strong)'"></span>
+                  {{ nombre(t.litoId) }}
+                </span>
+              </td>
+              <td>{{ nombre(t.altTipo1Id) }}</td>
+              <td class="text-muted">{{ nombre(t.altIntensidad1Id) }}</td>
+              <td>{{ nombre(t.altTipo2Id) }}</td>
+              <td class="text-muted">{{ nombre(t.altIntensidad2Id) }}</td>
+              <td>{{ nombre(t.minTipo1Id) }}</td>
+              <td>{{ nombre(t.minTipo2Id) }}</td>
+              <td>{{ nombre(t.minTipo3Id) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<div class="panel">
+  <div class="panel__head">
+    <h2 class="panel__title">Tablets de GeoLog</h2>
+    <span class="text-muted small">Si un sondaje no muestra quicklog, acá se ve si es que no se logueó o que el tablet no ha sincronizado.</span>
+  </div>
+  @if (!dispositivos().length) {
+    <div class="empty-state">
+      <i class="bi bi-tablet"></i>
+      <p>Ningún tablet ha sincronizado todavía.</p>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr><th>Tablet</th><th>Geólogo</th><th>Última subida</th><th class="num">Filas subidas</th><th>Versión</th></tr>
+        </thead>
+        <tbody>
+          @for (d of dispositivos(); track d.dispositivo) {
+            <tr>
+              <td class="mono">{{ d.dispositivo }}</td>
+              <td>{{ d.usuario ?? '—' }}</td>
+              <td>
+                <span class="chip" [class.chip--ok]="!atrasado(d.ultimaSubida)" [class.chip--warn]="atrasado(d.ultimaSubida)">
+                  {{ hace(d.ultimaSubida) }}
+                </span>
+              </td>
+              <td class="num">{{ d.filasSubidas | number }}</td>
+              <td class="mono">{{ d.versionApp ?? '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+@if (ampliada(); as a) {
+  <div class="visor" (click)="ampliada.set(null)">
+    <div class="visor__caja" (click)="$event.stopPropagation()">
+      <div class="visor__barra">
+        <div>
+          <strong>Cajas {{ a.foto.cajaDesde ?? '?' }}–{{ a.foto.cajaHasta ?? '?' }}</strong>
+          · {{ a.foto.desde | number:'1.2-2' }} – {{ a.foto.hasta | number:'1.2-2' }} m
+          @if (a.foto.condicion) { · {{ a.foto.condicion === 'seco' ? 'seco' : 'húmedo' }} }
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="ampliada.set(null)"><i class="bi bi-x-lg"></i></button>
+      </div>
+      @if (a.url) {
+        <img class="visor__img" [src]="a.url" alt="Foto del tramo">
+      } @else {
+        <div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Cargando la foto…</p></div>
+      }
+    </div>
+  </div>
+}
