@@ -136,4 +136,27 @@ public class CatalogoGeologiaRepository {
             ? " , " + columna
             : " , NULL::" + tipo + " AS " + columna;
     }
+
+    /**
+     * Forma de un catálogo: qué columnas opcionales tiene y cuántos caracteres
+     * admite su código.
+     */
+    public record Estructura(Set<String> columnas, int largoCodigo) {
+    }
+
+    public Map<String, Estructura> estructura() {
+        throw new UnsupportedOperationException("pendiente");
+    }
+
+    public java.util.UUID insertar(String tipo, CatalogoGeologiaDTO datos) {
+        throw new UnsupportedOperationException("pendiente");
+    }
+
+    public int actualizar(String tipo, java.util.UUID id, CatalogoGeologiaDTO datos) {
+        throw new UnsupportedOperationException("pendiente");
+    }
+
+    public int cambiarEstado(String tipo, java.util.UUID id, boolean activo) {
+        throw new UnsupportedOperationException("pendiente");
+    }
 }
