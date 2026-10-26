@@ -19,6 +19,7 @@ import { Desvio } from './pages/main-layout/desvio/desvio';
 import { Quicklog } from './pages/main-layout/quicklog/quicklog';
 import { Importacion } from './pages/main-layout/importacion/importacion';
 import { Fotos } from './pages/main-layout/fotos/fotos';
+import { MiCuenta } from './pages/main-layout/mi-cuenta/mi-cuenta';
 
 export const routes: Routes = [
   {
@@ -63,6 +64,7 @@ export const routes: Routes = [
       { path: 'importar', component: Importacion },
       { path: 'plataformas', component: Plataforma },
       { path: 'maquinas', component: Maquina },
+      { path: 'mi-cuenta', component: MiCuenta },
       // Empresas y proyectos se administran en /admin. El destino por defecto
       // es el frente de avance y no el listado de sondajes: la pregunta con la
       // que se entra a trabajar no es "qué sondajes hay" —son 72— sino "de qué
