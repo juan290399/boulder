@@ -1,4 +1,4 @@
-/* Lo común a los dos formularios de partes (perforación y testigo); panel, botones y campos salen del sistema de diseño. */
+/* Lo común a los formularios de captura (partes y mediciones); panel, botones y campos salen del sistema de diseño. */
 
 .bloque {
   border: 0;
@@ -60,4 +60,19 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
+}
+
+/* Vista previa de un cálculo (el desvío) antes de guardar. */
+.previa {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+  background: var(--bo-brand-soft);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+
+  .tenue { margin-right: 0.35rem; }
 }
