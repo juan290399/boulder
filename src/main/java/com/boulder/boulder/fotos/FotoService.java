@@ -18,6 +18,8 @@ import java.util.UUID;
 
 import javax.imageio.ImageIO;
 
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -116,7 +118,7 @@ public class FotoService {
         f.setObservaciones(m.observaciones());
         f.setAutor(recortar(autor, 80));
         f.setDispositivo(recortar(dispositivo, 64));
-        f.setArchivoOriginal(recortar(nombreArchivo, 255));
+        f.setArchivoOriginal(nombreArchivoSeguro(nombreArchivo));
         f.setTipoMime(tipo);
         f.setBytes((long) contenido.length);
         f.setAncho(imagen.getWidth());
@@ -226,8 +228,22 @@ public class FotoService {
         }
     }
 
+    /**
+     * Deja solo el nombre del archivo que mandó el cliente: sin ruta (los
+     * navegadores antiguos mandan {@code C:\fakepath\...} y un cliente
+     * malicioso puede mandar {@code ../../}), sin caracteres de control y con 255
+     * caracteres como máximo. {@link FilenameUtils#getName} reconoce las barras
+     * de Windows y de Unix sin importar el sistema del servidor.
+     *
+     * @param recibido el nombre tal como llegó en la petición; puede ser {@code null}
+     * @return el nombre limpio, o {@code null} si no queda nada
+     */
     static String nombreArchivoSeguro(String recibido) {
-        throw new UnsupportedOperationException("pendiente");
+        if (recibido == null) {
+            return null;
+        }
+        String sinControl = recibido.replaceAll("\\p{Cntrl}", "");
+        return StringUtils.truncate(StringUtils.trimToNull(FilenameUtils.getName(sinControl)), 255);
     }
 
     private static String recortar(String s, int max) {
