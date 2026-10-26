@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,8 +37,11 @@ public class AvancePerforacionController {
 
     private static final Logger log = LoggerFactory.getLogger(AvancePerforacionController.class);
 
-    @Autowired
-    private AvancePerforacionService avanceService;
+    private final AvancePerforacionService avanceService;
+
+    public AvancePerforacionController(AvancePerforacionService avanceService) {
+        this.avanceService = avanceService;
+    }
 
     @GetMapping
     public ResponseEntity<List<AvancePerforacionDTO>> listar(
@@ -56,6 +58,13 @@ public class AvancePerforacionController {
         }
         log.info("HTTP GET - Listado de partes de avance de perforación");
         return ResponseEntity.ok(avanceService.listarTodos());
+    }
+
+    /** Borrador del turno siguiente de un sondaje, para precargar el formulario. */
+    @GetMapping("/sugerencia")
+    public ResponseEntity<AvancePerforacionDTO> sugerencia(@RequestParam("sondajeId") UUID sondajeId) {
+        log.info("HTTP GET - Borrador del parte siguiente del sondaje: {}", sondajeId);
+        return ResponseEntity.ok(avanceService.sugerencia(sondajeId));
     }
 
     @GetMapping("/{id}")
