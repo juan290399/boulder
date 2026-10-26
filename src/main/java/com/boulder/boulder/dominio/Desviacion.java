@@ -29,6 +29,37 @@ public record Desviacion(double azimut, String sentidoAzimut, double inclinacion
      */
     public static Desviacion calcular(double profundidad, double azimutMedido, double inclinacionMedida,
             double azimutPlan, double inclinacionPlan) {
-        return new Desviacion(0, null, 0, null, 0, 0);
+        // Diferencia de azimut llevada a (−180, 180]: de 358° a 2° son 4° a la
+        // derecha, no 356° a la izquierda.
+        double azimut = ((azimutMedido - azimutPlan) % 360 + 540) % 360 - 180;
+        double inclinacion = inclinacionMedida - inclinacionPlan;
+
+        double[] medida = direccion(azimutMedido, inclinacionMedida);
+        double[] plan = direccion(azimutPlan, inclinacionPlan);
+        // atan2(|a×b|, a·b) y no acos(a·b): cerca de 0°, que es justo el caso
+        // normal, acos pierde la mitad de los decimales.
+        double punto = medida[0] * plan[0] + medida[1] * plan[1] + medida[2] * plan[2];
+        double cx = medida[1] * plan[2] - medida[2] * plan[1];
+        double cy = medida[2] * plan[0] - medida[0] * plan[2];
+        double cz = medida[0] * plan[1] - medida[1] * plan[0];
+        double total = Math.toDegrees(Math.atan2(Math.sqrt(cx * cx + cy * cy + cz * cz), punto));
+
+        return new Desviacion(azimut, sentido(azimut, "derecha", "izquierda"),
+                inclinacion, sentido(inclinacion, "arriba", "abajo"),
+                total, profundidad * Math.sin(Math.toRadians(total)));
+    }
+
+    /** Vector unitario (este, norte, arriba) de una dirección de pozo. */
+    private static double[] direccion(double azimut, double inclinacion) {
+        double az = Math.toRadians(azimut);
+        double inc = Math.toRadians(inclinacion);
+        return new double[] { Math.cos(inc) * Math.sin(az), Math.cos(inc) * Math.cos(az), Math.sin(inc) };
+    }
+
+    private static String sentido(double diferencia, String positivo, String negativo) {
+        if (Math.abs(diferencia) < 1e-9) {
+            return null;
+        }
+        return diferencia > 0 ? positivo : negativo;
     }
 }
