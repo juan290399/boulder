@@ -1,0 +1,207 @@
+<div class="page-head">
+  <div>
+    <h1 class="page-head__title">Cargar datos</h1>
+    <p class="page-head__sub">
+      Las plantillas de Excel entran por acá. Primero se prueban, después se cargan.
+    </p>
+  </div>
+</div>
+
+@if (error(); as mensaje) {
+  <div class="alert-inline">
+    <i class="bi bi-exclamation-triangle"></i>{{ mensaje }}
+  </div>
+}
+
+<div class="panel">
+  <div class="panel__head">
+    <h2 class="panel__title"><span class="paso">1</span>Qué plantilla es</h2>
+  </div>
+  <div class="panel__body">
+    <div class="plantillas">
+      @for (p of plantillas(); track p.clave) {
+        <button type="button" class="plantilla"
+                [class.plantilla--activa]="plantillaElegida()?.clave === p.clave"
+                (click)="elegirPlantilla(p.clave)">
+          <span class="plantilla__nombre">{{ p.archivo }}</span>
+          <span class="plantilla__desc">{{ p.descripcion }}</span>
+        </button>
+      }
+    </div>
+    @if (!plantillas().length) {
+      <div class="empty-state">
+        <i class="bi bi-hourglass"></i>
+        <p>Cargando las plantillas disponibles…</p>
+      </div>
+    }
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel__head">
+    <h2 class="panel__title"><span class="paso">2</span>El archivo lleno</h2>
+  </div>
+  <div class="panel__body">
+    <div class="toolbar">
+      <label class="btn btn-outline-secondary btn-sm archivo-btn">
+        <i class="bi bi-paperclip me-1"></i>Elegir archivo
+        <input type="file" accept=".xlsx" hidden (change)="elegirArchivo($event)">
+      </label>
+      @if (archivo(); as a) {
+        <span class="archivo-nombre"><i class="bi bi-file-earmark-spreadsheet me-1"></i>{{ a.name }}</span>
+      } @else {
+        <span class="archivo-nombre archivo-nombre--vacio">Ningún archivo elegido</span>
+      }
+      <span class="toolbar__spacer"></span>
+      <button type="button" class="btn btn-sm btn-outline-secondary"
+              [disabled]="!puedeProbar()" (click)="probar()">
+        <i class="bi bi-search me-1"></i>Probar sin cargar
+      </button>
+      <button type="button" class="btn btn-sm btn-primary"
+              [disabled]="!puedeAplicar()" (click)="aplicar()">
+        <i class="bi bi-database-add me-1"></i>Cargar de verdad
+      </button>
+    </div>
+
+    <p class="nota">
+      «Probar» lee el archivo entero, lo valida contra los catálogos y no escribe nada.
+      «Cargar» se habilita recién cuando la prueba de <em>ese mismo</em> archivo terminó.
+      Subir dos veces el mismo archivo no duplica nada: lo ya cargado se omite.
+    </p>
+  </div>
+</div>
+
+@if (trabajando()) {
+  <div class="panel panel__body">
+    <div class="empty-state">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Leyendo el libro…</p>
+    </div>
+  </div>
+}
+
+@if (resultado(); as r) {
+  <div class="panel">
+    <div class="panel__head">
+      <h2 class="panel__title">
+        <span class="paso">3</span>Resultado
+        @if (r.aplicado) {
+          <span class="chip chip--ok ms-2"><i class="bi bi-check2-circle"></i>Cargado</span>
+        } @else {
+          <span class="chip chip--info ms-2"><i class="bi bi-eye"></i>Simulación · no se escribió nada</span>
+        }
+      </h2>
+    </div>
+
+    <div class="panel__body">
+      <div class="metric-grid">
+        <div class="metric">
+          <div class="metric__label"><i class="bi bi-list-ol"></i>Renglones leídos</div>
+          <div class="metric__value">{{ r.totalLeidas }}</div>
+          <div class="metric__hint">sin contar cabeceras ni filas en blanco</div>
+        </div>
+        <div class="metric">
+          <div class="metric__label"><i class="bi bi-check2"></i>{{ r.aplicado ? 'Cargados' : 'Entrarían' }}</div>
+          <div class="metric__value">{{ r.totalAceptadas }}</div>
+          <div class="track">
+            <div class="track__fill track__fill--ok"
+                 [style.width.%]="pct(r.totalAceptadas, r.totalLeidas)"></div>
+          </div>
+        </div>
+        <div class="metric">
+          <div class="metric__label"><i class="bi bi-arrow-repeat"></i>Ya estaban</div>
+          <div class="metric__value">{{ r.totalOmitidas }}</div>
+          <div class="metric__hint">repetidos en el archivo o ya cargados antes</div>
+        </div>
+        <div class="metric">
+          <div class="metric__label"><i class="bi bi-x-octagon"></i>Rechazados</div>
+          <div class="metric__value">{{ r.totalRechazadas }}</div>
+          <div class="track">
+            <div class="track__fill track__fill--danger"
+                 [style.width.%]="pct(r.totalRechazadas, r.totalLeidas)"></div>
+          </div>
+        </div>
+      </div>
+
+      @if (!r.aplicado && r.totalRechazadas > 0) {
+        <div class="alert-inline alert-inline--info">
+          <i class="bi bi-info-circle"></i>
+          Puedes cargar igual: los {{ r.totalAceptadas }} renglones buenos entran y los
+          {{ r.totalRechazadas }} con problemas quedan afuera. Después corriges esas filas
+          en el Excel y vuelves a subir el mismo archivo; lo ya cargado no se duplica.
+        </div>
+      }
+      @if (r.aplicado && r.totalRechazadas > 0) {
+        <div class="alert-inline">
+          <i class="bi bi-exclamation-triangle"></i>
+          Quedaron {{ r.totalRechazadas }} renglones sin cargar. Corrígelos en el Excel
+          y vuelve a subir el archivo.
+        </div>
+      }
+    </div>
+
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Hoja</th>
+            <th>Va a</th>
+            <th class="num">Leídos</th>
+            <th class="num">{{ r.aplicado ? 'Cargados' : 'Entrarían' }}</th>
+            <th class="num">Ya estaban</th>
+            <th class="num">Rechazados</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (h of r.hojas; track h.hoja) {
+            <tr>
+              <td class="mono">{{ h.hoja }}</td>
+              <td class="mono tenue">{{ h.destino }}</td>
+              @if (h.advertencia) {
+                <td colspan="4" class="tenue">{{ h.advertencia }}</td>
+              } @else {
+                <td class="num">{{ h.leidas }}</td>
+                <td class="num">{{ h.aceptadas || '—' }}</td>
+                <td class="num">{{ h.omitidas || '—' }}</td>
+                <td class="num" [class.malo]="h.rechazadas > 0">{{ h.rechazadas || '—' }}</td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  @for (h of r.hojas; track h.hoja) {
+    @if (h.errores.length) {
+      <div class="panel">
+        <div class="panel__head">
+          <h2 class="panel__title">
+            Filas a corregir en «{{ h.hoja }}»
+            <span class="chip chip--danger ms-2">{{ h.errores.length }}</span>
+          </h2>
+        </div>
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th class="col-fila">Fila</th>
+                <th>Renglón</th>
+                <th>Qué pasa</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (e of h.errores; track e.fila) {
+                <tr>
+                  <td class="mono col-fila">{{ e.fila }}</td>
+                  <td class="mono">{{ e.referencia || '—' }}</td>
+                  <td class="motivo">{{ e.motivo }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  }
+}

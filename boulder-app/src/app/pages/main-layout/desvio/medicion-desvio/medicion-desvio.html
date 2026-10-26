@@ -1,0 +1,156 @@
+<form class="parte" (ngSubmit)="guardar()">
+  <div class="panel__head">
+    <h2 class="panel__title">Nueva medición de desvío</h2>
+    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cancelado.emit()" aria-label="Cerrar">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  @if (cargando()) {
+    <div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Cargando sondajes…</p></div>
+  } @else {
+    <div class="panel__body">
+      @if (error(); as mensaje) {
+        <div class="alert-inline"><i class="bi bi-exclamation-triangle"></i>{{ mensaje }}</div>
+      }
+
+      <fieldset class="bloque">
+        <legend>Estación</legend>
+        <div class="row g-2">
+          <div class="col-12 col-md-4">
+            <label class="form-label" for="md-sondaje">Sondaje *</label>
+            <select id="md-sondaje" name="sondajeId" class="form-select form-select-sm"
+                    [ngModel]="f.sondajeId" (ngModelChange)="elegirSondaje($event)">
+              <option [ngValue]="null">Elegir…</option>
+              @for (s of sondajes(); track s.id) { <option [ngValue]="s.id">{{ s.codigo }}</option> }
+            </select>
+          </div>
+          <div class="col-6 col-md-2">
+            <label class="form-label" for="md-prof">Profundidad (m) *</label>
+            <input id="md-prof" name="profundidad" type="number" step="0.01" min="0"
+                   class="form-control form-control-sm num" [(ngModel)]="f.profundidad">
+          </div>
+          <div class="col-6 col-md-2">
+            <label class="form-label" for="md-nro">N.º de medición</label>
+            <input id="md-nro" name="nroMedicion" type="number" step="1" min="1" placeholder="Siguiente"
+                   class="form-control form-control-sm num" [(ngModel)]="f.nroMedicion">
+          </div>
+          <div class="col-6 col-md-2">
+            <label class="form-label" for="md-fecha">Fecha *</label>
+            <input id="md-fecha" name="fechaMedicion" type="date" [max]="hoyIso"
+                   class="form-control form-control-sm" [(ngModel)]="f.fechaMedicion">
+          </div>
+          <div class="col-6 col-md-2">
+            <label class="form-label" for="md-metodo">Método</label>
+            <input id="md-metodo" name="metodo" list="md-metodos" maxlength="50"
+                   class="form-control form-control-sm" [(ngModel)]="f.metodo">
+            <datalist id="md-metodos">
+              @for (m of metodos; track m) { <option [value]="m"></option> }
+            </datalist>
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label" for="md-maquina">Máquina</label>
+            <select id="md-maquina" name="maquinaId" class="form-select form-select-sm" [(ngModel)]="f.maquinaId">
+              <option [ngValue]="undefined">—</option>
+              @for (m of maquinas(); track m.id) { <option [ngValue]="m.id">{{ m.codigo }}</option> }
+            </select>
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label" for="md-perforista">Perforista</label>
+            <input id="md-perforista" name="responsable" list="md-empleados" maxlength="80"
+                   class="form-control form-control-sm" [(ngModel)]="f.responsable" (change)="enlazarPerforista()">
+            <datalist id="md-empleados">
+              @for (e of empleados(); track e.id) { <option [value]="nombreCompleto(e)"></option> }
+            </datalist>
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label" for="md-instrumento">Instrumento</label>
+            <input id="md-instrumento" name="instrumento" maxlength="50" placeholder="N.º de serie"
+                   class="form-control form-control-sm" [(ngModel)]="f.instrumento">
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="bloque">
+        <legend>Lectura <span class="tenue">(inclinación negativa hacia abajo)</span></legend>
+        <div class="row g-2">
+          <div class="col-6 col-md-3">
+            <label class="form-label" for="md-az">Azimut medido (°)</label>
+            <input id="md-az" name="azimutMedido" type="number" step="0.01" min="0" max="360"
+                   class="form-control form-control-sm num" [(ngModel)]="f.azimutMedido">
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label" for="md-inc">Inclinación medida (°)</label>
+            <input id="md-inc" name="inclinacionMedida" type="number" step="0.01" min="-90" max="90"
+                   class="form-control form-control-sm num" [(ngModel)]="f.inclinacionMedida">
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label" for="md-azp">Azimut plan (°)</label>
+            <input id="md-azp" name="azimutPlan" type="number" step="0.01" min="0" max="360"
+                   class="form-control form-control-sm num" [(ngModel)]="f.azimutPlan">
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label" for="md-incp">Inclinación plan (°)</label>
+            <input id="md-incp" name="inclinacionPlan" type="number" step="0.01" min="-90" max="90"
+                   class="form-control form-control-sm num" [(ngModel)]="f.inclinacionPlan">
+          </div>
+        </div>
+
+        @if (previa(); as p) {
+          <div class="previa">
+            <div><span class="tenue">Azimut</span>
+              <strong>{{ p.azimut | number:'1.2-2' }}°</strong> {{ p.sentidoAzimut ?? '' }}</div>
+            <div><span class="tenue">Inclinación</span>
+              <strong>{{ p.inclinacion | number:'1.2-2' }}°</strong> {{ p.sentidoInclinacion ?? '' }}</div>
+            <div><span class="tenue">Ángulo total</span> <strong>{{ p.total | number:'1.2-2' }}°</strong></div>
+            <div><span class="tenue">Separación estimada</span>
+              <span [ngClass]="tono(p.metros)">{{ p.metros | number:'1.2-2' }} m</span></div>
+          </div>
+        }
+      </fieldset>
+
+      <fieldset class="bloque">
+        <legend>Decisión</legend>
+        <div class="row g-2">
+          <div class="col-12 col-md-3">
+            <label class="form-label" for="md-decision">Decisión</label>
+            <select id="md-decision" name="decision" class="form-select form-select-sm" [(ngModel)]="f.decision">
+              <option [ngValue]="undefined">—</option>
+              @for (d of decisiones; track d.valor) { <option [ngValue]="d.valor">{{ d.texto }}</option> }
+            </select>
+          </div>
+          <div class="col-12 col-md-9">
+            <label class="form-label" for="md-resp-seg">Responsable del seguimiento</label>
+            <input id="md-resp-seg" name="responsableSeguimiento" maxlength="80"
+                   class="form-control form-control-sm" [(ngModel)]="f.responsableSeguimiento">
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="md-interp">Interpretación</label>
+            <textarea id="md-interp" name="interpretacion" rows="2" class="form-control form-control-sm"
+                      placeholder="Por qué se desvió: contacto, falla, presión de avance…"
+                      [(ngModel)]="f.interpretacion"></textarea>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="md-instr">Instrucción para la máquina</label>
+            <textarea id="md-instr" name="instruccion" rows="2" class="form-control form-control-sm"
+                      placeholder="Qué hacer; si se escribe, el seguimiento queda pendiente"
+                      [(ngModel)]="f.instruccion"></textarea>
+          </div>
+        </div>
+      </fieldset>
+
+      @if (avisos().length) {
+        <ul class="avisos">
+          @for (a of avisos(); track a) { <li><i class="bi bi-exclamation-circle me-1"></i>{{ a }}</li> }
+        </ul>
+      }
+
+      <div class="acciones">
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cancelado.emit()">Cancelar</button>
+        <button type="submit" class="btn btn-sm btn-primary" [disabled]="!completo() || guardando()">
+          <i class="bi bi-check-lg me-1"></i>{{ guardando() ? 'Guardando…' : 'Registrar medición' }}
+        </button>
+      </div>
+    </div>
+  }
+</form>

@@ -1,100 +1,121 @@
-<div class="container-fluid py-4">
-  <div class="card shadow-sm border-0 p-4">
-    <h1 class="mb-4">Registro de Sondajes (Perforaciones)</h1>
+<div class="page">
+  <div class="panel panel__body">
+    <h1 class="page-head__title mb-4">Sondajes (Perforaciones)</h1>
 
-    <div class="row mb-4">
+    <div class="row g-2 mb-3">
       <div class="col-md-2">
-        <input class="form-control" placeholder="Código Pozo (ej: DDH-01)" [(ngModel)]="form.codigo">
-      </div>
-      <div class="col-md-3">
-        <div class="input-group">
-          <input class="form-control" type="number" placeholder="Profundidad Máx." [(ngModel)]="form.profundidadMaxima">
-          <span class="input-group-text">mts</span>
-        </div>
+        <input class="form-control" placeholder="Código (DDH-...)" [(ngModel)]="form.codigo" />
       </div>
       <div class="col-md-2">
-        <div class="input-group">
-          <input class="form-control" type="number" placeholder="Inclinación" [(ngModel)]="form.inclinacion">
-          <span class="input-group-text">°</span>
-        </div>
+        <input class="form-control" placeholder="Nombre" [(ngModel)]="form.nombre" />
       </div>
-      <div class="col-md-3">
-        <input class="form-control" type="number" placeholder="ID Plataforma Asignada" [(ngModel)]="form.plataformaId">
+      <div class="col-md-4">
+        <select class="form-select" [(ngModel)]="form.proyectoId">
+          <option [ngValue]="''">— Proyecto —</option>
+          <option *ngFor="let p of proyectos" [ngValue]="p.id">{{ p.nombre }}</option>
+        </select>
       </div>
       <div class="col-md-2">
-        <select class="form-select" [(ngModel)]="form.estado">
-          <option value="EN_PROGRESO">En Progreso</option>
-          <option value="PAUSADO">Pausado</option>
-          <option value="COMPLETADO">Completado</option>
+        <input class="form-control" placeholder="Campaña" [(ngModel)]="form.campania" />
+      </div>
+    </div>
+
+    <div class="row g-2 mb-3">
+      <div class="col-md-4">
+        <select class="form-select" [(ngModel)]="form.collarId">
+          <option [ngValue]="''">— Collar —</option>
+          <option *ngFor="let c of collares" [ngValue]="c.id">{{ c.codigo }}</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <select class="form-select" [(ngModel)]="form.plataformaId">
+          <option [ngValue]="''">— Plataforma —</option>
+          <option *ngFor="let pl of plataformas" [ngValue]="pl.id">{{ pl.codigo }}</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <select class="form-select" [(ngModel)]="form.maquinaId">
+          <option [ngValue]="''">— Máquina —</option>
+          <option *ngFor="let m of maquinas" [ngValue]="m.id">{{ m.codigo }} · {{ m.nombre }}</option>
         </select>
       </div>
     </div>
 
+    <div class="row g-2 mb-3">
+      <div class="col-md-2">
+        <input class="form-control" type="number" placeholder="Azimut setup" [(ngModel)]="form.azimutSetup" />
+      </div>
+      <div class="col-md-2">
+        <input class="form-control" type="number" placeholder="Inclin. setup" [(ngModel)]="form.inclinacionSetup" />
+      </div>
+      <div class="col-md-2">
+        <input class="form-control" type="number" placeholder="Prof. actual" [(ngModel)]="form.profundidadActual" />
+      </div>
+      <div class="col-md-2">
+        <input class="form-control" type="number" placeholder="Prof. final" [(ngModel)]="form.profundidadFinal" />
+      </div>
+      <div class="col-md-2">
+        <input class="form-control" type="date" [(ngModel)]="form.fechaInicio" />
+      </div>
+      <div class="col-md-2">
+        <input class="form-control" type="date" [(ngModel)]="form.fechaFin" />
+      </div>
+    </div>
+
     <div class="mb-4">
-      <button class="btn btn-success me-2" (click)="crearSondaje()">
-        Registrar Perforación
+      <button class="btn btn-success me-2" (click)="guardar()">
+        {{ form.id ? 'Actualizar' : 'Registrar' }}
       </button>
-      <button class="btn btn-primary me-2" (click)="actualizarSondaje()">
-        Actualizar
-      </button>
-      <button class="btn btn-secondary" (click)="limpiarFormulario()">
-        Limpiar
-      </button>
+      <button class="btn btn-secondary" (click)="limpiar()">Limpiar</button>
     </div>
 
-    <hr class="my-4" />
+    <div *ngIf="mensaje" class="alert-inline alert-inline--info">{{ mensaje }}</div>
 
-    <div class="row mb-4">
+    <hr class="my-3" />
+
+    <div class="row g-2 mb-3">
       <div class="col-md-6">
         <div class="input-group">
-          <input class="form-control" placeholder="Buscar por código de pozo..." [(ngModel)]="busquedaCodigo">
-          <button class="btn btn-dark" (click)="buscarPorCodigo()">Buscar</button>
+          <input class="form-control" placeholder="Buscar por código" [(ngModel)]="busquedaCodigo" />
+          <button class="btn btn-primary" (click)="buscarPorCodigo()">Buscar</button>
         </div>
       </div>
       <div class="col-md-6">
         <div class="input-group">
-          <input class="form-control" placeholder="Buscar por ID interno..." [(ngModel)]="busquedaId">
-          <button class="btn btn-info text-white" (click)="buscarPorId()">Buscar</button>
+          <input class="form-control" placeholder="Buscar por ID" [(ngModel)]="busquedaId" />
+          <button class="btn btn-primary" (click)="buscarPorId()">Buscar</button>
         </div>
       </div>
     </div>
 
-    <button class="btn btn-outline-primary mb-3" (click)="listarSondajes()">
-      Refrescar Listado
+    <button class="btn btn-outline-primary mb-3" [disabled]="loading" (click)="listar()">
+      Refrescar listado
     </button>
 
-    <div class="row" *ngIf="sondajes.length > 0">
-      <div class="col-md-4 mb-3" *ngFor="let sond of sondajes">
-        <div class="card shadow-sm h-100">
-          <div class="card-body d-flex flex-column justify-content-between">
-            <div>
-              <h5 class="card-title fw-bold text-primary">{{ sond.codigo }}</h5>
-              <p class="mb-1"><b>Profundidad Real:</b> {{ sond.profundidadMaxima }} metros</p>
-              <p class="mb-1"><b>Inclinación / Ángulo:</b> {{ sond.inclinacion }}°</p>
-              <p class="mb-2"><b>Plataforma (ID):</b> {{ sond.plataformaId || 'Sin asignar' }}</p>
-              
-              <span class="badge bg-primary" *ngIf="sond.estado === 'EN_PROGRESO'">
-                En Progreso
-              </span>
-              <span class="badge bg-warning text-dark" *ngIf="sond.estado === 'PAUSADO'">
-                Pausado
-              </span>
-              <span class="badge bg-success" *ngIf="sond.estado === 'COMPLETADO'">
-                Completado
-              </span>
-            </div>
-
-            <button class="btn btn-sm btn-warning mt-3 w-100 fw-medium" (click)="editar(sond)">
-              Modificar Parámetros
-            </button>
-          </div>
-        </div>
-      </div>
+    <div class="table-scroll" *ngIf="sondajes.length > 0; else vacio">
+      <table class="data-table">
+        <thead>
+          <tr><th>Código</th><th>Nombre</th><th>Proyecto</th><th>Az.</th><th>Inc.</th><th>Prof. actual</th><th>Prof. final</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of sondajes">
+            <td class="fw-bold text-primary">{{ s.codigo }}</td>
+            <td>{{ s.nombre }}</td>
+            <td>{{ nombreProyecto(s.proyectoId) }}</td>
+            <td>{{ s.azimutSetup ?? '—' }}</td>
+            <td>{{ s.inclinacionSetup ?? '—' }}</td>
+            <td>{{ s.profundidadActual ?? 0 }}</td>
+            <td>{{ s.profundidadFinal ?? '—' }}</td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-primary" (click)="editar(s)">Editar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
-    <div *ngIf="sondajes.length === 0" class="alert alert-light text-center border p-4">
-      No se registran pozos de sondaje en ejecución o cargados.
-    </div>
-
+    <ng-template #vacio>
+      <div class="empty-state">No hay sondajes para mostrar.</div>
+    </ng-template>
   </div>
 </div>

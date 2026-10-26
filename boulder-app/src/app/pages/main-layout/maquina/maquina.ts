@@ -1,162 +1,102 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+
+import { MaquinaService } from '../../../services/maquina.service';
+import { Maquina as MaquinaModel } from '../../../models/operacional';
+
+const FORM_VACIO = (): MaquinaModel => ({
+  codigo: '',
+  nombre: '',
+  tipo: '',
+  marca: '',
+  motor: '',
+  estado: 'operativa',
+});
 
 @Component({
   selector: 'app-maquina',
-  imports: [
-    CommonModule,
-    FormsModule
-  ],
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './maquina.html',
   styleUrl: './maquina.scss',
 })
-export class Maquina {
-  private baseUrl = 'http://localhost:8080/maquina';
+export class Maquina implements OnInit {
+  private readonly service = inject(MaquinaService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
-  maquinas: any[] = [];
+  maquinas: MaquinaModel[] = [];
+  form: MaquinaModel & { id?: string } = FORM_VACIO();
 
-  form: any = {
-    id: null,
-    codigo: '',
-    nombre: '',
-    tipo: '',
-    marca: '',
-    estado: 'DISPONIBLE'
-  };
-
-  busquedaCodigo: string = '';
-  busquedaId: string = '';
-
+  busquedaCodigo = '';
+  busquedaId = '';
   loading = false;
+  mensaje = '';
 
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
-
-  listarMaquinas(): void {
-      if (this.loading) return;
-      this.loading = true;
-
-      console.log('DEBUG: Listando máquinas');
-
-      this.http.get<any[]>(this.baseUrl)
-        .subscribe({
-          next: (data) => {
-            this.maquinas = [...data];
-            console.log('INFO: Máquinas cargadas', data.length);
-            this.loading = false;
-            
-            this.cdr.detectChanges();
-          },
-          error: (err) => {
-            console.error('ERROR: listarMaquinas', err);
-            this.loading = false;
-            this.cdr.detectChanges();
-          }
-        });
-    }
-
-  crearMaquina(): void {
-    console.log('DEBUG: Creando máquina', this.form);
-
-    this.http.post(this.baseUrl, this.form)
-      .subscribe({
-        next: (res: any) => {
-          console.log('INFO: Máquina creada', res);
-          this.listarMaquinas();
-          this.limpiarFormulario();
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('ERROR: crearMaquina', err);
-        }
-      });
+  ngOnInit(): void {
+    this.listar();
   }
 
-  actualizarMaquina(): void {
-    if (!this.form.id) {
-      console.warn('WARN: No hay ID para actualizar');
-      return;
-    }
+  listar(): void {
+    this.loading = true;
+    this.service.listar().subscribe({
+      next: (data) => this.setLista(data),
+      error: (err) => this.fallo('No se pudo cargar el listado de máquinas', err),
+    });
+  }
 
-    console.log('DEBUG: Actualizando máquina', this.form.id);
-
-    this.http.put(`${this.baseUrl}/${this.form.id}`, this.form)
-      .subscribe({
-        next: (res: any) => {
-          console.log('INFO: Máquina actualizada', res);
-          this.listarMaquinas();
-          this.limpiarFormulario();
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('ERROR: actualizarMaquina', err);
-        }
-      });
+  guardar(): void {
+    const op$ = this.form.id
+      ? this.service.actualizar(this.form.id, this.form)
+      : this.service.crear(this.form);
+    op$.subscribe({
+      next: () => {
+        this.mensaje = this.form.id ? 'Máquina actualizada' : 'Máquina creada';
+        this.limpiar();
+        this.listar();
+      },
+      error: (err) => this.fallo('No se pudo guardar la máquina', err),
+    });
   }
 
   buscarPorCodigo(): void {
-    if (this.loading) return;
+    if (!this.busquedaCodigo.trim()) return;
     this.loading = true;
-
-    console.log('DEBUG: Buscando por código', this.busquedaCodigo);
-
-    this.http.get<any>(`${this.baseUrl}/codigo/${this.busquedaCodigo}`)
-      .subscribe({
-        next: (res) => {
-          this.maquinas = [res];
-          console.log('INFO: Resultado por código:', res);
-          this.loading = false;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('ERROR: buscarPorCodigo', err);
-          this.loading = false;
-          this.cdr.detectChanges();
-        }
-      });
+    this.service.obtenerPorCodigo(this.busquedaCodigo.trim()).subscribe({
+      next: (m) => this.setLista(m ? [m] : []),
+      error: (err) => this.fallo('Sin resultados por código', err),
+    });
   }
 
   buscarPorId(): void {
-    if (this.loading) return;
+    if (!this.busquedaId.trim()) return;
     this.loading = true;
-
-    console.log('DEBUG: Buscando por ID', this.busquedaId);
-
-    this.http.get<any>(`${this.baseUrl}/${this.busquedaId}`)
-      .subscribe({
-        next: (res) => {
-          this.maquinas = [res];
-          console.log('INFO: Resultado por ID:', res);
-          this.loading = false;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('ERROR: buscarPorId', err);
-          this.loading = false;
-          this.cdr.detectChanges();
-        }
-      });
+    this.service.obtenerPorId(this.busquedaId.trim()).subscribe({
+      next: (m) => this.setLista(m ? [m] : []),
+      error: (err) => this.fallo('Sin resultados por ID', err),
+    });
   }
 
-  editar(maquina: any): void {
-    console.log('DEBUG: Editando máquina', maquina);
+  editar(maquina: MaquinaModel): void {
     this.form = { ...maquina };
     this.cdr.detectChanges();
   }
 
-  limpiarFormulario(): void {
-    console.log('DEBUG: limpiando formulario');
-    this.form = {
-      id: null,
-      codigo: '',
-      nombre: '',
-      tipo: '',
-      marca: '',
-      estado: 'DISPONIBLE'
-    };
-    this.cdr.detectChanges(); 
+  limpiar(): void {
+    this.form = FORM_VACIO();
+    this.cdr.detectChanges();
   }
 
+  private setLista(data: MaquinaModel[]): void {
+    this.maquinas = [...data];
+    this.loading = false;
+    this.cdr.detectChanges();
+  }
 
+  private fallo(msg: string, err: unknown): void {
+    console.error(msg, err);
+    this.mensaje = msg;
+    this.loading = false;
+    this.cdr.detectChanges();
+  }
 }

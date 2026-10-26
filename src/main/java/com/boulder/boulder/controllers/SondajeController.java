@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,8 +27,7 @@ import com.boulder.boulder.services.SondajeService;
  * @since 1.0
  */
 @RestController
-@RequestMapping("/sondaje")
-@CrossOrigin(origins = "*")
+@RequestMapping("/api/operacional/sondajes")
 public class SondajeController {
 
     private static final Logger log = LoggerFactory.getLogger(SondajeController.class);
@@ -49,13 +47,13 @@ public class SondajeController {
         return ResponseEntity.ok(sondajeService.obtenerPorId(id));
     }
 
-    @GetMapping("/{codigo}")
+    @GetMapping("/codigo/{codigo}")
     public ResponseEntity<SondajeDTO> obtenerPorCodigo(@PathVariable String codigo) {
         log.info("HTTP GET - Consultando sondaje individual por codigo: {}", codigo);
         return ResponseEntity.ok(sondajeService.obtenerPorCodigo(codigo));
     }
 
-    @GetMapping("/{collarId}")
+    @GetMapping("/collar/{collarId}")
     public ResponseEntity<SondajeDTO> obtenerPorCollar(@PathVariable UUID collarId) {
         log.info("HTTP GET - Recuperando sondajes ejecutados en la Collar ID: {}", collarId);
         return ResponseEntity.ok(sondajeService.obtenerPorCollar(collarId));

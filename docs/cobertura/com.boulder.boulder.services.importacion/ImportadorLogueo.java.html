@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ImportadorLogueo.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.services.importacion</a> &gt; <span class="el_source">ImportadorLogueo.java</span></div><h1>ImportadorLogueo.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.services.importacion;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.UUID;
+
+import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.boulder.boulder.dto.importacion.ResultadoImportacionDTO;
+import com.boulder.boulder.entities.AvanceLogueo;
+import com.boulder.boulder.entities.Sondaje;
+import com.boulder.boulder.repositories.AvanceLogueoRepository;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
+/**
+ * Carga el avance de logueo (CU18).
+ *
+ * &lt;p&gt;
+ * El tipo de logueo forma parte de la clave natural y no es un detalle: sobre
+ * el mismo tramo de testigo avanzan el geológico, el geomecánico y el
+ * estructural por separado, y los tres tienen que poder convivir en la misma
+ * fecha sin pisarse.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;
+ * En la base el tipo se llama {@code geotecnico} aunque el reporte diario diga
+ * «geomecánico». Se acepta escrito de las dos formas y se guarda siempre el
+ * valor que admite el CHECK de la tabla, que es el que ya usa la aplicación
+ * móvil.
+ * &lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@Component
+<span class="fc" id="L41">public class ImportadorLogueo extends ImportadorBase {</span>
+
+    @Autowired
+    private AvanceLogueoRepository repositorio;
+
+    @PersistenceContext
+    private EntityManager em;
+
+    @Override
+    public String clave() {
+<span class="fc" id="L51">        return &quot;logueo&quot;;</span>
+    }
+
+    @Override
+    public String archivoPlantilla() {
+<span class="fc" id="L56">        return &quot;PLANTILLA_avance_logueo.xlsx&quot;;</span>
+    }
+
+    @Override
+    public String descripcion() {
+<span class="fc" id="L61">        return &quot;Avance de logueo geológico, geomecánico y estructural por tramo.&quot;;</span>
+    }
+
+    @Override
+    protected void procesar(Workbook libro, Catalogos catalogos, boolean aplicar,
+            ResultadoImportacionDTO resultado) {
+
+<span class="fc" id="L68">        String sqlClaves = &quot;SELECT &quot; + sqlTexto(&quot;sondaje_id&quot;) + &quot; || '|' || &quot; + sqlTexto(&quot;fecha&quot;)</span>
+<span class="fc" id="L69">                + &quot; || '|' || &quot; + sqlTexto(&quot;tipo_logueo&quot;) + &quot; || '|' || &quot; + sqlNum(&quot;desde&quot;)</span>
+                + &quot; FROM operacional.log_avance&quot;;
+
+<span class="fc" id="L72">        hoja(libro, &quot;DATOS&quot;, &quot;operacional.log_avance&quot;, sqlClaves, catalogos, aplicar, resultado, f -&gt; {</span>
+
+<span class="fc" id="L74">            UUID sondajeId = f.sondajeReq(&quot;sondaje_codigo&quot;);</span>
+<span class="fc" id="L75">            LocalDate fecha = f.fechaReq(&quot;fecha&quot;);</span>
+<span class="fc" id="L76">            String tipo = tipoLogueo(f);</span>
+<span class="fc" id="L77">            BigDecimal desde = f.decimalReq(&quot;desde&quot;);</span>
+<span class="fc" id="L78">            BigDecimal hasta = f.decimalReq(&quot;hasta&quot;);</span>
+<span class="fc" id="L79">            BigDecimal avance = f.decimalReq(&quot;avance&quot;);</span>
+<span class="fc" id="L80">            BigDecimal pct = f.decimal(&quot;pct_completado&quot;);</span>
+
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">            f.referencia(f.texto(&quot;sondaje_codigo&quot;) + &quot; &quot; + f.texto(&quot;fecha&quot;) + &quot; &quot; + (tipo == null ? &quot;&quot; : tipo));</span>
+
+<span class="pc bpc" id="L84" title="3 of 6 branches missed.">            if (desde != null &amp;&amp; hasta != null &amp;&amp; hasta.compareTo(desde) &lt; 0) {</span>
+<span class="nc" id="L85">                f.error(&quot;hasta no puede ser menor que desde&quot;);</span>
+            }
+<span class="pc bpc" id="L87" title="3 of 6 branches missed.">            if (desde != null &amp;&amp; hasta != null &amp;&amp; avance != null</span>
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">                    &amp;&amp; hasta.subtract(desde).compareTo(avance) != 0) {</span>
+<span class="nc" id="L89">                f.error(&quot;avance (&quot; + avance.toPlainString() + &quot;) no coincide con hasta menos desde (&quot;</span>
+<span class="nc" id="L90">                        + hasta.subtract(desde).toPlainString() + &quot;)&quot;);</span>
+            }
+<span class="pc bpc" id="L92" title="5 of 6 branches missed.">            if (pct != null &amp;&amp; (pct.signum() &lt; 0 || pct.compareTo(BigDecimal.valueOf(100)) &gt; 0)) {</span>
+<span class="nc" id="L93">                f.error(&quot;pct_completado: tiene que estar entre 0 y 100&quot;);</span>
+            }
+
+<span class="fc" id="L96">            AvanceLogueo e = new AvanceLogueo();</span>
+<span class="fc" id="L97">            e.setSondajeCodigo(f.texto(&quot;sondaje_codigo&quot;, 30));</span>
+<span class="fc" id="L98">            e.setFecha(fecha);</span>
+<span class="fc" id="L99">            e.setTurno(f.opcion(&quot;turno&quot;, false, &quot;dia&quot;, &quot;noche&quot;));</span>
+<span class="fc" id="L100">            e.setTipoLogueo(tipo);</span>
+<span class="fc" id="L101">            e.setGeologo(f.texto(&quot;geologo&quot;, 80));</span>
+<span class="fc" id="L102">            e.setDesde(desde);</span>
+<span class="fc" id="L103">            e.setHasta(hasta);</span>
+<span class="fc" id="L104">            e.setAvance(avance);</span>
+<span class="fc" id="L105">            e.setPctCompletado(pct);</span>
+<span class="fc" id="L106">            e.setObservaciones(f.texto(&quot;observaciones&quot;));</span>
+<span class="fc" id="L107">            e.setEstado(&quot;registrado&quot;);</span>
+
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">            if (f.hayErrores()) {</span>
+<span class="nc" id="L110">                return null;</span>
+            }
+<span class="fc" id="L112">            e.setSondaje(em.getReference(Sondaje.class, sondajeId));</span>
+
+<span class="pc" id="L114">            return new Registro(clave(sondajeId, fecha, tipo, desde), () -&gt; repositorio.saveAndFlush(e));</span>
+        });
+<span class="fc" id="L116">    }</span>
+
+    /**
+     * Acepta «geomecanico» como sinónimo de «geotecnico». Quien llena la
+     * plantilla copia del reporte diario, y el reporte diario usa la palabra
+     * que no está en la base.
+     */
+    private String tipoLogueo(Fila f) {
+<span class="fc" id="L124">        String v = f.texto(&quot;tipo_logueo&quot;);</span>
+<span class="pc bpc" id="L125" title="3 of 6 branches missed.">        if (v != null &amp;&amp; (&quot;geomecanico&quot;.equalsIgnoreCase(v) || &quot;geomecánico&quot;.equalsIgnoreCase(v))) {</span>
+<span class="nc" id="L126">            return &quot;geotecnico&quot;;</span>
+        }
+<span class="fc" id="L128">        return f.opcion(&quot;tipo_logueo&quot;, true, &quot;geologico&quot;, &quot;geotecnico&quot;, &quot;estructural&quot;, &quot;rapido&quot;);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

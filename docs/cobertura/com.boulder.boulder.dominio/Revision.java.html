@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Revision.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.dominio</a> &gt; <span class="el_source">Revision.java</span></div><h1>Revision.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.dominio;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.google.common.collect.ImmutableSet;
+
+/**
+ * Acumula los motivos de rechazo de un parte de avance.
+ *
+ * &lt;p&gt;Los siete partes de testigo comparten las mismas comprobaciones (un tramo
+ * que no termina antes de empezar, un valor dentro de su lista, un avance que
+ * cuadra); cada uno elige cuáles le tocan. Devolver todos los motivos juntos, y
+ * no solo el primero, ahorra al usuario corregir y reenviar una vez por error.&lt;/p&gt;
+ */
+<span class="fc" id="L17">public final class Revision {</span>
+
+<span class="fc" id="L19">    private static final BigDecimal CIEN = BigDecimal.valueOf(100);</span>
+
+<span class="fc" id="L21">    private final List&lt;String&gt; errores = new ArrayList&lt;&gt;();</span>
+
+    /** Un tramo en metros: si vienen los dos extremos, hasta no puede ser menor que desde. */
+    public Revision tramo(String nombre, BigDecimal desde, BigDecimal hasta) {
+<span class="pc bpc" id="L25" title="1 of 6 branches missed.">        if (desde != null &amp;&amp; hasta != null &amp;&amp; hasta.compareTo(desde) &lt; 0) {</span>
+<span class="fc" id="L26">            errores.add(nombre + &quot;: termina en &quot; + hasta.toPlainString() + &quot; m, antes de empezar (&quot;</span>
+<span class="fc" id="L27">                    + desde.toPlainString() + &quot; m)&quot;);</span>
+        }
+<span class="fc" id="L29">        return this;</span>
+    }
+
+    /** Un rango de cajas: si vienen los dos extremos, la última no puede ser anterior a la primera. */
+    public Revision cajas(String nombre, Integer desde, Integer hasta) {
+<span class="fc bfc" id="L34" title="All 6 branches covered.">        if (desde != null &amp;&amp; hasta != null &amp;&amp; hasta &lt; desde) {</span>
+<span class="fc" id="L35">            errores.add(nombre + &quot;: la última caja (&quot; + hasta + &quot;) es anterior a la primera (&quot; + desde + &quot;)&quot;);</span>
+        }
+<span class="fc" id="L37">        return this;</span>
+    }
+
+    /** Si vienen los tres números, el avance tiene que ser hasta menos desde. */
+    public Revision avance(BigDecimal desde, BigDecimal hasta, BigDecimal avance) {
+<span class="pc bpc" id="L42" title="1 of 8 branches missed.">        if (desde != null &amp;&amp; hasta != null &amp;&amp; avance != null &amp;&amp; hasta.subtract(desde).compareTo(avance) != 0) {</span>
+<span class="fc" id="L43">            errores.add(&quot;avance (&quot; + avance.toPlainString() + &quot;) no coincide con hasta menos desde (&quot;</span>
+<span class="fc" id="L44">                    + hasta.subtract(desde).toPlainString() + &quot;)&quot;);</span>
+        }
+<span class="fc" id="L46">        return this;</span>
+    }
+
+    /** Un valor de una lista cerrada; {@code null} se acepta (el campo es opcional). */
+    public Revision opcion(String campo, String valor, String... permitidos) {
+<span class="fc bfc" id="L51" title="All 4 branches covered.">        if (valor != null &amp;&amp; !ImmutableSet.copyOf(permitidos).contains(valor)) {</span>
+<span class="fc" id="L52">            errores.add(campo + &quot;: «&quot; + valor + &quot;» no es válido; se espera &quot; + String.join(&quot;, &quot;, permitidos));</span>
+        }
+<span class="fc" id="L54">        return this;</span>
+    }
+
+    /** Un porcentaje entre 0 y 100; {@code null} se acepta. */
+    public Revision porcentaje(String campo, BigDecimal valor) {
+<span class="fc bfc" id="L59" title="All 6 branches covered.">        if (valor != null &amp;&amp; (valor.signum() &lt; 0 || valor.compareTo(CIEN) &gt; 0)) {</span>
+<span class="fc" id="L60">            errores.add(campo + &quot;: tiene que estar entre 0 y 100&quot;);</span>
+        }
+<span class="fc" id="L62">        return this;</span>
+    }
+
+    public List&lt;String&gt; errores() {
+<span class="fc" id="L66">        return List.copyOf(errores);</span>
+    }
+
+    public boolean valida() {
+<span class="fc" id="L70">        return errores.isEmpty();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

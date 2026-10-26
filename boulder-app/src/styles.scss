@@ -1,2 +1,776 @@
 @import 'bootstrap/dist/css/bootstrap.min.css';
 @import 'bootstrap-icons/font/bootstrap-icons.css';
+
+/* =====================================================================
+   BOULDER — sistema de diseño
+   =====================================================================
+
+   Un único lugar donde se decide cómo se ve la aplicación. Antes cada
+   pantalla resolvía su apariencia por su cuenta y el resultado era que
+   pasar de operaciones a administración parecía cambiar de producto: dos
+   barras laterales de distinto ancho, distinto azul, distinto radio de
+   borde y hasta distinta tipografía.
+
+   La regla a partir de acá: los componentes NO inventan colores,
+   espaciados ni sombras. Consumen las variables de este archivo. Si hace
+   falta un valor nuevo, se agrega aquí y queda disponible para todos.
+
+   El archivo va en cuatro tramos:
+     1. Tokens        — los valores crudos del sistema
+     2. Bootstrap     — se reapunta Bootstrap a esos tokens
+     3. Armazón       — barra lateral, cabecera y lienzo, iguales en los
+                        dos layouts
+     4. Primitivas    — las piezas que arman una pantalla: cabecera de
+                        página, panel, tabla, chip, métrica, vacío
+   ===================================================================== */
+
+
+/* ---------------------------------------------------------------- 1. tokens */
+
+:root {
+  /* Marca. Un solo azul para toda la aplicación. El celeste #38bdf8 que
+     usaba el panel de administración queda solo como acento de datos. */
+  --bo-brand-500: #2563eb;
+  --bo-brand-600: #1d4ed8;
+  --bo-brand-400: #3b82f6;
+  --bo-brand-soft: rgba(37, 99, 235, 0.12);
+
+  /* Superficies claras: el lienzo de trabajo. */
+  --bo-canvas: #f1f5f9;
+  --bo-surface: #ffffff;
+  --bo-surface-2: #f8fafc;
+  --bo-border: #e2e8f0;
+  --bo-border-strong: #cbd5e1;
+
+  /* Superficies oscuras: la barra lateral, en los dos layouts. */
+  --bo-navy-900: #081225;
+  --bo-navy-800: #0b1730;
+  --bo-navy-700: #14213d;
+  --bo-navy-line: rgba(255, 255, 255, 0.08);
+
+  /* Tinta. */
+  --bo-ink: #0f172a;
+  --bo-ink-2: #475569;
+  --bo-ink-3: #94a3b8;
+  --bo-ink-invert: #ffffff;
+  --bo-ink-invert-2: #cbd5e1;
+
+  /* Estados. Se usan tanto en botones como en chips y barras. */
+  --bo-ok: #059669;
+  --bo-ok-soft: #d1fae5;
+  --bo-warn: #d97706;
+  --bo-warn-soft: #fef3c7;
+  --bo-danger: #dc2626;
+  --bo-danger-soft: #fee2e2;
+  --bo-info: #0891b2;
+  --bo-info-soft: #cffafe;
+  --bo-neutral-soft: #eef2f7;
+
+  /* Radios. Tres escalones, ni uno más. */
+  --bo-r-sm: 8px;
+  --bo-r-md: 12px;
+  --bo-r-lg: 18px;
+
+  /* Sombras: suaves y de una sola familia. */
+  --bo-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --bo-shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08);
+  --bo-shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12);
+  --bo-shadow-brand: 0 8px 20px rgba(37, 99, 235, 0.28);
+
+  /* Medidas del armazón. */
+  --bo-sidebar-w: 268px;
+  --bo-topbar-h: 68px;
+
+  /* Tipografía. Una sola pila para toda la aplicación: el panel de
+     administración declaraba Segoe UI por su cuenta y por eso se veía
+     distinto incluso con los mismos colores. */
+  --bo-font: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --bo-font-mono: 'JetBrains Mono', 'Cascadia Mono', Consolas, monospace;
+
+  --bo-t-fast: 140ms cubic-bezier(0.4, 0, 0.2, 1);
+  --bo-t-base: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+/* ------------------------------------------------------------- 2. bootstrap */
+
+/* Se reapuntan las variables de Bootstrap a los tokens en vez de pelear
+   con especificidad a golpe de !important. Así cualquier .btn, .form-control
+   o .table hereda el sistema sin tocar el marcado existente. */
+:root {
+  --bs-body-font-family: var(--bo-font);
+  --bs-body-color: var(--bo-ink);
+  --bs-body-bg: var(--bo-canvas);
+  --bs-border-color: var(--bo-border);
+  --bs-border-radius: var(--bo-r-md);
+  --bs-border-radius-sm: var(--bo-r-sm);
+  --bs-border-radius-lg: var(--bo-r-lg);
+  --bs-primary: var(--bo-brand-500);
+  --bs-primary-rgb: 37, 99, 235;
+  --bs-link-color: var(--bo-brand-600);
+  --bs-link-hover-color: var(--bo-brand-500);
+  --bs-secondary-color: var(--bo-ink-2);
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--bo-font);
+  background: var(--bo-canvas);
+  color: var(--bo-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn {
+  --bs-btn-border-radius: var(--bo-r-sm);
+  font-weight: 500;
+  transition: transform var(--bo-t-fast), box-shadow var(--bo-t-fast),
+              background-color var(--bo-t-fast);
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--bo-brand-500);
+  --bs-btn-border-color: var(--bo-brand-500);
+  --bs-btn-hover-bg: var(--bo-brand-600);
+  --bs-btn-hover-border-color: var(--bo-brand-600);
+}
+
+.btn-primary:hover,
+.btn-success:hover {
+  box-shadow: var(--bo-shadow-brand);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.form-control,
+.form-select {
+  border-radius: var(--bo-r-sm);
+  border-color: var(--bo-border-strong);
+  font-size: 0.925rem;
+  padding: 0.5rem 0.75rem;
+  transition: border-color var(--bo-t-fast), box-shadow var(--bo-t-fast);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--bo-brand-400);
+  box-shadow: 0 0 0 3px var(--bo-brand-soft);
+}
+
+.form-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--bo-ink-2);
+  margin-bottom: 0.35rem;
+  letter-spacing: 0.01em;
+}
+
+
+/* ---------------------------------------------------------------- 3. armazón */
+
+/* Lo comparten el layout de operaciones y el de administración. Antes cada
+   uno traía su propia versión y de ahí venía el salto visual al cambiar. */
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bo-canvas);
+}
+
+.app-sidebar {
+  width: var(--bo-sidebar-w);
+  min-width: var(--bo-sidebar-w);
+  min-height: 100vh;
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, var(--bo-navy-900) 0%, var(--bo-navy-800) 100%);
+  border-right: 1px solid var(--bo-navy-line);
+  color: var(--bo-ink-invert);
+}
+
+.app-sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--bo-navy-line);
+}
+
+.app-sidebar__mark {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: var(--bo-r-md);
+  background: var(--bo-brand-500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  color: #fff;
+  box-shadow: var(--bo-shadow-brand);
+}
+
+.app-sidebar__title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.app-sidebar__subtitle {
+  font-size: 0.75rem;
+  color: var(--bo-ink-3);
+}
+
+.app-sidebar__nav {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 1rem 0.75rem;
+  list-style: none;
+  margin: 0;
+}
+
+.app-sidebar__section {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--bo-ink-3);
+  padding: 1.1rem 0.75rem 0.4rem;
+  font-weight: 600;
+}
+
+.app-sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  height: 44px;
+  padding: 0 0.85rem;
+  margin-bottom: 0.25rem;
+  border-radius: var(--bo-r-sm);
+  color: var(--bo-ink-invert-2);
+  font-size: 0.925rem;
+  font-weight: 500;
+  text-decoration: none;
+  border: 0;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  transition: background-color var(--bo-t-fast), color var(--bo-t-fast);
+
+  i {
+    font-size: 1.05rem;
+    width: 1.25rem;
+    text-align: center;
+    opacity: 0.85;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+  }
+}
+
+/* El activo se marca con una barra a la izquierda además del fondo: el
+   color solo no alcanza para quien no lo distingue. */
+.app-sidebar__link.active,
+.app-sidebar__link.active-link {
+  background: var(--bo-brand-soft);
+  color: #fff;
+  box-shadow: inset 3px 0 0 0 var(--bo-brand-400);
+
+  i { opacity: 1; }
+}
+
+.app-sidebar__link--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+
+  &:hover { background: transparent; color: var(--bo-ink-invert-2); }
+}
+
+.app-sidebar__link--danger {
+  color: #fca5a5;
+
+  &:hover { background: rgba(220, 38, 38, 0.14); color: #fecaca; }
+}
+
+.app-sidebar__foot {
+  padding: 0.75rem;
+  border-top: 1px solid var(--bo-navy-line);
+}
+
+.app-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-topbar {
+  height: var(--bo-topbar-h);
+  flex: 0 0 var(--bo-topbar-h);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1.5rem;
+  background: var(--bo-surface);
+  border-bottom: 1px solid var(--bo-border);
+}
+
+/* Contenido de la barra superior. Vive en el sistema de diseño y no en el
+   componente header porque el layout de administración dibuja su propia
+   barra con el mismo marcado: si los estilos quedaran encapsulados en
+   app-header, la de administración aparecería sin formato. */
+
+.topbar__context {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.topbar__eyebrow {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  font-weight: 600;
+  color: var(--bo-ink-3);
+}
+
+.topbar__area {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--bo-ink);
+}
+
+.topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.topbar__divider {
+  width: 1px;
+  height: 28px;
+  background: var(--bo-border);
+}
+
+.topbar__user {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.topbar__user-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--bo-r-sm);
+  padding: 0.3rem 0.55rem;
+  color: var(--bo-ink);
+  transition: background-color var(--bo-t-fast), border-color var(--bo-t-fast);
+}
+
+.topbar__user-btn:hover {
+  background: var(--bo-surface-2);
+  border-color: var(--bo-border);
+}
+
+.topbar__user-btn i {
+  font-size: 0.75rem;
+  color: var(--bo-ink-3);
+}
+
+.topbar__avatar {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 50%;
+  background: var(--bo-brand-500);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.topbar__user-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+}
+
+.topbar__user-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.topbar__user-role {
+  font-size: 0.72rem;
+  color: var(--bo-ink-3);
+}
+
+@media (max-width: 768px) {
+  .topbar__user-text,
+  .topbar__context { display: none; }
+}
+
+
+.app-viewport {
+  flex: 1 1 auto;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+
+/* ------------------------------------------------------------ 4. primitivas */
+
+/* Cabecera de pantalla. Todas las páginas abren igual: título, bajada y
+   acciones a la derecha. */
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.page-head__title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0;
+  color: var(--bo-ink);
+}
+
+.page-head__sub {
+  font-size: 0.875rem;
+  color: var(--bo-ink-2);
+  margin: 0.2rem 0 0;
+}
+
+.page-head__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Panel: la caja blanca que envuelve contenido. Reemplaza al
+   `.card shadow-sm border-0 p-4` que cada pantalla repetía a mano. */
+.panel {
+  background: var(--bo-surface);
+  border: 1px solid var(--bo-border);
+  border-radius: var(--bo-r-lg);
+  box-shadow: var(--bo-shadow-sm);
+  overflow: hidden;
+
+  & + .panel { margin-top: 1.25rem; }
+}
+
+.panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--bo-border);
+  background: var(--bo-surface-2);
+}
+
+.panel__title {
+  font-size: 0.95rem;
+  font-weight: 650;
+  margin: 0;
+  color: var(--bo-ink);
+}
+
+.panel__body {
+  padding: 1.25rem;
+}
+
+.panel__body--flush {
+  padding: 0;
+}
+
+/* Barra de filtros y acciones dentro de un panel. */
+.toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.toolbar__field {
+  display: flex;
+  flex-direction: column;
+  min-width: 170px;
+  flex: 1 1 170px;
+}
+
+.toolbar__spacer { flex: 1 1 auto; }
+
+/* Tabla de datos. Densa, legible, con la cabecera pegada arriba. */
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.875rem;
+
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--bo-surface-2);
+    color: var(--bo-ink-2);
+    font-weight: 600;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid var(--bo-border);
+    white-space: nowrap;
+  }
+
+  tbody td {
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid var(--bo-border);
+    color: var(--bo-ink);
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td { border-bottom: 0; }
+
+  tbody tr { transition: background-color var(--bo-t-fast); }
+  tbody tr:hover { background: var(--bo-surface-2); }
+
+  .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+
+  .mono {
+    font-family: var(--bo-font-mono);
+    font-size: 0.82rem;
+  }
+}
+
+.table-scroll {
+  overflow-x: auto;
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+/* Chip de estado. Una sola forma para todos los estados del sistema. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+  background: var(--bo-neutral-soft);
+  color: var(--bo-ink-2);
+}
+
+.chip--ok      { background: var(--bo-ok-soft);      color: #065f46; }
+.chip--warn    { background: var(--bo-warn-soft);    color: #92400e; }
+.chip--danger  { background: var(--bo-danger-soft);  color: #991b1b; }
+.chip--info    { background: var(--bo-info-soft);    color: #155e75; }
+.chip--brand   { background: var(--bo-brand-soft);   color: var(--bo-brand-600); }
+
+/* Tarjetas de indicador. */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.metric {
+  background: var(--bo-surface);
+  border: 1px solid var(--bo-border);
+  border-radius: var(--bo-r-lg);
+  padding: 1rem 1.15rem;
+  box-shadow: var(--bo-shadow-sm);
+}
+
+.metric__label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--bo-ink-3);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.metric__value {
+  font-size: 1.65rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 0.35rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.metric__hint {
+  font-size: 0.78rem;
+  color: var(--bo-ink-2);
+  margin-top: 0.15rem;
+}
+
+/* Barra de progreso fina, para el frente de avance. */
+.track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bo-neutral-soft);
+  overflow: hidden;
+}
+
+.track__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--bo-brand-500);
+  transition: width var(--bo-t-base);
+}
+
+.track__fill--ok     { background: var(--bo-ok); }
+.track__fill--warn   { background: var(--bo-warn); }
+.track__fill--danger { background: var(--bo-danger); }
+
+/* Estado vacío: hasta ahora cada pantalla resolvía "no hay datos" como
+   podía, o no lo resolvía. */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--bo-ink-2);
+
+  i {
+    font-size: 2.25rem;
+    color: var(--bo-border-strong);
+    display: block;
+    margin-bottom: 0.75rem;
+  }
+
+  p { margin: 0; font-size: 0.9rem; }
+}
+
+.alert-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--bo-r-sm);
+  font-size: 0.875rem;
+  background: var(--bo-danger-soft);
+  color: #991b1b;
+  margin-bottom: 1rem;
+}
+
+/* Barras de desplazamiento discretas, coherentes en toda la aplicación. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--bo-border-strong) transparent;
+}
+
+*::-webkit-scrollbar { width: 9px; height: 9px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: var(--bo-border-strong);
+  border-radius: 999px;
+}
+
+@media (max-width: 992px) {
+  :root { --bo-sidebar-w: 72px; }
+
+  .app-sidebar__title,
+  .app-sidebar__subtitle,
+  .app-sidebar__section,
+  .app-sidebar__link span { display: none; }
+
+  .app-sidebar__link { justify-content: center; }
+  .app-viewport { padding: 1rem; }
+}
+
+/* --------------------------------------------- 5. compatibilidad de pantallas
+
+   Las pantallas que ya existían (sondajes, plataformas, máquinas, usuarios,
+   roles, empleados, empresas, proyectos) se migraron a las primitivas de
+   arriba por sustitución de clases, sin tocar su estructura de etiquetas: era
+   la forma de uniformarlas sin arriesgar ocho plantillas de golpe. Estas dos
+   piezas cubren lo que esa sustitución necesita. */
+
+/* Envoltorio de página. Reemplaza al .container-fluid.py-4 que cada pantalla
+   traía: el relleno ahora lo pone .app-viewport, uno solo para todas. */
+.page {
+  display: block;
+}
+
+/* Variantes del aviso en línea. El rojo es el que más se usa, así que queda
+   como base y las otras dos se declaran como modificadores. */
+.alert-inline--info {
+  background: var(--bo-info-soft);
+  color: #155e75;
+}
+
+.alert-inline--ok {
+  background: var(--bo-ok-soft);
+  color: #065f46;
+}
+
+/* Un panel que además es su propio cuerpo: sirve para las pantallas donde el
+   contenido no tiene cabecera propia. */
+.panel.panel__body {
+  padding: 1.25rem;
+}
+
+
+/* ------------------------------------------------------------- impresión */
+
+/* Al imprimir (o guardar como PDF) queda solo el contenido de la pantalla:
+   sin menú lateral, sin cabecera y sin botones marcados con .no-print. Lo usa
+   el reporte diario para su versión en PDF. */
+@media print {
+  app-navbar,
+  app-header,
+  .no-print {
+    display: none !important;
+  }
+
+  .app-main {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  .panel {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+}

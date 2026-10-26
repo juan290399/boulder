@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProgramaSondajeServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.services</a> &gt; <span class="el_source">ProgramaSondajeServiceImpl.java</span></div><h1>ProgramaSondajeServiceImpl.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.services;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.boulder.boulder.dto.ProgramaSondajeDTO;
+import com.boulder.boulder.entities.ProgramaSondaje;
+import com.boulder.boulder.entities.Proyecto;
+import com.boulder.boulder.entities.Plataforma;
+import com.boulder.boulder.repositories.ProgramaSondajeRepository;
+import com.boulder.boulder.repositories.ProyectoRepository;
+import com.boulder.boulder.repositories.PlataformaRepository;
+
+import jakarta.persistence.EntityNotFoundException;
+
+/**
+ * Implementación de los servicios de negocio para la gestión de programas de sondaje.
+ *
+ * &lt;p&gt;
+ * Valida la consistencia de los alcances de perforación y realiza el mapeo plano 
+ * desarmando las relaciones Lazy para el consumo fluido de Angular.
+ * &lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@Service
+<span class="fc" id="L36">public class ProgramaSondajeServiceImpl implements ProgramaSondajeService {</span>
+
+<span class="fc" id="L38">    private static final Logger log = LoggerFactory.getLogger(ProgramaSondajeServiceImpl.class);</span>
+
+    @Autowired
+    private ProgramaSondajeRepository programaSondajeRepository;
+
+    @Autowired
+    private ProyectoRepository proyectoRepository;
+
+    @Autowired
+    private PlataformaRepository plataformaRepository;
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;ProgramaSondajeDTO&gt; listarTodos() {
+<span class="fc" id="L52">        log.debug(&quot;Consultando el consolidado nacional de programas de sondaje&quot;);</span>
+<span class="fc" id="L53">        return programaSondajeRepository.findAll().stream()</span>
+<span class="fc" id="L54">                .map(this::convertToDto)</span>
+<span class="fc" id="L55">                .collect(Collectors.toList());</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProgramaSondajeDTO obtenerPorId(UUID id) {
+<span class="nc" id="L61">        log.debug(&quot;Buscando programa de sondaje por ID: {}&quot;, id);</span>
+<span class="nc" id="L62">        ProgramaSondaje programa = programaSondajeRepository.findById(id)</span>
+<span class="nc" id="L63">                .orElseThrow(() -&gt; {</span>
+<span class="nc" id="L64">                    log.warn(&quot;Programa de sondaje no encontrado con ID: {}&quot;, id);</span>
+<span class="nc" id="L65">                    return new EntityNotFoundException(&quot;Programa de sondaje no localizado con el ID provisto.&quot;);</span>
+                });
+<span class="nc" id="L67">        return convertToDto(programa);</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProgramaSondajeDTO obtenerPorCodigo(String codigo) {
+<span class="nc" id="L73">        log.debug(&quot;Buscando campaña de sondaje por código único: {}&quot;, codigo);</span>
+
+<span class="nc" id="L75">        ProgramaSondaje programa = programaSondajeRepository.findByCodigo(codigo)</span>
+<span class="nc" id="L76">                .orElseThrow(() -&gt; {</span>
+<span class="nc" id="L77">                    log.warn(&quot;Programa de sondaje no encontrado con código: {}&quot;, codigo);</span>
+<span class="nc" id="L78">                    return new EntityNotFoundException(&quot;No se encontró ningún programa con el código: &quot; + codigo);</span>
+                });
+<span class="nc" id="L80">        return convertToDto(programa);</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;ProgramaSondajeDTO&gt; listarPorProyecto(UUID proyectoId) {
+<span class="nc" id="L86">        log.debug(&quot;Filtrando planes de perforación para el proyecto ID: {}&quot;, proyectoId);</span>
+
+<span class="nc" id="L88">        return programaSondajeRepository.findByProyectoId(proyectoId).stream()</span>
+<span class="nc" id="L89">                .map(this::convertToDto)</span>
+<span class="nc" id="L90">                .collect(Collectors.toList());</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;ProgramaSondajeDTO&gt; listarPorPlataforma(UUID proyectoId) {
+<span class="nc" id="L96">        log.debug(&quot;Filtrando planes de perforación para plataforma ID: {}&quot;, proyectoId);</span>
+
+<span class="nc" id="L98">        return programaSondajeRepository.findByProyectoId(proyectoId).stream()</span>
+<span class="nc" id="L99">                .map(this::convertToDto)</span>
+<span class="nc" id="L100">                .collect(Collectors.toList());</span>
+    }
+
+   @Override
+    @Transactional
+    public ProgramaSondajeDTO guardar(ProgramaSondajeDTO dto) {
+<span class="nc" id="L106">        log.info(&quot;Planificando nuevo programa de sondaje. Código: {}, Proyecto ID: {}&quot;, dto.getCodigo(), dto.getProyectoId());</span>
+        try {
+<span class="nc" id="L108">            Proyecto proyecto = proyectoRepository.findById(dto.getProyectoId())</span>
+<span class="nc" id="L109">                    .orElseThrow(() -&gt; new EntityNotFoundException(&quot;No se puede iniciar un programa si el Proyecto asignado no existe.&quot;));</span>
+
+<span class="nc bnc" id="L111" title="All 2 branches missed.">            if (dto.getPlataformaId() == null) {</span>
+<span class="nc" id="L112">                throw new IllegalArgumentException(&quot;El ID de la plataforma es obligatorio para registrar un programa de sondaje.&quot;);</span>
+            }
+<span class="nc" id="L114">            Plataforma plataforma = plataformaRepository.findById(dto.getPlataformaId())</span>
+<span class="nc" id="L115">                    .orElseThrow(() -&gt; new EntityNotFoundException(&quot;La Plataforma asignada no existe.&quot;));</span>
+
+<span class="nc" id="L117">            ProgramaSondaje programa = new ProgramaSondaje();</span>
+<span class="nc" id="L118">            programa.setCodigo(dto.getCodigo());</span>
+<span class="nc" id="L119">            programa.setCodigoOriginal(dto.getCodigoOriginal());</span>
+<span class="nc" id="L120">            programa.setNombre(dto.getNombre());</span>
+<span class="nc" id="L121">            programa.setProyecto(proyecto);</span>
+<span class="nc" id="L122">            programa.setPlataforma(plataforma);</span>
+
+<span class="nc" id="L124">            programa.setEste(dto.getEste());</span>
+<span class="nc" id="L125">            programa.setNorte(dto.getNorte());</span>
+<span class="nc" id="L126">            programa.setElevacion(dto.getElevacion());</span>
+<span class="nc" id="L127">            programa.setProfundidad(dto.getProfundidad());</span>
+<span class="nc" id="L128">            programa.setAzimut(dto.getAzimut());</span>
+<span class="nc" id="L129">            programa.setInclinacion(dto.getInclinacion());</span>
+<span class="nc" id="L130">            programa.setPlano(dto.getPlano());</span>
+<span class="nc" id="L131">            programa.setPunto(dto.getPunto());</span>
+<span class="nc" id="L132">            programa.setPrioridad(dto.getPrioridad());</span>
+<span class="nc" id="L133">            programa.setZona(dto.getZona());</span>
+<span class="nc" id="L134">            programa.setFlanco(dto.getFlanco());</span>
+<span class="nc" id="L135">            programa.setNotas(dto.getNotas());</span>
+
+<span class="nc" id="L137">            ProgramaSondaje guardado = programaSondajeRepository.save(programa);</span>
+<span class="nc" id="L138">            log.info(&quot;Programa de sondaje registrado correctamente. ID: {}, Código: {}&quot;, guardado.getId(), guardado.getCodigo());</span>
+<span class="nc" id="L139">            return convertToDto(guardado);</span>
+<span class="nc" id="L140">        } catch (Exception e) {</span>
+<span class="nc" id="L141">            log.error(&quot;Fallo crítico al guardar el plan de sondajes con código: {}&quot;, dto.getCodigo(), e);</span>
+<span class="nc" id="L142">            throw e;</span>
+        }
+    }
+
+    @Override
+    @Transactional
+    public ProgramaSondajeDTO actualizar(UUID id, ProgramaSondajeDTO dto) {
+<span class="nc" id="L149">        log.info(&quot;Modificando alcances del programa de sondaje ID: {}&quot;, id);</span>
+        try {
+<span class="nc" id="L151">            ProgramaSondaje programa = programaSondajeRepository.findById(id)</span>
+<span class="nc" id="L152">                    .orElseThrow(() -&gt; {</span>
+<span class="nc" id="L153">                        log.warn(&quot;Intento de modificar plan de sondaje inexistente ID: {}&quot;, id);</span>
+<span class="nc" id="L154">                        return new EntityNotFoundException(&quot;Programa de sondaje no existente.&quot;);</span>
+                    });
+
+<span class="nc bnc" id="L157" title="All 6 branches missed.">            if (dto.getProyectoId() != null &amp;&amp; (programa.getProyecto() == null || !programa.getProyecto().getId().equals(dto.getProyectoId()))) {</span>
+<span class="nc" id="L158">                Proyecto nuevoProyecto = proyectoRepository.findById(dto.getProyectoId())</span>
+<span class="nc" id="L159">                        .orElseThrow(() -&gt; new EntityNotFoundException(&quot;El nuevo Proyecto asociado no existe.&quot;));</span>
+<span class="nc" id="L160">                programa.setProyecto(nuevoProyecto);</span>
+            }
+
+<span class="nc bnc" id="L163" title="All 6 branches missed.">            if (dto.getPlataformaId() != null &amp;&amp; (programa.getPlataforma() == null || !programa.getPlataforma().getId().equals(dto.getPlataformaId()))) {</span>
+<span class="nc" id="L164">                Plataforma nuevaPlataforma = plataformaRepository.findById(dto.getPlataformaId())</span>
+<span class="nc" id="L165">                        .orElseThrow(() -&gt; new EntityNotFoundException(&quot;La nueva Plataforma asociada no existe.&quot;));</span>
+<span class="nc" id="L166">                programa.setPlataforma(nuevaPlataforma);</span>
+            }
+
+<span class="nc bnc" id="L169" title="All 2 branches missed.">            if (dto.getCodigoOriginal() != null) {</span>
+<span class="nc" id="L170">                programa.setCodigoOriginal(dto.getCodigoOriginal());</span>
+            }
+<span class="nc" id="L172">            programa.setNombre(dto.getNombre());</span>
+<span class="nc" id="L173">            programa.setEste(dto.getEste());</span>
+<span class="nc" id="L174">            programa.setNorte(dto.getNorte());</span>
+<span class="nc" id="L175">            programa.setElevacion(dto.getElevacion());</span>
+<span class="nc" id="L176">            programa.setProfundidad(dto.getProfundidad());</span>
+<span class="nc" id="L177">            programa.setAzimut(dto.getAzimut());</span>
+<span class="nc" id="L178">            programa.setInclinacion(dto.getInclinacion());</span>
+<span class="nc" id="L179">            programa.setPlano(dto.getPlano());</span>
+<span class="nc" id="L180">            programa.setPunto(dto.getPunto());</span>
+<span class="nc" id="L181">            programa.setPrioridad(dto.getPrioridad());</span>
+<span class="nc" id="L182">            programa.setZona(dto.getZona());</span>
+<span class="nc" id="L183">            programa.setFlanco(dto.getFlanco());</span>
+<span class="nc" id="L184">            programa.setNotas(dto.getNotas());</span>
+
+<span class="nc" id="L186">            ProgramaSondaje actualizado = programaSondajeRepository.save(programa);</span>
+<span class="nc" id="L187">            log.info(&quot;Programa de sondaje '{}' actualizado con éxito en terreno&quot;, actualizado.getCodigo());</span>
+<span class="nc" id="L188">            return convertToDto(actualizado);</span>
+<span class="nc" id="L189">        } catch (Exception e) {</span>
+<span class="nc" id="L190">            log.error(&quot;Error al modificar registros de ingeniería de sondajes ID: {}&quot;, id, e);</span>
+<span class="nc" id="L191">            throw e;</span>
+        }
+    }
+
+    private ProgramaSondajeDTO convertToDto(ProgramaSondaje programa) {
+<span class="fc" id="L196">        ProgramaSondajeDTO dto = new ProgramaSondajeDTO();</span>
+<span class="fc" id="L197">        dto.setId(programa.getId());</span>
+<span class="fc" id="L198">        dto.setNumeroInterno(programa.getNumeroInterno());</span>
+<span class="fc" id="L199">        dto.setCodigo(programa.getCodigo());</span>
+<span class="fc" id="L200">        dto.setCodigoOriginal(programa.getCodigoOriginal());</span>
+<span class="fc" id="L201">        dto.setNombre(programa.getNombre());</span>
+<span class="fc" id="L202">        dto.setEste(programa.getEste());</span>
+<span class="fc" id="L203">        dto.setNorte(programa.getNorte());</span>
+<span class="fc" id="L204">        dto.setElevacion(programa.getElevacion());</span>
+<span class="fc" id="L205">        dto.setProfundidad(programa.getProfundidad());</span>
+<span class="fc" id="L206">        dto.setAzimut(programa.getAzimut());</span>
+<span class="fc" id="L207">        dto.setInclinacion(programa.getInclinacion());</span>
+<span class="fc" id="L208">        dto.setPlano(programa.getPlano());</span>
+<span class="fc" id="L209">        dto.setPunto(programa.getPunto());</span>
+<span class="fc" id="L210">        dto.setPrioridad(programa.getPrioridad());</span>
+<span class="fc" id="L211">        dto.setZona(programa.getZona());</span>
+<span class="fc" id="L212">        dto.setFlanco(programa.getFlanco());</span>
+<span class="fc" id="L213">        dto.setNotas(programa.getNotas());</span>
+
+<span class="pc bpc" id="L215" title="1 of 2 branches missed.">        if (programa.getProyecto() != null) {</span>
+<span class="fc" id="L216">            dto.setProyectoId(programa.getProyecto().getId());</span>
+        }
+        
+<span class="pc bpc" id="L219" title="1 of 2 branches missed.">        if (programa.getPlataforma() != null) {</span>
+<span class="fc" id="L220">            dto.setPlataformaId(programa.getPlataforma().getId());</span>
+        }
+        
+<span class="fc" id="L223">        return dto;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

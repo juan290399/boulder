@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SurveyServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.services</a> &gt; <span class="el_source">SurveyServiceImpl.java</span></div><h1>SurveyServiceImpl.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.services;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.boulder.boulder.dto.SurveyDTO;
+import com.boulder.boulder.entities.Survey;
+import com.boulder.boulder.entities.Sondaje;
+import com.boulder.boulder.repositories.SurveyRepository;
+import com.boulder.boulder.repositories.SondajeRepository;
+
+import jakarta.persistence.EntityNotFoundException;
+
+/**
+ * Implementación de los servicios de negocio para la gestión de mediciones
+ * de trayectoria.
+ *
+ * &lt;p&gt;
+ * Gestiona las operaciones relacionadas con el registro y consulta de datos
+ * de orientación y desviación de sondajes.
+ * &lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@Service
+<span class="fc" id="L35">public class SurveyServiceImpl implements SurveyService {</span>
+
+<span class="fc" id="L37">    private static final Logger log = LoggerFactory.getLogger(SurveyServiceImpl.class);</span>
+
+    @Autowired
+    private SurveyRepository surveyRepository;
+
+    @Autowired
+    private SondajeRepository sondajeRepository;
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;SurveyDTO&gt; listarTodos() {
+<span class="fc" id="L48">        log.debug(&quot;Consultando el histórico completo de mediciones de survey en el proyecto&quot;);</span>
+<span class="fc" id="L49">        return surveyRepository.findAll().stream()</span>
+<span class="fc" id="L50">                .map(this::convertToDto)</span>
+<span class="fc" id="L51">                .collect(Collectors.toList());</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SurveyDTO obtenerPorId(UUID id) {
+<span class="nc" id="L57">        log.debug(&quot;Buscando registro de survey por ID: {}&quot;, id);</span>
+<span class="nc" id="L58">        Survey survey = surveyRepository.findById(id)</span>
+<span class="nc" id="L59">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Estación de survey no localizada con el ID provisto.&quot;));</span>
+<span class="nc" id="L60">        return convertToDto(survey);</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;SurveyDTO&gt; listarPorSondaje(UUID sondajeId) {
+<span class="nc" id="L66">        log.debug(&quot;Recuperando trayectoria tridimensional del Sondaje ID: {}&quot;, sondajeId);</span>
+<span class="nc" id="L67">        return surveyRepository.findBySondajeIdOrderByProfundidadAsc(sondajeId).stream()</span>
+<span class="nc" id="L68">                .map(this::convertToDto)</span>
+<span class="nc" id="L69">                .collect(Collectors.toList());</span>
+    }
+
+    @Override
+    @Transactional
+    public SurveyDTO guardar(SurveyDTO dto) {
+<span class="nc" id="L75">        log.info(&quot;Registrando nueva estación de Survey a los {}m para el Sondaje ID: {}&quot;, dto.getProfundidad(), dto.getSondajeId());</span>
+        try {
+<span class="nc" id="L77">            Survey survey = new Survey();</span>
+            
+<span class="nc" id="L79">            survey.setProfundidad(dto.getProfundidad());</span>
+<span class="nc" id="L80">            survey.setAzimut(dto.getAzimut());</span>
+<span class="nc" id="L81">            survey.setInclinacion(dto.getInclinacion());</span>
+<span class="nc" id="L82">            survey.setMetodoMedicion(dto.getMetodoMedicion());</span>
+<span class="nc" id="L83">            survey.setMedicionUtilizada(dto.getMedicionUtilizada());</span>
+<span class="nc" id="L84">            survey.setQc(dto.getQc());</span>
+
+<span class="nc bnc" id="L86" title="All 2 branches missed.">            if (dto.getSondajeId() != null) {</span>
+<span class="nc" id="L87">                Sondaje sondaje = sondajeRepository.findById(dto.getSondajeId())</span>
+<span class="nc" id="L88">                        .orElseThrow(() -&gt; new EntityNotFoundException(&quot;No se puede registrar una medición si el Sondaje asignado no existe.&quot;));</span>
+<span class="nc" id="L89">                survey.setSondaje(sondaje);</span>
+<span class="nc" id="L90">            } else {</span>
+<span class="nc" id="L91">                throw new IllegalArgumentException(&quot;El ID del sondaje es mandatorio para registrar una medición de Survey.&quot;);</span>
+            }
+
+<span class="nc" id="L94">            Survey guardado = surveyRepository.save(survey);</span>
+<span class="nc" id="L95">            log.info(&quot;Punto de survey registrado exitosamente. ID: {}, Profundidad: {}m&quot;, guardado.getId(), guardado.getProfundidad());</span>
+<span class="nc" id="L96">            return convertToDto(guardado);</span>
+<span class="nc" id="L97">        } catch (Exception e) {</span>
+<span class="nc" id="L98">            log.error(&quot;Error crítico al registrar la estación de trayectoria en profundidad: {}&quot;, dto.getProfundidad(), e);</span>
+<span class="nc" id="L99">            throw e;</span>
+        }
+    }
+
+    @Override
+    @Transactional
+    public SurveyDTO actualizar(UUID id, SurveyDTO dto) {
+<span class="nc" id="L106">        log.info(&quot;Actualizando datos de calibración del Survey ID: {}&quot;, id);</span>
+        try {
+<span class="nc" id="L108">            Survey survey = surveyRepository.findById(id)</span>
+<span class="nc" id="L109">                    .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Registro de survey inexistente en la base de datos.&quot;));</span>
+
+<span class="nc" id="L111">            survey.setProfundidad(dto.getProfundidad());</span>
+<span class="nc" id="L112">            survey.setAzimut(dto.getAzimut());</span>
+<span class="nc" id="L113">            survey.setInclinacion(dto.getInclinacion());</span>
+<span class="nc" id="L114">            survey.setMetodoMedicion(dto.getMetodoMedicion());</span>
+<span class="nc" id="L115">            survey.setMedicionUtilizada(dto.getMedicionUtilizada());</span>
+<span class="nc" id="L116">            survey.setQc(dto.getQc());</span>
+
+<span class="nc bnc" id="L118" title="All 6 branches missed.">            if (dto.getSondajeId() != null &amp;&amp; (survey.getSondaje() == null || !survey.getSondaje().getId().equals(dto.getSondajeId()))) {</span>
+<span class="nc" id="L119">                Sondaje nuevoSondaje = sondajeRepository.findById(dto.getSondajeId())</span>
+<span class="nc" id="L120">                        .orElseThrow(() -&gt; new EntityNotFoundException(&quot;El nuevo Sondaje asociado no existe.&quot;));</span>
+<span class="nc" id="L121">                survey.setSondaje(nuevoSondaje);</span>
+            }
+
+<span class="nc" id="L124">            Survey actualizado = surveyRepository.save(survey);</span>
+<span class="nc" id="L125">            log.info(&quot;Medición de survey ID: {} actualizada con éxito en el sistema&quot;, actualizado.getId());</span>
+<span class="nc" id="L126">            return convertToDto(actualizado);</span>
+<span class="nc" id="L127">        } catch (Exception e) {</span>
+<span class="nc" id="L128">            log.error(&quot;Error al modificar la estación de trayectoria ID: {}&quot;, id, e);</span>
+<span class="nc" id="L129">            throw e;</span>
+        }
+    }
+
+    @Override
+    @Transactional
+    public void eliminar(UUID id) {
+<span class="nc" id="L136">        log.warn(&quot;Solicitud de eliminación de estación de trayectoria ID: {}&quot;, id);</span>
+<span class="nc" id="L137">        Survey survey = surveyRepository.findById(id)</span>
+<span class="nc" id="L138">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;No se puede eliminar un registro de survey inexistente.&quot;));</span>
+<span class="nc" id="L139">        surveyRepository.delete(survey);</span>
+<span class="nc" id="L140">        log.info(&quot;Punto de survey ID: {} removido correctamente del histórico operativo&quot;, id);</span>
+<span class="nc" id="L141">    }</span>
+
+    private SurveyDTO convertToDto(Survey survey) {
+<span class="fc" id="L144">        SurveyDTO dto = new SurveyDTO();</span>
+<span class="fc" id="L145">        dto.setId(survey.getId());</span>
+<span class="fc" id="L146">        dto.setNumeroInterno(survey.getNumeroInterno());</span>
+<span class="fc" id="L147">        dto.setProfundidad(survey.getProfundidad());</span>
+<span class="fc" id="L148">        dto.setAzimut(survey.getAzimut());</span>
+<span class="fc" id="L149">        dto.setInclinacion(survey.getInclinacion());</span>
+<span class="fc" id="L150">        dto.setMetodoMedicion(survey.getMetodoMedicion());</span>
+<span class="fc" id="L151">        dto.setMedicionUtilizada(survey.getMedicionUtilizada());</span>
+<span class="fc" id="L152">        dto.setQc(survey.getQc());</span>
+
+<span class="pc bpc" id="L154" title="1 of 2 branches missed.">        if (survey.getSondaje() != null) {</span>
+<span class="fc" id="L155">            dto.setSondajeId(survey.getSondaje().getId());</span>
+        }
+
+<span class="fc" id="L158">        return dto;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

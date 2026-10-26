@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,7 @@ import com.boulder.boulder.repositories.UsuarioRepository;
 import com.boulder.boulder.repositories.UsuarioRolRepository;
 
 @Service
-public class MyUserDetailsService implements UserDetailsService {
+public class MyUserDetailsService implements UserDetailsService, UserDetailsPasswordService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
@@ -40,5 +41,24 @@ public class MyUserDetailsService implements UserDetailsService {
                 .collect(Collectors.toList());
 
         return new MyUserMain(user, authorities);
+    }
+
+    /**
+     * Guarda la contraseña ya recodificada.
+     *
+     * <p>
+     * Spring la llama tras un login correcto cuando el hash guardado usa un
+     * algoritmo distinto del vigente: es el paso que convierte las contraseñas
+     * en texto plano a BCrypt la primera vez que cada usuario entra.
+     * </p>
+     */
+    @Override
+    @Transactional
+    public UserDetails updatePassword(UserDetails user, String newPassword) {
+        Usuario usuario = usuarioRepository.findByUsuario(user.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + user.getUsername()));
+        usuario.setContrasenia(newPassword);
+        usuarioRepository.save(usuario);
+        return loadUserByUsername(user.getUsername());
     }
 }

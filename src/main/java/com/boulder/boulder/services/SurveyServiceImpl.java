@@ -80,6 +80,8 @@ public class SurveyServiceImpl implements SurveyService {
             survey.setAzimut(dto.getAzimut());
             survey.setInclinacion(dto.getInclinacion());
             survey.setMetodoMedicion(dto.getMetodoMedicion());
+            survey.setMedicionUtilizada(dto.getMedicionUtilizada());
+            survey.setQc(dto.getQc());
 
             if (dto.getSondajeId() != null) {
                 Sondaje sondaje = sondajeRepository.findById(dto.getSondajeId())
@@ -110,6 +112,8 @@ public class SurveyServiceImpl implements SurveyService {
             survey.setAzimut(dto.getAzimut());
             survey.setInclinacion(dto.getInclinacion());
             survey.setMetodoMedicion(dto.getMetodoMedicion());
+            survey.setMedicionUtilizada(dto.getMedicionUtilizada());
+            survey.setQc(dto.getQc());
 
             if (dto.getSondajeId() != null && (survey.getSondaje() == null || !survey.getSondaje().getId().equals(dto.getSondajeId()))) {
                 Sondaje nuevoSondaje = sondajeRepository.findById(dto.getSondajeId())
@@ -144,6 +148,8 @@ public class SurveyServiceImpl implements SurveyService {
         dto.setAzimut(survey.getAzimut());
         dto.setInclinacion(survey.getInclinacion());
         dto.setMetodoMedicion(survey.getMetodoMedicion());
+        dto.setMedicionUtilizada(survey.getMedicionUtilizada());
+        dto.setQc(survey.getQc());
 
         if (survey.getSondaje() != null) {
             dto.setSondajeId(survey.getSondaje().getId());

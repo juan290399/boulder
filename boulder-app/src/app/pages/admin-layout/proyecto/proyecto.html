@@ -1,0 +1,83 @@
+<div class="page">
+  <div class="panel panel__body">
+    <h1 class="page-head__title mb-4">Proyectos</h1>
+
+    <div class="row g-2 mb-3">
+      <div class="col-md-2">
+        <input class="form-control" placeholder="Código" [(ngModel)]="form.codigo" />
+      </div>
+      <div class="col-md-4">
+        <input class="form-control" placeholder="Nombre del proyecto" [(ngModel)]="form.nombre" />
+      </div>
+      <div class="col-md-3">
+        <select class="form-select" [(ngModel)]="form.empresaId">
+          <option [ngValue]="''">— Empresa —</option>
+          <option *ngFor="let e of empresas" [ngValue]="e.id">{{ e.nombre }}</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <input class="form-control" type="number" placeholder="SRID" [(ngModel)]="form.srid" />
+      </div>
+    </div>
+
+    <div class="row g-2 mb-3">
+      <div class="col-md-9">
+        <input class="form-control" placeholder="Ubicación" [(ngModel)]="form.ubicacion" />
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <button class="btn btn-success me-2" (click)="guardar()">
+        {{ form.id ? 'Actualizar' : 'Crear' }}
+      </button>
+      <button class="btn btn-secondary" (click)="limpiar()">Limpiar</button>
+    </div>
+
+    <div *ngIf="mensaje" class="alert-inline alert-inline--info">{{ mensaje }}</div>
+
+    <hr class="my-3" />
+
+    <div class="row g-2 mb-3">
+      <div class="col-md-6">
+        <div class="input-group">
+          <input class="form-control" placeholder="Buscar por código" [(ngModel)]="busquedaCodigo" />
+          <button class="btn btn-primary" (click)="buscarPorCodigo()">Buscar</button>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="input-group">
+          <input class="form-control" placeholder="Buscar por ID" [(ngModel)]="busquedaId" />
+          <button class="btn btn-primary" (click)="buscarPorId()">Buscar</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-outline-primary mb-3" [disabled]="loading" (click)="listar()">
+      Refrescar listado
+    </button>
+
+    <div class="table-scroll" *ngIf="proyectos.length > 0; else vacio">
+      <table class="data-table">
+        <thead>
+          <tr><th>Código</th><th>Nombre</th><th>Empresa</th><th>Ubicación</th><th>SRID</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of proyectos">
+            <td>{{ p.codigo }}</td>
+            <td>{{ p.nombre }}</td>
+            <td>{{ nombreEmpresa(p.empresaId) }}</td>
+            <td>{{ p.ubicacion || '—' }}</td>
+            <td>{{ p.srid }}</td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-primary" (click)="editar(p)">Editar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #vacio>
+      <div class="empty-state">No hay proyectos para mostrar.</div>
+    </ng-template>
+  </div>
+</div>

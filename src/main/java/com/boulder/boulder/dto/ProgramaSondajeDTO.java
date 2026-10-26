@@ -29,6 +29,7 @@ public class ProgramaSondajeDTO {
     private UUID proyectoId;
     private UUID plataformaId;
     private String codigo;
+    private String codigoOriginal;
     private String nombre;
     private Double este;
     private Double norte;

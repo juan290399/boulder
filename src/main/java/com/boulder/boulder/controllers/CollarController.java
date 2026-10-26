@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,8 +27,7 @@ import com.boulder.boulder.services.CollarService;
  * @since 1.0
  */
 @RestController
-@RequestMapping("/collar")
-@CrossOrigin(origins = "*")
+@RequestMapping("/api/operacional/collares")
 public class CollarController {
 
     private static final Logger log = LoggerFactory.getLogger(CollarController.class);
@@ -49,7 +47,7 @@ public class CollarController {
         return ResponseEntity.ok(collarService.obtenerPorId(id));
     }
 
-    @GetMapping("/{codigo}")
+    @GetMapping("/codigo/{codigo}")
     public ResponseEntity<CollarDTO> obtenerPorCodigo(@PathVariable String codigo) {
         log.info("HTTP GET - Obteniendo collar codigo: {}", codigo);
         return ResponseEntity.ok(collarService.obtenerPorCodigo(codigo));

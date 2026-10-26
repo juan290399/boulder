@@ -1,158 +1,121 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+
+import { PlataformaService } from '../../../services/plataforma.service';
+import { ProyectoService } from '../../../services/proyecto.service';
+import { Plataforma as PlataformaModel, Proyecto } from '../../../models/operacional';
+
+const FORM_VACIO = (): PlataformaModel => ({
+  proyectoId: '',
+  codigo: '',
+  nombre: '',
+  este: undefined,
+  norte: undefined,
+  elevacion: undefined,
+  numeroPozas: 0,
+  estado: 'activa',
+  tipo: '',
+  ubicacion: '',
+  notas: '',
+});
 
 @Component({
   selector: 'app-plataforma',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule
-  ],
+  imports: [CommonModule, FormsModule],
   templateUrl: './plataforma.html',
-  styleUrl: './plataforma.scss'
+  styleUrl: './plataforma.scss',
 })
 export class Plataforma implements OnInit {
+  private readonly service = inject(PlataformaService);
+  private readonly proyectoService = inject(ProyectoService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
-  private baseUrl = 'http://localhost:8080/plataforma'; 
+  plataformas: PlataformaModel[] = [];
+  proyectos: Proyecto[] = [];
+  form: PlataformaModel & { id?: string } = FORM_VACIO();
 
-  plataformas: any[] = [];
-
-  form: any = {
-    id: null,
-    codigo: '',
-    nombre: '',
-    ubicacion: '',
-    capacidad: '',
-    estado: 'ACTIVA'
-  };
-
-  busquedaCodigo: string = '';
-  busquedaId: string = '';
+  busquedaCodigo = '';
+  busquedaId = '';
   loading = false;
-
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
+  mensaje = '';
 
   ngOnInit(): void {
-    this.listarPlataformas();
+    this.proyectoService.listar().subscribe({
+      next: (data) => {
+        this.proyectos = data;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('No se pudieron cargar los proyectos', err),
+    });
+    this.listar();
   }
 
-  listarPlataformas(): void {
-    if (this.loading) return;
+  listar(): void {
     this.loading = true;
-
-    console.log('DEBUG: Listando plataformas desde:', this.baseUrl);
-
-    this.http.get<any[]>(this.baseUrl)
-      .subscribe({
-        next: (data) => {
-          this.plataformas = Array.isArray(data) ? [...data] : [data];
-          console.log('INFO: Plataformas cargadas', this.plataformas.length);
-          this.loading = false;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('ERROR: listarPlataformas', err);
-          this.loading = false;
-          this.cdr.detectChanges();
-        }
-      });
+    this.service.listar().subscribe({
+      next: (data) => this.setLista(data),
+      error: (err) => this.fallo('No se pudo cargar el listado de plataformas', err),
+    });
   }
 
-  crearPlataforma(): void {
-    console.log('DEBUG: Creando plataforma', this.form);
-
-    this.http.post(this.baseUrl, this.form)
-      .subscribe({
-        next: (res: any) => {
-          console.log('INFO: Plataforma creada', res);
-          this.listarPlataformas();
-          this.limpiarFormulario();
-        },
-        error: (err) => {
-          console.error('ERROR: crearPlataforma', err);
-        }
-      });
-  }
-
-  actualizarPlataforma(): void {
-    if (!this.form.id) {
-      console.warn('WARN: No hay ID para actualizar');
-      return;
-    }
-
-    console.log('DEBUG: Actualizando plataforma con ID:', this.form.id);
-
-    this.http.put(`${this.baseUrl}/${this.form.id}`, this.form)
-      .subscribe({
-        next: (res: any) => {
-          console.log('INFO: Plataforma actualizada', res);
-          this.listarPlataformas();
-          this.limpiarFormulario();
-        },
-        error: (err) => {
-          console.error('ERROR: actualizarPlataforma', err);
-        }
-      });
+  guardar(): void {
+    const op$ = this.form.id
+      ? this.service.actualizar(this.form.id, this.form)
+      : this.service.crear(this.form);
+    op$.subscribe({
+      next: () => {
+        this.mensaje = this.form.id ? 'Plataforma actualizada' : 'Plataforma creada';
+        this.limpiar();
+        this.listar();
+      },
+      error: (err) => this.fallo('No se pudo guardar la plataforma', err),
+    });
   }
 
   buscarPorCodigo(): void {
     if (!this.busquedaCodigo.trim()) return;
-    if (this.loading) return;
     this.loading = true;
-
-    this.http.get<any>(`${this.baseUrl}/codigo/${this.busquedaCodigo.trim()}`)
-      .subscribe({
-        next: (res) => {
-          this.plataformas = res ? [res] : [];
-          this.loading = false;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('ERROR: buscarPorCodigo', err);
-          this.loading = false;
-          this.cdr.detectChanges();
-        }
-      });
+    this.service.obtenerPorCodigo(this.busquedaCodigo.trim()).subscribe({
+      next: (p) => this.setLista(p ? [p] : []),
+      error: (err) => this.fallo('Sin resultados por código', err),
+    });
   }
 
   buscarPorId(): void {
     if (!this.busquedaId.trim()) return;
-    if (this.loading) return;
     this.loading = true;
-
-    this.http.get<any>(`${this.baseUrl}/${this.busquedaId.trim()}`)
-      .subscribe({
-        next: (res) => {
-          this.plataformas = res ? [res] : [];
-          this.loading = false;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('ERROR: buscarPorId', err);
-          this.loading = false;
-          this.cdr.detectChanges();
-        }
-      });
+    this.service.obtenerPorId(this.busquedaId.trim()).subscribe({
+      next: (p) => this.setLista(p ? [p] : []),
+      error: (err) => this.fallo('Sin resultados por ID', err),
+    });
   }
 
-  editar(plataforma: any): void {
-    console.log('DEBUG: Cargando plataforma al formulario', plataforma);
+  nombreProyecto(id?: string): string {
+    return this.proyectos.find((p) => p.id === id)?.nombre ?? '—';
+  }
+
+  editar(plataforma: PlataformaModel): void {
     this.form = { ...plataforma };
     this.cdr.detectChanges();
   }
 
-  limpiarFormulario(): void {
-    console.log('DEBUG: Limpiando formulario');
-    this.form = {
-      id: null,
-      codigo: '',
-      nombre: '',
-      ubicacion: '',
-      capacidad: '',
-      estado: 'ACTIVA'
-    };
-    this.cdr.detectChanges(); 
+  limpiar(): void {
+    this.form = FORM_VACIO();
+    this.cdr.detectChanges();
+  }
+
+  private setLista(data: PlataformaModel[]): void {
+    this.plataformas = [...data];
+    this.loading = false;
+    this.cdr.detectChanges();
+  }
+
+  private fallo(msg: string, err: unknown): void {
+    console.error(msg, err);
+    this.mensaje = msg;
+    this.loading = false;
+    this.cdr.detectChanges();
   }
 }

@@ -128,8 +128,11 @@ public class SondajeServiceImpl implements SondajeService {
             sondaje.setInclinacionSetup(dto.getInclinacionSetup());
             sondaje.setProfundidadActual(dto.getProfundidadActual());
             sondaje.setProfundidadFinal(dto.getProfundidadFinal());
+            sondaje.setMedicionUtilizada(dto.getMedicionUtilizada());
+            sondaje.setMedicionesTotales(dto.getMedicionesTotales());
             sondaje.setFechaInicio(dto.getFechaInicio());
             sondaje.setFechaFin(dto.getFechaFin());
+            sondaje.setCampania(dto.getCampania());
             sondaje.setNotas(dto.getNotas());
 
             if (dto.getProyectoId() != null) {
@@ -180,8 +183,11 @@ public class SondajeServiceImpl implements SondajeService {
             sondaje.setInclinacionSetup(dto.getInclinacionSetup());
             sondaje.setProfundidadActual(dto.getProfundidadActual());
             sondaje.setProfundidadFinal(dto.getProfundidadFinal());
+            sondaje.setMedicionUtilizada(dto.getMedicionUtilizada());
+            sondaje.setMedicionesTotales(dto.getMedicionesTotales());
             sondaje.setFechaInicio(dto.getFechaInicio());
             sondaje.setFechaFin(dto.getFechaFin());
+            sondaje.setCampania(dto.getCampania());
             sondaje.setNotas(dto.getNotas());
 
             if (dto.getProyectoId() != null && (sondaje.getProyecto() == null || !sondaje.getProyecto().getId().equals(dto.getProyectoId()))) {
@@ -224,8 +230,11 @@ public class SondajeServiceImpl implements SondajeService {
         dto.setInclinacionSetup(sondaje.getInclinacionSetup());
         dto.setProfundidadActual(sondaje.getProfundidadActual());
         dto.setProfundidadFinal(sondaje.getProfundidadFinal());
+        dto.setMedicionUtilizada(sondaje.getMedicionUtilizada());
+        dto.setMedicionesTotales(sondaje.getMedicionesTotales());
         dto.setFechaInicio(sondaje.getFechaInicio());
         dto.setFechaFin(sondaje.getFechaFin());
+        dto.setCampania(sondaje.getCampania());
         dto.setNotas(sondaje.getNotas());
 
         if (sondaje.getProyecto() != null) {

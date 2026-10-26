@@ -1,0 +1,14 @@
+.app-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.5rem;
+  border-top: 1px solid var(--bo-border);
+  background: var(--bo-surface);
+  color: var(--bo-ink-3);
+  font-size: 0.78rem;
+}
+
+.app-footer__sep {
+  opacity: 0.5;
+}

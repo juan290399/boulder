@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PlataformaServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.services</a> &gt; <span class="el_source">PlataformaServiceImpl.java</span></div><h1>PlataformaServiceImpl.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.services;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.boulder.boulder.dto.PlataformaDTO;
+import com.boulder.boulder.entities.Plataforma;
+import com.boulder.boulder.entities.Proyecto;
+import com.boulder.boulder.repositories.PlataformaRepository;
+import com.boulder.boulder.repositories.ProyectoRepository;
+
+import jakarta.persistence.EntityNotFoundException;
+
+/**
+ * Implementación de los servicios de negocio para la gestión de plataformas.
+ *
+ * &lt;p&gt;
+ * Controla el ciclo de vida de las plataformas de perforación, coordinando
+ * su asociación obligatoria a un proyecto minero específico.
+ * &lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@Service
+<span class="fc" id="L34">public class PlataformaServiceImpl implements PlataformaService {</span>
+
+<span class="fc" id="L36">    private static final Logger log = LoggerFactory.getLogger(PlataformaServiceImpl.class);</span>
+
+    @Autowired
+    private PlataformaRepository plataformaRepository;
+
+    @Autowired
+    private ProyectoRepository proyectoRepository;
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;PlataformaDTO&gt; listarTodas() {
+<span class="fc" id="L47">        log.debug(&quot;Consultando listado total de plataformas geológicas&quot;);</span>
+<span class="fc" id="L48">        return plataformaRepository.findAll().stream()</span>
+<span class="fc" id="L49">                .map(this::convertToDto)</span>
+<span class="fc" id="L50">                .collect(Collectors.toList());</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PlataformaDTO obtenerPorId(UUID id) {
+<span class="nc" id="L56">        log.debug(&quot;Buscando plataforma con ID único: {}&quot;, id);</span>
+<span class="nc" id="L57">        Plataforma plataforma = plataformaRepository.findById(id)</span>
+<span class="nc" id="L58">                .orElseThrow(() -&gt; {</span>
+<span class="nc" id="L59">                    log.warn(&quot;Plataforma no localizada con ID: {}&quot;, id);</span>
+<span class="nc" id="L60">                    return new EntityNotFoundException(&quot;Plataforma no encontrada con el ID provisto.&quot;);</span>
+                });
+<span class="nc" id="L62">        return convertToDto(plataforma);</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PlataformaDTO obtenerPorCodigo(String codigo) {
+<span class="nc" id="L68">        log.debug(&quot;Buscando plataforma con código: {}&quot;, codigo);</span>
+
+<span class="nc" id="L70">        Plataforma plataforma = plataformaRepository.findByCodigo(codigo)</span>
+<span class="nc" id="L71">                .orElseThrow(() -&gt; {</span>
+<span class="nc" id="L72">                    log.warn(&quot;Plataforma no encontrada con código: {}&quot;, codigo);</span>
+<span class="nc" id="L73">                    return new EntityNotFoundException(&quot;Plataforma no encontrada con código: &quot; + codigo);</span>
+                });
+<span class="nc" id="L75">        return convertToDto(plataforma);</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;PlataformaDTO&gt; listarPorProyecto(UUID proyectoId) {
+<span class="nc" id="L81">        log.debug(&quot;Buscando plataformas asignadas al proyecto ID: {}&quot;, proyectoId);</span>
+        
+<span class="nc" id="L83">        return plataformaRepository.findByProyectoId(proyectoId).stream()</span>
+<span class="nc" id="L84">                .map(this::convertToDto)</span>
+<span class="nc" id="L85">                .collect(Collectors.toList());</span>
+    }
+
+    @Override
+    @Transactional
+    public PlataformaDTO guardar(PlataformaDTO dto) {
+<span class="nc" id="L91">        log.info(&quot;Registrando nueva plataforma. Código: {}, Proyecto ID: {}&quot;, dto.getCodigo(), dto.getProyectoId());</span>
+        try {
+<span class="nc" id="L93">            Proyecto proyecto = proyectoRepository.findById(dto.getProyectoId())</span>
+<span class="nc" id="L94">                    .orElseThrow(() -&gt; new EntityNotFoundException(&quot;El Proyecto asociado con ID &quot; + dto.getProyectoId() + &quot; no existe.&quot;));</span>
+
+<span class="nc" id="L96">            Plataforma plataforma = new Plataforma();</span>
+<span class="nc" id="L97">            plataforma.setCodigo(dto.getCodigo());</span>
+<span class="nc" id="L98">            plataforma.setNombre(dto.getNombre());</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">            plataforma.setEstado(dto.getEstado() != null ? dto.getEstado() : &quot;DISPONIBLE&quot;);</span>
+<span class="nc" id="L100">            plataforma.setProyecto(proyecto);</span>
+
+<span class="nc" id="L102">            Plataforma guardada = plataformaRepository.save(plataforma);</span>
+<span class="nc" id="L103">            log.info(&quot;Plataforma guardada correctamente. ID: {}, Código: {}&quot;, guardada.getId(), guardada.getCodigo());</span>
+<span class="nc" id="L104">            return convertToDto(guardada);</span>
+<span class="nc" id="L105">        } catch (Exception e) {</span>
+<span class="nc" id="L106">            log.error(&quot;Error al registrar plataforma con código: {}&quot;, dto.getCodigo(), e);</span>
+<span class="nc" id="L107">            throw e;</span>
+        }
+    }
+
+    @Override
+    @Transactional
+    public PlataformaDTO actualizar(UUID id, PlataformaDTO dto) {
+<span class="nc" id="L114">        log.info(&quot;Actualizando plataforma con ID: {}&quot;, id);</span>
+        try {
+<span class="nc" id="L116">            Plataforma plataforma = plataformaRepository.findById(id)</span>
+<span class="nc" id="L117">                    .orElseThrow(() -&gt; {</span>
+<span class="nc" id="L118">                        log.warn(&quot;Intento de actualizar plataforma inexistente con ID: {}&quot;, id);</span>
+<span class="nc" id="L119">                        return new EntityNotFoundException(&quot;Plataforma no encontrada.&quot;);</span>
+                    });
+
+<span class="nc bnc" id="L122" title="All 4 branches missed.">            if (dto.getProyectoId() != null &amp;&amp; !plataforma.getProyecto().getId().equals(dto.getProyectoId())) {</span>
+<span class="nc" id="L123">                Proyecto nuevoProyecto = proyectoRepository.findById(dto.getProyectoId())</span>
+<span class="nc" id="L124">                        .orElseThrow(() -&gt; new EntityNotFoundException(&quot;El nuevo Proyecto asociado no existe.&quot;));</span>
+<span class="nc" id="L125">                plataforma.setProyecto(nuevoProyecto);</span>
+            }
+
+<span class="nc" id="L128">            plataforma.setNombre(dto.getNombre());</span>
+<span class="nc" id="L129">            plataforma.setEstado(dto.getEstado());</span>
+
+<span class="nc" id="L131">            Plataforma actualizada = plataformaRepository.save(plataforma);</span>
+<span class="nc" id="L132">            log.info(&quot;Plataforma {} actualizada correctamente&quot;, actualizada.getCodigo());</span>
+<span class="nc" id="L133">            return convertToDto(actualizada);</span>
+<span class="nc" id="L134">        } catch (Exception e) {</span>
+<span class="nc" id="L135">            log.error(&quot;Error actualizando la plataforma con ID: {}&quot;, id, e);</span>
+<span class="nc" id="L136">            throw e;</span>
+        }
+    }
+
+    private PlataformaDTO convertToDto(Plataforma plataforma) {
+<span class="fc" id="L141">        PlataformaDTO dto = new PlataformaDTO();</span>
+<span class="fc" id="L142">        dto.setId(plataforma.getId());</span>
+<span class="fc" id="L143">        dto.setNumeroInterno(plataforma.getNumeroInterno());</span>
+<span class="fc" id="L144">        dto.setCodigo(plataforma.getCodigo());</span>
+<span class="fc" id="L145">        dto.setNombre(plataforma.getNombre());</span>
+<span class="fc" id="L146">        dto.setEstado(plataforma.getEstado());</span>
+        
+<span class="pc bpc" id="L148" title="1 of 2 branches missed.">        if (plataforma.getProyecto() != null) {</span>
+<span class="fc" id="L149">            dto.setProyectoId(plataforma.getProyecto().getId());</span>
+        }
+<span class="fc" id="L151">        return dto;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -1,59 +1,85 @@
-<div class="admin-container">
-  
-  <aside class="admin-sidebar">
-    <div class="sidebar-brand">
-      <h3>Boulder Admin</h3>
-      <span class="badge-role">Panel de Control</span>
+<div class="app-shell">
+
+  <aside class="app-sidebar">
+
+    <div class="app-sidebar__brand">
+      <div class="app-sidebar__mark">
+        <i class="bi bi-sliders"></i>
+      </div>
+      <div>
+        <h1 class="app-sidebar__title">Boulder</h1>
+        <span class="app-sidebar__subtitle">Administración</span>
+      </div>
     </div>
-    
-    <nav class="sidebar-menu">
-      <ul>
-        <li>
-          <a routerLink="/admin/dashboard" routerLinkActive="active-link">
-            <span class="icon">📊</span> Dashboard Global
-          </a>
-        </li>
-        <li>
-          <a routerLink="/admin/usuarios" routerLinkActive="active-link">
-            <span class="icon">👥</span> Gestión de Usuarios
-          </a>
-        </li>
-        <li>
-          <a routerLink="/admin/auditoria" routerLinkActive="active-link">
-            <span class="icon">📜</span> Logs de Auditoría
-          </a>
-        </li>
-        <li>
-          <a routerLink="/admin/configuracion" routerLinkActive="active-link">
-            <span class="icon">⚙️</span> Ajustes del Sistema
-          </a>
-        </li>
-      </ul>
+
+    <nav class="app-sidebar__nav">
+      <div class="app-sidebar__section">Accesos</div>
+
+      <a class="app-sidebar__link" routerLink="/admin/usuarios" routerLinkActive="active">
+        <i class="bi bi-people"></i><span>Usuarios</span>
+      </a>
+      <a class="app-sidebar__link" routerLink="/admin/roles" routerLinkActive="active">
+        <i class="bi bi-shield-lock"></i><span>Roles</span>
+      </a>
+
+      <div class="app-sidebar__section">Datos maestros</div>
+
+      <a class="app-sidebar__link" routerLink="/admin/empresas" routerLinkActive="active">
+        <i class="bi bi-building"></i><span>Empresas</span>
+      </a>
+      <a class="app-sidebar__link" routerLink="/admin/proyectos" routerLinkActive="active">
+        <i class="bi bi-folder2-open"></i><span>Proyectos</span>
+      </a>
+      <a class="app-sidebar__link" routerLink="/admin/empleados" routerLinkActive="active">
+        <i class="bi bi-person-badge"></i><span>Empleados</span>
+      </a>
+
+      <div class="app-sidebar__section">Geología</div>
+
+      <a class="app-sidebar__link" routerLink="/admin/diccionarios" routerLinkActive="active">
+        <i class="bi bi-journal-bookmark"></i><span>Diccionarios</span>
+      </a>
+
+      <!-- Auditoría sigue sin respaldo: no existe tabla que registre los
+           cambios, así que el ítem queda a la vista pero apagado. -->
+      <span class="app-sidebar__link app-sidebar__link--disabled"
+            title="Pendiente: no existe tabla de auditoría">
+        <i class="bi bi-journal-text"></i><span>Auditoría</span>
+      </span>
     </nav>
 
-    <div class="sidebar-footer">
-      <a routerLink="/auth/logout" class="btn-logout">
-        <span class="icon">🚪</span> Cerrar Sesión
-      </a>
+    <div class="app-sidebar__foot">
+      <button type="button" class="app-sidebar__link" (click)="irAOperaciones()">
+        <i class="bi bi-arrow-left-right"></i><span>Ir a operaciones</span>
+      </button>
+      <button type="button" class="app-sidebar__link app-sidebar__link--danger"
+              (click)="cerrarSesion()">
+        <i class="bi bi-box-arrow-right"></i><span>Cerrar sesión</span>
+      </button>
     </div>
   </aside>
 
-  <div class="admin-main-content">
-    
-    <header class="admin-top-navbar">
-      <div class="navbar-left">
-        <span class="environment-indicator">Entorno: Producción / Configuración</span>
+  <div class="app-main">
+
+    <header class="app-topbar">
+      <div class="topbar__context">
+        <span class="topbar__eyebrow">Administración</span>
+        <span class="topbar__area">Cuentas y datos maestros</span>
       </div>
-      <div class="navbar-right">
-        <div class="user-profile-info">
-          <span class="user-avatar">💻</span>
-          <span class="user-name">{{ usuarioAdmin }}</span>
+
+      <div class="topbar__right">
+        <div class="topbar__user">
+          <span class="topbar__avatar">{{ iniciales }}</span>
+          <span class="topbar__user-text">
+            <span class="topbar__user-name">{{ usuarioAdmin }}</span>
+            <span class="topbar__user-role">Administrador</span>
+          </span>
         </div>
       </div>
     </header>
 
-    <main class="admin-view-port">
-      <router-outlet></router-outlet> 
+    <main class="app-viewport">
+      <router-outlet></router-outlet>
     </main>
 
   </div>

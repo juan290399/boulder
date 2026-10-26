@@ -38,7 +38,10 @@ public class SondajeDTO {
     private Double inclinacionSetup;
     private Double profundidadActual;
     private Double profundidadFinal;
+    private Short medicionUtilizada;
+    private Short medicionesTotales;
     private LocalDate fechaInicio;
     private LocalDate fechaFin;
+    private String campania;
     private String notas;
 }

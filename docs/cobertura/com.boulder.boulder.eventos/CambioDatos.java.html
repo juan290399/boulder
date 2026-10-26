@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CambioDatos.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.eventos</a> &gt; <span class="el_source">CambioDatos.java</span></div><h1>CambioDatos.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.eventos;
+
+import java.time.OffsetDateTime;
+import java.util.Set;
+import java.util.UUID;
+
+/**
+ * Aviso de que cambiaron datos de uno o más sondajes.
+ *
+ * &lt;p&gt;
+ * Lleva lo justo para que cada pantalla decida si le importa —qué recurso y de
+ * qué sondajes— y no los datos en sí. La pantalla que está mirando ese sondaje
+ * vuelve a pedirlos por el endpoint de siempre, con sus permisos de siempre.
+ * Mandar las filas por este canal duplicaría la lógica de lectura y abriría
+ * una segunda puerta a los datos.
+ * &lt;/p&gt;
+ *
+ * @param recurso  qué cambió: {@code quicklog}, {@code litologia}, {@code avance-logueo}…
+ * @param sondajes sondajes afectados
+ * @param origen   quién lo cambió: {@code tablet}, {@code web} o {@code importacion}
+ * @param filas    cuántas filas trajo el cambio
+ * @param momento  cuándo se confirmó en la base
+ */
+<span class="fc" id="L24">public record CambioDatos(String recurso, Set&lt;UUID&gt; sondajes, String origen, int filas, OffsetDateTime momento) {</span>
+
+    public static CambioDatos de(String recurso, Set&lt;UUID&gt; sondajes, String origen, int filas) {
+<span class="fc" id="L27">        return new CambioDatos(recurso, sondajes, origen, filas, OffsetDateTime.now());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

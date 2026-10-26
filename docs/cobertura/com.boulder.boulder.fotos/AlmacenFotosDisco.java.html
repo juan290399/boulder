@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AlmacenFotosDisco.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.fotos</a> &gt; <span class="el_source">AlmacenFotosDisco.java</span></div><h1>AlmacenFotosDisco.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.fotos;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+/**
+ * Almacén de fotos en el disco del servidor.
+ *
+ * &lt;p&gt;
+ * Las claves son rutas relativas ({@code DDH-VERO-S-040-26/&lt;id&gt;.jpg}) y se
+ * resuelven contra la carpeta configurada en {@code boulder.fotos.directorio}.
+ * Se rechaza cualquier clave que, una vez resuelta, salga de esa carpeta: la
+ * clave se arma con datos que llegan de fuera, y un {@code ../} bastaría para
+ * escribir en cualquier parte del disco.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;
+ * La escritura va a un archivo temporal y después se mueve: si el proceso se
+ * corta a mitad, no queda una foto a medias con el nombre bueno.
+ * &lt;/p&gt;
+ */
+@Component
+public class AlmacenFotosDisco implements AlmacenFotos {
+
+<span class="fc" id="L33">    private static final Logger log = LoggerFactory.getLogger(AlmacenFotosDisco.class);</span>
+
+    private final Path raiz;
+
+<span class="fc" id="L37">    public AlmacenFotosDisco(@Value(&quot;${boulder.fotos.directorio:./datos/fotos}&quot;) String directorio) throws IOException {</span>
+<span class="fc" id="L38">        this.raiz = Path.of(directorio).toAbsolutePath().normalize();</span>
+<span class="fc" id="L39">        Files.createDirectories(raiz);</span>
+<span class="fc" id="L40">        log.info(&quot;Almacén de fotos en {}&quot;, raiz);</span>
+<span class="fc" id="L41">    }</span>
+
+    @Override
+    public void guardar(String clave, byte[] contenido) throws IOException {
+<span class="fc" id="L45">        Path destino = resolver(clave);</span>
+<span class="fc" id="L46">        Files.createDirectories(destino.getParent());</span>
+<span class="fc" id="L47">        Path temporal = Files.createTempFile(destino.getParent(), &quot;.subida-&quot;, &quot;.tmp&quot;);</span>
+        try {
+<span class="fc" id="L49">            Files.write(temporal, contenido);</span>
+<span class="fc" id="L50">            Files.move(temporal, destino, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);</span>
+        } finally {
+<span class="fc" id="L52">            Files.deleteIfExists(temporal);</span>
+        }
+<span class="fc" id="L54">    }</span>
+
+    @Override
+    public InputStream abrir(String clave) throws IOException {
+<span class="fc" id="L58">        return Files.newInputStream(resolver(clave));</span>
+    }
+
+    @Override
+    public boolean existe(String clave) {
+<span class="fc" id="L63">        return Files.isRegularFile(resolver(clave));</span>
+    }
+
+    @Override
+    public void borrar(String clave) throws IOException {
+<span class="fc" id="L68">        Files.deleteIfExists(resolver(clave));</span>
+<span class="fc" id="L69">    }</span>
+
+    private Path resolver(String clave) {
+<span class="fc" id="L72">        Path ruta = raiz.resolve(clave).normalize();</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">        if (!ruta.startsWith(raiz)) {</span>
+<span class="fc" id="L74">            throw new IllegalArgumentException(&quot;Clave de almacén fuera de la carpeta de fotos: &quot; + clave);</span>
+        }
+<span class="fc" id="L76">        return ruta;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

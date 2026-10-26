@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Fila.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.services.importacion</a> &gt; <span class="el_source">Fila.java</span></div><h1>Fila.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.services.importacion;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.Row;
+
+/**
+ * Un renglón de la plantilla, leído por nombre de columna y no por posición.
+ *
+ * &lt;p&gt;
+ * Leer por nombre es lo que permite que el usuario agregue una columna suya al
+ * final, o reordene las que no le sirven, sin romper la carga. Lo único que no
+ * puede tocar es el texto de la cabecera.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;
+ * Ningún captador lanza excepción: cuando un valor no se puede interpretar se
+ * anota el motivo y se sigue leyendo el resto del renglón. Así el usuario ve
+ * los cuatro problemas que tiene una fila de una sola vez, en lugar de
+ * corregir uno, volver a subir, y encontrarse el siguiente.
+ * &lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+public class Fila {
+
+<span class="fc" id="L39">    private static final DateTimeFormatter ISO = DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd&quot;);</span>
+<span class="fc" id="L40">    private static final DateTimeFormatter LATINO = DateTimeFormatter.ofPattern(&quot;d/M/yyyy&quot;);</span>
+
+    private final Row fila;
+    private final Map&lt;String, Integer&gt; columnas;
+    private final Catalogos catalogos;
+<span class="fc" id="L45">    private final List&lt;String&gt; errores = new ArrayList&lt;&gt;();</span>
+
+    private String motivoOmision;
+<span class="fc" id="L48">    private String referencia = &quot;&quot;;</span>
+
+<span class="fc" id="L50">    public Fila(Row fila, Map&lt;String, Integer&gt; columnas, Catalogos catalogos) {</span>
+<span class="fc" id="L51">        this.fila = fila;</span>
+<span class="fc" id="L52">        this.columnas = columnas;</span>
+<span class="fc" id="L53">        this.catalogos = catalogos;</span>
+<span class="fc" id="L54">    }</span>
+
+    /** Número de fila tal como lo muestra Excel. */
+    public int numero() {
+<span class="fc" id="L58">        return fila.getRowNum() + 1;</span>
+    }
+
+    public boolean hayErrores() {
+<span class="fc bfc" id="L62" title="All 2 branches covered.">        return !errores.isEmpty();</span>
+    }
+
+    public String motivos() {
+<span class="fc" id="L66">        return String.join(&quot;; &quot;, errores);</span>
+    }
+
+    public void error(String mensaje) {
+<span class="fc" id="L70">        errores.add(mensaje);</span>
+<span class="fc" id="L71">    }</span>
+
+    /** Marca el renglón como ya cargado; no es un error. */
+    public void omitir(String motivo) {
+<span class="nc" id="L75">        this.motivoOmision = motivo;</span>
+<span class="nc" id="L76">    }</span>
+
+    public boolean omitida() {
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        return motivoOmision != null;</span>
+    }
+
+    /** Texto corto que identifica el renglón en el informe de errores. */
+    public String referencia() {
+<span class="fc" id="L84">        return referencia;</span>
+    }
+
+    public void referencia(String r) {
+<span class="fc" id="L88">        this.referencia = r;</span>
+<span class="fc" id="L89">    }</span>
+
+    /** {@code true} si todas las celdas del renglón están vacías. */
+    public boolean vacia() {
+<span class="fc bfc" id="L93" title="All 2 branches covered.">        for (Integer i : columnas.values()) {</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">            if (crudo(i) != null) {</span>
+<span class="fc" id="L95">                return false;</span>
+            }
+<span class="fc" id="L97">        }</span>
+<span class="fc" id="L98">        return true;</span>
+    }
+
+    // ---------------------------------------------------------------- texto
+
+    public String texto(String columna) {
+<span class="fc" id="L104">        return crudo(indice(columna));</span>
+    }
+
+    /**
+     * Igual que {@link #texto(String)} pero controlando el largo. Sin esto una
+     * celda de más de la cuenta revienta en el INSERT y se lleva puesta la
+     * transacción entera; acá solo se cae ese renglón.
+     */
+    public String texto(String columna, int maximo) {
+<span class="fc" id="L113">        String v = texto(columna);</span>
+<span class="pc bpc" id="L114" title="1 of 4 branches missed.">        if (v != null &amp;&amp; v.length() &gt; maximo) {</span>
+<span class="nc" id="L115">            error(columna + &quot;: no puede pasar de &quot; + maximo + &quot; caracteres (tiene &quot; + v.length() + &quot;)&quot;);</span>
+<span class="nc" id="L116">            return null;</span>
+        }
+<span class="fc" id="L118">        return v;</span>
+    }
+
+    public String textoReq(String columna, int maximo) {
+<span class="pc bpc" id="L122" title="1 of 2 branches missed.">        if (falta(columna)) {</span>
+<span class="nc" id="L123">            return null;</span>
+        }
+<span class="fc" id="L125">        String v = texto(columna, maximo);</span>
+<span class="pc bpc" id="L126" title="3 of 4 branches missed.">        if (v == null &amp;&amp; !ultimoErrorDe(columna)) {</span>
+<span class="nc" id="L127">            error(columna + &quot;: obligatorio&quot;);</span>
+        }
+<span class="fc" id="L129">        return v;</span>
+    }
+
+    /** Valida contra un vocabulario cerrado, el mismo que tiene el CHECK. */
+    public String opcion(String columna, boolean obligatorio, String... validos) {
+<span class="pc bpc" id="L134" title="1 of 4 branches missed.">        if (obligatorio &amp;&amp; falta(columna)) {</span>
+<span class="nc" id="L135">            return null;</span>
+        }
+<span class="fc" id="L137">        String v = texto(columna);</span>
+<span class="pc bpc" id="L138" title="1 of 2 branches missed.">        if (v == null) {</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">            if (obligatorio) {</span>
+<span class="nc" id="L140">                error(columna + &quot;: obligatorio (&quot; + String.join(&quot; | &quot;, validos) + &quot;)&quot;);</span>
+            }
+<span class="nc" id="L142">            return null;</span>
+        }
+<span class="pc bpc" id="L144" title="1 of 2 branches missed.">        for (String ok : validos) {</span>
+<span class="fc bfc" id="L145" title="All 2 branches covered.">            if (ok.equalsIgnoreCase(v)) {</span>
+<span class="fc" id="L146">                return ok;</span>
+            }
+        }
+<span class="nc" id="L149">        error(columna + &quot;: «&quot; + v + &quot;» no es un valor válido (&quot; + String.join(&quot; | &quot;, validos) + &quot;)&quot;);</span>
+<span class="nc" id="L150">        return null;</span>
+    }
+
+    // -------------------------------------------------------------- números
+
+    public BigDecimal decimal(String columna) {
+<span class="fc" id="L156">        String v = crudo(indice(columna));</span>
+<span class="fc bfc" id="L157" title="All 2 branches covered.">        if (v == null) {</span>
+<span class="fc" id="L158">            return null;</span>
+        }
+        try {
+            // La coma decimal es frecuente en teclados en español y Excel la
+            // deja pasar cuando la celda quedó como texto.
+<span class="fc" id="L163">            return new BigDecimal(v.replace(&quot;,&quot;, &quot;.&quot;).replace(&quot; &quot;, &quot;&quot;));</span>
+<span class="nc" id="L164">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L165">            error(columna + &quot;: «&quot; + v + &quot;» no es un número&quot;);</span>
+<span class="nc" id="L166">            return null;</span>
+        }
+    }
+
+    public BigDecimal decimalReq(String columna) {
+<span class="pc bpc" id="L171" title="1 of 2 branches missed.">        if (falta(columna)) {</span>
+<span class="nc" id="L172">            return null;</span>
+        }
+<span class="fc" id="L174">        BigDecimal v = decimal(columna);</span>
+<span class="pc bpc" id="L175" title="3 of 4 branches missed.">        if (v == null &amp;&amp; !ultimoErrorDe(columna)) {</span>
+<span class="nc" id="L176">            error(columna + &quot;: obligatorio&quot;);</span>
+        }
+<span class="fc" id="L178">        return v;</span>
+    }
+
+    public Double doble(String columna) {
+<span class="fc" id="L182">        BigDecimal v = decimal(columna);</span>
+<span class="pc bpc" id="L183" title="1 of 2 branches missed.">        return v == null ? null : v.doubleValue();</span>
+    }
+
+    public Double dobleReq(String columna) {
+<span class="fc" id="L187">        BigDecimal v = decimalReq(columna);</span>
+<span class="pc bpc" id="L188" title="1 of 2 branches missed.">        return v == null ? null : v.doubleValue();</span>
+    }
+
+    public Integer entero(String columna) {
+<span class="fc" id="L192">        BigDecimal v = decimal(columna);</span>
+<span class="pc bpc" id="L193" title="1 of 2 branches missed.">        if (v == null) {</span>
+<span class="nc" id="L194">            return null;</span>
+        }
+        try {
+<span class="fc" id="L197">            return v.intValueExact();</span>
+<span class="nc" id="L198">        } catch (ArithmeticException e) {</span>
+<span class="nc" id="L199">            error(columna + &quot;: «&quot; + v.toPlainString() + &quot;» tiene que ser un entero&quot;);</span>
+<span class="nc" id="L200">            return null;</span>
+        }
+    }
+
+    public Short corto(String columna) {
+<span class="fc" id="L205">        Integer v = entero(columna);</span>
+<span class="pc bpc" id="L206" title="1 of 2 branches missed.">        return v == null ? null : v.shortValue();</span>
+    }
+
+    // --------------------------------------------------------------- fechas
+
+    public LocalDate fecha(String columna) {
+<span class="fc" id="L212">        Integer i = indice(columna);</span>
+<span class="pc bpc" id="L213" title="1 of 2 branches missed.">        if (i == null) {</span>
+<span class="nc" id="L214">            return null;</span>
+        }
+<span class="fc" id="L216">        Cell celda = fila.getCell(i);</span>
+<span class="pc bpc" id="L217" title="1 of 2 branches missed.">        if (celda == null) {</span>
+<span class="nc" id="L218">            return null;</span>
+        }
+        // Una celda con formato de fecha llega como numero de serie de Excel;
+        // el mismo dato escrito a mano llega como texto.
+<span class="pc bpc" id="L222" title="3 of 4 branches missed.">        if (celda.getCellType() == CellType.NUMERIC &amp;&amp; DateUtil.isCellDateFormatted(celda)) {</span>
+<span class="nc" id="L223">            return celda.getLocalDateTimeCellValue().toLocalDate();</span>
+        }
+<span class="fc" id="L225">        String v = crudo(i);</span>
+<span class="pc bpc" id="L226" title="1 of 2 branches missed.">        if (v == null) {</span>
+<span class="nc" id="L227">            return null;</span>
+        }
+<span class="pc bpc" id="L229" title="1 of 2 branches missed.">        for (DateTimeFormatter f : new DateTimeFormatter[] { ISO, LATINO }) {</span>
+            try {
+<span class="fc" id="L231">                return LocalDate.parse(v, f);</span>
+<span class="nc" id="L232">            } catch (java.time.format.DateTimeParseException ignorada) {</span>
+                // se prueba el siguiente formato
+            }
+        }
+<span class="nc" id="L236">        error(columna + &quot;: «&quot; + v + &quot;» no es una fecha (usa AAAA-MM-DD)&quot;);</span>
+<span class="nc" id="L237">        return null;</span>
+    }
+
+    public LocalDate fechaReq(String columna) {
+<span class="pc bpc" id="L241" title="1 of 2 branches missed.">        if (falta(columna)) {</span>
+<span class="nc" id="L242">            return null;</span>
+        }
+<span class="fc" id="L244">        LocalDate v = fecha(columna);</span>
+<span class="pc bpc" id="L245" title="3 of 4 branches missed.">        if (v == null &amp;&amp; !ultimoErrorDe(columna)) {</span>
+<span class="nc" id="L246">            error(columna + &quot;: obligatorio&quot;);</span>
+        }
+<span class="fc" id="L248">        return v;</span>
+    }
+
+    // ------------------------------------------------------------ catálogos
+
+    /**
+     * Resuelve el sondaje y deja el renglón rechazado si el código no existe.
+     * Es la validación que da sentido a todo lo demás: un parte que no se puede
+     * colgar de un sondaje no sirve para medir ningún frente.
+     */
+    public UUID sondajeReq(String columna) {
+<span class="fc" id="L259">        String codigo = textoReq(columna, 30);</span>
+<span class="pc bpc" id="L260" title="1 of 2 branches missed.">        if (codigo == null) {</span>
+<span class="nc" id="L261">            return null;</span>
+        }
+<span class="fc" id="L263">        UUID id = catalogos.sondaje(codigo);</span>
+<span class="pc bpc" id="L264" title="1 of 2 branches missed.">        if (id == null) {</span>
+<span class="nc" id="L265">            error(columna + &quot;: el sondaje «&quot; + codigo + &quot;» no está en el catálogo&quot;);</span>
+        }
+<span class="fc" id="L267">        return id;</span>
+    }
+
+    /**
+     * Igual que {@link #sondajeReq(String)} pero admitiendo el código
+     * reservado {@code VARIOS}, que usan los lotes de estufa donde se secan
+     * muestras de varios sondajes juntas.
+     */
+    public UUID sondajeOVarios(String columna) {
+<span class="fc" id="L276">        String codigo = textoReq(columna, 30);</span>
+<span class="pc bpc" id="L277" title="1 of 4 branches missed.">        if (codigo == null || Catalogos.SIN_SONDAJE.equalsIgnoreCase(codigo)) {</span>
+<span class="fc" id="L278">            return null;</span>
+        }
+<span class="fc" id="L280">        UUID id = catalogos.sondaje(codigo);</span>
+<span class="pc bpc" id="L281" title="1 of 2 branches missed.">        if (id == null) {</span>
+<span class="nc" id="L282">            error(columna + &quot;: el sondaje «&quot; + codigo + &quot;» no está en el catálogo&quot;</span>
+                    + &quot; (si el lote no es de un sondaje, poné &quot; + Catalogos.SIN_SONDAJE + &quot;)&quot;);
+        }
+<span class="fc" id="L285">        return id;</span>
+    }
+
+    public UUID maquina(String columna) {
+<span class="fc" id="L289">        String codigo = texto(columna, 20);</span>
+<span class="pc bpc" id="L290" title="1 of 2 branches missed.">        if (codigo == null) {</span>
+<span class="nc" id="L291">            return null;</span>
+        }
+<span class="fc" id="L293">        UUID id = catalogos.maquina(codigo);</span>
+<span class="pc bpc" id="L294" title="1 of 2 branches missed.">        if (id == null) {</span>
+<span class="nc" id="L295">            error(columna + &quot;: la máquina «&quot; + codigo + &quot;» no está en el catálogo&quot;);</span>
+        }
+<span class="fc" id="L297">        return id;</span>
+    }
+
+    public UUID plataforma(String columna) {
+<span class="fc" id="L301">        String codigo = texto(columna, 20);</span>
+<span class="pc bpc" id="L302" title="1 of 2 branches missed.">        if (codigo == null) {</span>
+<span class="nc" id="L303">            return null;</span>
+        }
+<span class="fc" id="L305">        UUID id = catalogos.plataforma(codigo);</span>
+<span class="pc bpc" id="L306" title="1 of 2 branches missed.">        if (id == null) {</span>
+<span class="nc" id="L307">            error(columna + &quot;: la plataforma «&quot; + codigo + &quot;» no está en el catálogo&quot;);</span>
+        }
+<span class="fc" id="L309">        return id;</span>
+    }
+
+    /** Resuelve contra un diccionario de geología. No admite códigos sueltos. */
+    public UUID geologia(String columna, String tabla, boolean obligatorio) {
+<span class="pc bpc" id="L314" title="1 of 4 branches missed.">        if (obligatorio &amp;&amp; falta(columna)) {</span>
+<span class="nc" id="L315">            return null;</span>
+        }
+<span class="fc" id="L317">        String codigo = texto(columna, 20);</span>
+<span class="fc bfc" id="L318" title="All 2 branches covered.">        if (codigo == null) {</span>
+<span class="pc bpc" id="L319" title="1 of 2 branches missed.">            if (obligatorio) {</span>
+<span class="nc" id="L320">                error(columna + &quot;: obligatorio&quot;);</span>
+            }
+<span class="fc" id="L322">            return null;</span>
+        }
+<span class="fc" id="L324">        UUID id = catalogos.geologia(tabla, codigo);</span>
+<span class="fc bfc" id="L325" title="All 2 branches covered.">        if (id == null) {</span>
+<span class="fc" id="L326">            error(columna + &quot;: «&quot; + codigo + &quot;» no está en geologia.&quot; + tabla);</span>
+        }
+<span class="fc" id="L328">        return id;</span>
+    }
+
+    /** Busca a una persona por nombre completo; no falla si no está dada de alta. */
+    public UUID empleado(String nombre) {
+<span class="fc" id="L333">        return catalogos.empleado(nombre);</span>
+    }
+
+    // --------------------------------------------------------------- lectura
+
+    private Integer indice(String columna) {
+<span class="fc" id="L339">        return columnas.get(columna);</span>
+    }
+
+    /**
+     * Anota que falta una columna que hacía falta de verdad.
+     *
+     * &lt;p&gt;
+     * Solo lo comprueban los captadores obligatorios. Que la plantilla no traiga
+     * una columna opcional es normal —el reporte de almacén no siempre llena la
+     * ruta de las fotos— y quejarse de eso llenaría el informe de ruido que
+     * tapa los errores que sí importan.
+     * &lt;/p&gt;
+     */
+    private boolean falta(String columna) {
+<span class="pc bpc" id="L353" title="1 of 2 branches missed.">        if (columnas.containsKey(columna)) {</span>
+<span class="fc" id="L354">            return false;</span>
+        }
+<span class="nc" id="L356">        String aviso = &quot;falta la columna &quot; + columna;</span>
+<span class="nc bnc" id="L357" title="All 2 branches missed.">        if (!errores.contains(aviso)) {</span>
+<span class="nc" id="L358">            error(aviso);</span>
+        }
+<span class="nc" id="L360">        return true;</span>
+    }
+
+    private boolean ultimoErrorDe(String columna) {
+<span class="nc bnc" id="L364" title="All 4 branches missed.">        return !errores.isEmpty() &amp;&amp; errores.get(errores.size() - 1).startsWith(columna + &quot;:&quot;);</span>
+    }
+
+    /**
+     * Devuelve el contenido de la celda como texto ya recortado, o {@code null}
+     * si está vacía. Un número entero llega de Excel como {@code 8.0}; se le
+     * saca la cola para que el código de una máquina no termine guardado como
+     * «400.0».
+     */
+    private String crudo(Integer indice) {
+<span class="pc bpc" id="L374" title="1 of 2 branches missed.">        if (indice == null) {</span>
+<span class="nc" id="L375">            return null;</span>
+        }
+<span class="fc" id="L377">        Cell celda = fila.getCell(indice);</span>
+<span class="fc bfc" id="L378" title="All 2 branches covered.">        if (celda == null) {</span>
+<span class="fc" id="L379">            return null;</span>
+        }
+        String v;
+<span class="pc bpc" id="L382" title="2 of 5 branches missed.">        switch (celda.getCellType()) {</span>
+<span class="fc" id="L383">            case STRING -&gt; v = celda.getStringCellValue();</span>
+<span class="nc" id="L384">            case BOOLEAN -&gt; v = String.valueOf(celda.getBooleanCellValue());</span>
+<span class="nc" id="L385">            case FORMULA -&gt; v = porFormula(celda);</span>
+<span class="pc bpc" id="L386" title="1 of 2 branches missed.">            case NUMERIC -&gt; v = DateUtil.isCellDateFormatted(celda)</span>
+<span class="nc" id="L387">                    ? celda.getLocalDateTimeCellValue().toLocalDate().toString()</span>
+<span class="fc" id="L388">                    : sinCola(celda.getNumericCellValue());</span>
+<span class="fc" id="L389">            default -&gt; v = null;</span>
+        }
+<span class="fc bfc" id="L391" title="All 2 branches covered.">        if (v == null) {</span>
+<span class="fc" id="L392">            return null;</span>
+        }
+<span class="fc" id="L394">        v = v.trim();</span>
+<span class="pc bpc" id="L395" title="1 of 2 branches missed.">        return v.isEmpty() ? null : v;</span>
+    }
+
+    private String porFormula(Cell celda) {
+        try {
+<span class="nc bnc" id="L400" title="All 4 branches missed.">            return switch (celda.getCachedFormulaResultType()) {</span>
+<span class="nc" id="L401">                case STRING -&gt; celda.getStringCellValue();</span>
+<span class="nc" id="L402">                case NUMERIC -&gt; sinCola(celda.getNumericCellValue());</span>
+<span class="nc" id="L403">                case BOOLEAN -&gt; String.valueOf(celda.getBooleanCellValue());</span>
+<span class="nc" id="L404">                default -&gt; null;</span>
+            };
+<span class="nc" id="L406">        } catch (IllegalStateException e) {</span>
+<span class="nc" id="L407">            return null;</span>
+        }
+    }
+
+    private static String sinCola(double d) {
+<span class="pc bpc" id="L412" title="2 of 6 branches missed.">        if (d == Math.rint(d) &amp;&amp; !Double.isInfinite(d) &amp;&amp; Math.abs(d) &lt; 1e15) {</span>
+<span class="fc" id="L413">            return String.valueOf((long) d);</span>
+        }
+<span class="fc" id="L415">        return BigDecimal.valueOf(d).stripTrailingZeros().toPlainString();</span>
+    }
+
+    /** Parte una celda con varios nombres separados por punto y coma o coma. */
+    public List&lt;String&gt; lista(String columna) {
+<span class="fc" id="L420">        String v = texto(columna);</span>
+<span class="pc bpc" id="L421" title="1 of 2 branches missed.">        if (v == null) {</span>
+<span class="nc" id="L422">            return List.of();</span>
+        }
+<span class="fc" id="L424">        return Arrays.stream(v.split(&quot;[;,\n]&quot;))</span>
+<span class="fc" id="L425">                .map(String::trim)</span>
+<span class="pc bpc" id="L426" title="1 of 2 branches missed.">                .filter(s -&gt; !s.isEmpty())</span>
+<span class="fc" id="L427">                .toList();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

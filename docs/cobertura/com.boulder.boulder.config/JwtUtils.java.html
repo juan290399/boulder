@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JwtUtils.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.config</a> &gt; <span class="el_source">JwtUtils.java</span></div><h1>JwtUtils.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.config;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import java.util.List;
+
+import javax.crypto.SecretKey;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+import com.boulder.boulder.entities.Usuario;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
+
+@Component
+<span class="fc" id="L24">public class JwtUtils {</span>
+
+    @Value(&quot;${jwt.secret}&quot;)
+    private String secret;
+
+    @Value(&quot;${jwt.expiration}&quot;)
+    private long expirationMs;
+
+    private SecretKey getSigningKey() {
+<span class="fc" id="L33">        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));</span>
+    }
+
+    public String generateToken(Authentication auth) {
+
+<span class="fc" id="L38">        String username = auth.getName();</span>
+
+        // Solo las authorities de rol. Spring Security añade además factores de
+        // autenticación (FACTOR_PASSWORD, etc.); si se copian al claim acaban
+        // apareciendo como roles en el cliente.
+<span class="fc" id="L43">        List&lt;String&gt; roles = auth.getAuthorities().stream()</span>
+<span class="fc" id="L44">                .map(GrantedAuthority::getAuthority)</span>
+<span class="fc" id="L45">                .filter(a -&gt; a.startsWith(&quot;ROLE_&quot;))</span>
+<span class="fc" id="L46">                .toList();</span>
+
+<span class="fc" id="L48">        return Jwts.builder()</span>
+<span class="fc" id="L49">                .subject(username)</span>
+<span class="fc" id="L50">                .claim(&quot;nombre&quot;, nombreVisible(auth, username))</span>
+<span class="fc" id="L51">                .claim(&quot;roles&quot;, roles)</span>
+<span class="fc" id="L52">                .issuedAt(new Date())</span>
+<span class="fc" id="L53">                .expiration(new Date(System.currentTimeMillis() + expirationMs))</span>
+<span class="fc" id="L54">                .signWith(getSigningKey())</span>
+<span class="fc" id="L55">                .compact();</span>
+    }
+
+    /**
+     * Nombre y apellidos para mostrar en la interfaz.
+     *
+     * &lt;p&gt;
+     * Va en el token a propósito: la ficha del usuario cuelga de
+     * {@code /api/base/usuarios/**}, que es exclusivo de ADMIN, así que un
+     * geólogo no puede consultar ni su propio perfil para saber cómo se llama.
+     * &lt;/p&gt;
+     */
+    private String nombreVisible(Authentication auth, String porDefecto) {
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">        if (auth.getPrincipal() instanceof MyUserMain principal) {</span>
+<span class="nc" id="L69">            Usuario usuario = principal.getUsuarioEntity();</span>
+<span class="nc" id="L70">            String completo = (usuario.getNombres() + &quot; &quot;</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">                    + (usuario.getApellidos() != null ? usuario.getApellidos() : &quot;&quot;)).trim();</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">            if (!completo.isEmpty()) {</span>
+<span class="nc" id="L73">                return completo;</span>
+            }
+        }
+<span class="fc" id="L76">        return porDefecto;</span>
+    }
+
+    public Claims getAllClaims(String token) {
+<span class="fc" id="L80">        return Jwts.parser()</span>
+<span class="fc" id="L81">                .verifyWith(getSigningKey())</span>
+<span class="fc" id="L82">                .build()</span>
+<span class="fc" id="L83">                .parseSignedClaims(token)</span>
+<span class="fc" id="L84">                .getPayload();</span>
+    }
+
+    public String getUsernameFromToken(String token) {
+<span class="fc" id="L88">        return getAllClaims(token).getSubject();</span>
+    }
+
+    public boolean validateToken(String token) {
+        try {
+<span class="fc" id="L93">            getAllClaims(token);</span>
+<span class="fc" id="L94">            return true;</span>
+<span class="fc" id="L95">        } catch (JwtException | IllegalArgumentException e) {</span>
+<span class="fc" id="L96">            return false;</span>
+        }
+    }
+
+    public String resolveToken(HttpServletRequest request) {
+<span class="nc" id="L101">        String header = request.getHeader(&quot;Authorization&quot;);</span>
+
+<span class="nc bnc" id="L103" title="All 4 branches missed.">        if (StringUtils.hasText(header) &amp;&amp; header.startsWith(&quot;Bearer &quot;)) {</span>
+<span class="nc" id="L104">            return header.substring(7);</span>
+        }
+<span class="nc" id="L106">        return null;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

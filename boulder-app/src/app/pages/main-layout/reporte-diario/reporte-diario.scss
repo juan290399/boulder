@@ -1,0 +1,57 @@
+/* Solo lo propio del reporte diario: el resto sale de styles.scss. */
+
+.fecha { width: 10rem; }
+
+.reporte-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: 1.25rem;
+  align-items: start;
+
+  @media (max-width: 1000px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Gráfico de barras sin librería: siete columnas, la del día resaltada. */
+.grafico {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  align-items: end;
+  gap: 0.6rem;
+  height: 220px;
+  padding: 1rem 1.25rem 0.75rem;
+}
+
+.grafico__col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 0.3rem;
+}
+
+.grafico__barra {
+  width: 100%;
+  min-height: 2px;
+  border-radius: 4px 4px 0 0;
+  background: var(--bo-brand-400);
+  opacity: 0.55;
+}
+
+.grafico__col.hoy .grafico__barra { opacity: 1; background: var(--bo-brand-600); }
+.grafico__valor { font-size: 0.75rem; color: var(--bo-ink-2); }
+.grafico__dia { font-size: 0.75rem; color: var(--bo-ink-2); }
+
+.num { text-align: right; }
+.mono { font-family: var(--bo-mono); }
+tr.total td { font-weight: 700; border-top: 2px solid var(--bo-border-strong); }
+
+.solo-impresion { display: none; }
+
+@media print {
+  .no-print { display: none !important; }
+  .solo-impresion { display: block; font-weight: 600; }
+  .reporte-grid { grid-template-columns: 1fr; }
+}

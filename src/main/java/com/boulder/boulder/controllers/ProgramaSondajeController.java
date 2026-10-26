@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,8 +27,7 @@ import com.boulder.boulder.services.ProgramaSondajeService;
  * @since 1.0
  */
 @RestController
-@RequestMapping("/programa-sondaje")
-@CrossOrigin(origins = "*")
+@RequestMapping("/api/operacional/programas-sondaje")
 public class ProgramaSondajeController {
 
     private static final Logger log = LoggerFactory.getLogger(ProgramaSondajeController.class);
@@ -49,7 +47,7 @@ public class ProgramaSondajeController {
         return ResponseEntity.ok(programaService.obtenerPorId(id));
     }
 
-    @GetMapping("/{codigo}")
+    @GetMapping("/codigo/{codigo}")
     public ResponseEntity<ProgramaSondajeDTO> obtenerPorCodigo(@PathVariable String codigo) {
         log.info("HTTP GET - Obteniendo programa de sondaje por codigo: {}", codigo);
         return ResponseEntity.ok(programaService.obtenerPorCodigo(codigo));

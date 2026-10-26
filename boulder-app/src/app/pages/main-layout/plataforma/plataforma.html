@@ -1,94 +1,103 @@
-<div class="container-fluid py-4">
-  <div class="card shadow-sm border-0 p-4">
-    <h1 class="mb-4">Plataformas de Trabajo</h1>
+<div class="page">
+  <div class="panel panel__body">
+    <h1 class="page-head__title mb-4">Plataformas de Perforación</h1>
 
-    <div class="row mb-4">
+    <div class="row g-2 mb-3">
       <div class="col-md-2">
-        <input class="form-control" placeholder="Código" [(ngModel)]="form.codigo">
+        <input class="form-control" placeholder="Código" [(ngModel)]="form.codigo" />
       </div>
       <div class="col-md-3">
-        <input class="form-control" placeholder="Nombre de Plataforma" [(ngModel)]="form.nombre">
+        <input class="form-control" placeholder="Nombre" [(ngModel)]="form.nombre" />
       </div>
-      <div class="col-md-3">
-        <input class="form-control" placeholder="Ubicación / Coordenadas" [(ngModel)]="form.ubicacion">
-      </div>
-      <div class="col-md-2">
-        <input class="form-control" placeholder="Capacidad Máx." [(ngModel)]="form.capacidad">
-      </div>
-      <div class="col-md-2">
-        <select class="form-select" [(ngModel)]="form.estado">
-          <option value="ACTIVA">Activa</option>
-          <option value="MANTENIMIENTO">Mantenimiento</option>
-          <option value="INACTIVA">Inactiva</option>
+      <div class="col-md-4">
+        <select class="form-select" [(ngModel)]="form.proyectoId">
+          <option [ngValue]="''">— Proyecto —</option>
+          <option *ngFor="let p of proyectos" [ngValue]="p.id">{{ p.nombre }}</option>
         </select>
+      </div>
+      <div class="col-md-3">
+        <input class="form-control" placeholder="Tipo" [(ngModel)]="form.tipo" />
+      </div>
+    </div>
+
+    <div class="row g-2 mb-3">
+      <div class="col-md-3">
+        <input class="form-control" type="number" placeholder="Este" [(ngModel)]="form.este" />
+      </div>
+      <div class="col-md-3">
+        <input class="form-control" type="number" placeholder="Norte" [(ngModel)]="form.norte" />
+      </div>
+      <div class="col-md-3">
+        <input class="form-control" type="number" placeholder="Elevación" [(ngModel)]="form.elevacion" />
+      </div>
+      <div class="col-md-3">
+        <input class="form-control" type="number" placeholder="N° pozas" [(ngModel)]="form.numeroPozas" />
+      </div>
+    </div>
+
+    <div class="row g-2 mb-3">
+      <div class="col-md-3">
+        <input class="form-control" placeholder="Estado" [(ngModel)]="form.estado" />
+      </div>
+      <div class="col-md-9">
+        <input class="form-control" placeholder="Ubicación" [(ngModel)]="form.ubicacion" />
       </div>
     </div>
 
     <div class="mb-4">
-      <button class="btn btn-success me-2" (click)="crearPlataforma()">
-        Crear Plataforma
+      <button class="btn btn-success me-2" (click)="guardar()">
+        {{ form.id ? 'Actualizar' : 'Crear' }}
       </button>
-      <button class="btn btn-primary me-2" (click)="actualizarPlataforma()">
-        Actualizar
-      </button>
-      <button class="btn btn-secondary" (click)="limpiarFormulario()">
-        Limpiar
-      </button>
+      <button class="btn btn-secondary" (click)="limpiar()">Limpiar</button>
     </div>
 
-    <hr class="my-4" />
+    <div *ngIf="mensaje" class="alert-inline alert-inline--info">{{ mensaje }}</div>
 
-    <div class="row mb-4">
+    <hr class="my-3" />
+
+    <div class="row g-2 mb-3">
       <div class="col-md-6">
         <div class="input-group">
-          <input class="form-control" placeholder="Buscar por código..." [(ngModel)]="busquedaCodigo">
-          <button class="btn btn-dark" (click)="buscarPorCodigo()">Buscar</button>
+          <input class="form-control" placeholder="Buscar por código" [(ngModel)]="busquedaCodigo" />
+          <button class="btn btn-primary" (click)="buscarPorCodigo()">Buscar</button>
         </div>
       </div>
       <div class="col-md-6">
         <div class="input-group">
-          <input class="form-control" placeholder="Buscar por ID interno..." [(ngModel)]="busquedaId">
-          <button class="btn btn-info text-white" (click)="buscarPorId()">Buscar</button>
+          <input class="form-control" placeholder="Buscar por ID" [(ngModel)]="busquedaId" />
+          <button class="btn btn-primary" (click)="buscarPorId()">Buscar</button>
         </div>
       </div>
     </div>
 
-    <button class="btn btn-outline-primary mb-3" (click)="listarPlataformas()">
-      Refrescar Listado
+    <button class="btn btn-outline-primary mb-3" [disabled]="loading" (click)="listar()">
+      Refrescar listado
     </button>
 
-    <div class="row" *ngIf="plataformas.length > 0">
-      <div class="col-md-4 mb-3" *ngFor="let plat of plataformas">
-        <div class="card shadow-sm h-100">
-          <div class="card-body d-flex flex-column justify-content-between">
-            <div>
-              <h5 class="card-title fw-bold text-dark">{{ plat.nombre }}</h5>
-              <p class="mb-1"><b>Código:</b> {{ plat.codigo }}</p>
-              <p class="mb-1"><b>Ubicación:</b> {{ plat.ubicacion }}</p>
-              <p class="mb-2"><b>Capacidad:</b> {{ plat.capacidad }}</p>
-              
-              <span class="badge bg-success" *ngIf="plat.estado === 'ACTIVA'">
-                Activa
-              </span>
-              <span class="badge bg-warning text-dark" *ngIf="plat.estado === 'MANTENIMIENTO'">
-                Mantenimiento
-              </span>
-              <span class="badge bg-danger" *ngIf="plat.estado === 'INACTIVA'">
-                Inactiva
-              </span>
-            </div>
-
-            <button class="btn btn-sm btn-warning mt-3 w-100 fw-medium" (click)="editar(plat)">
-              Editar Datos
-            </button>
-          </div>
-        </div>
-      </div>
+    <div class="table-scroll" *ngIf="plataformas.length > 0; else vacio">
+      <table class="data-table">
+        <thead>
+          <tr><th>Código</th><th>Nombre</th><th>Proyecto</th><th>Este</th><th>Norte</th><th>Elev.</th><th>Estado</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let pl of plataformas">
+            <td>{{ pl.codigo }}</td>
+            <td>{{ pl.nombre }}</td>
+            <td>{{ nombreProyecto(pl.proyectoId) }}</td>
+            <td>{{ pl.este ?? '—' }}</td>
+            <td>{{ pl.norte ?? '—' }}</td>
+            <td>{{ pl.elevacion ?? '—' }}</td>
+            <td><span class="badge bg-secondary">{{ pl.estado || '—' }}</span></td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-primary" (click)="editar(pl)">Editar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
-    <div *ngIf="plataformas.length === 0" class="alert alert-light text-center border p-4">
-      No hay plataformas registradas o encontradas para mostrar.
-    </div>
-
+    <ng-template #vacio>
+      <div class="empty-state">No hay plataformas para mostrar.</div>
+    </ng-template>
   </div>
 </div>

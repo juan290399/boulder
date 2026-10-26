@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ImportacionServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.services</a> &gt; <span class="el_source">ImportacionServiceImpl.java</span></div><h1>ImportacionServiceImpl.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.services;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.boulder.boulder.dto.importacion.PlantillaDTO;
+import com.boulder.boulder.dto.importacion.ResultadoImportacionDTO;
+import com.boulder.boulder.eventos.CambioDatos;
+import com.boulder.boulder.services.importacion.Catalogos;
+import com.boulder.boulder.services.importacion.ImportacionAbortadaException;
+import com.boulder.boulder.services.importacion.ImportadorPlantilla;
+
+/**
+ * Despacha el libro al importador que corresponde y decide si lo que se hizo
+ * se guarda.
+ *
+ * &lt;p&gt;
+ * La simulación no es una comodidad, es el modo normal de trabajo. Quien llena
+ * una plantilla de dos mil renglones necesita ver los cuarenta que están mal
+ * antes de escribir nada, corregirlos y recién entonces aplicar. Por eso
+ * {@code aplicar} viene en falso si no se pide lo contrario: el camino fácil
+ * tiene que ser el que no toca la base.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;
+ * Cuando sí se aplica, todo va en una transacción. Los renglones inválidos ya
+ * quedaron afuera antes de llegar acá; si a pesar de eso la base rechaza uno,
+ * no se guarda nada. Media plantilla cargada es peor que ninguna, porque
+ * obliga a averiguar por dónde iba para poder retomar.
+ * &lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@Service
+public class ImportacionServiceImpl implements ImportacionService {
+
+<span class="fc" id="L55">    private static final Logger log = LoggerFactory.getLogger(ImportacionServiceImpl.class);</span>
+
+    private final Map&lt;String, ImportadorPlantilla&gt; importadores;
+    private final JdbcTemplate jdbc;
+    private final TransactionTemplate tx;
+    private final ApplicationEventPublisher eventos;
+
+    @Autowired
+    public ImportacionServiceImpl(List&lt;ImportadorPlantilla&gt; importadores, JdbcTemplate jdbc,
+<span class="fc" id="L64">            TransactionTemplate tx, ApplicationEventPublisher eventos) {</span>
+<span class="fc" id="L65">        this.importadores = importadores.stream()</span>
+<span class="fc" id="L66">                .collect(Collectors.toMap(ImportadorPlantilla::clave, Function.identity()));</span>
+<span class="fc" id="L67">        this.jdbc = jdbc;</span>
+<span class="fc" id="L68">        this.tx = tx;</span>
+<span class="fc" id="L69">        this.eventos = eventos;</span>
+<span class="fc" id="L70">    }</span>
+
+    @Override
+    public List&lt;PlantillaDTO&gt; plantillas() {
+<span class="fc" id="L74">        return importadores.values().stream()</span>
+<span class="fc" id="L75">                .sorted(Comparator.comparing(ImportadorPlantilla::clave))</span>
+<span class="fc" id="L76">                .map(i -&gt; new PlantillaDTO(i.clave(), i.archivoPlantilla(), i.descripcion()))</span>
+<span class="fc" id="L77">                .toList();</span>
+    }
+
+    @Override
+    public ResultadoImportacionDTO importar(String plantilla, MultipartFile archivo, boolean aplicar) {
+<span class="fc" id="L82">        ImportadorPlantilla importador = importadores.get(plantilla);</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if (importador == null) {</span>
+<span class="nc" id="L84">            throw new IllegalArgumentException(&quot;No hay importador para la plantilla «&quot; + plantilla</span>
+<span class="nc" id="L85">                    + &quot;». Disponibles: &quot; + String.join(&quot;, &quot;, importadores.keySet()));</span>
+        }
+<span class="pc bpc" id="L87" title="2 of 4 branches missed.">        if (archivo == null || archivo.isEmpty()) {</span>
+<span class="nc" id="L88">            throw new IllegalArgumentException(&quot;No llegó ningún archivo.&quot;);</span>
+        }
+<span class="fc" id="L90">        String nombre = archivo.getOriginalFilename();</span>
+<span class="pc bpc" id="L91" title="2 of 4 branches missed.">        if (nombre != null &amp;&amp; !nombre.toLowerCase().endsWith(&quot;.xlsx&quot;)) {</span>
+<span class="nc" id="L92">            throw new IllegalArgumentException(</span>
+                    &quot;El archivo tiene que ser .xlsx. El formato viejo .xls no admite la validación &quot;
+                            + &quot;de datos que llevan las plantillas.&quot;);
+        }
+
+<span class="fc" id="L97">        log.info(&quot;Importando plantilla {} desde {} (aplicar={})&quot;, plantilla, nombre, aplicar);</span>
+
+<span class="fc" id="L99">        try (InputStream in = archivo.getInputStream(); Workbook libro = new XSSFWorkbook(in)) {</span>
+<span class="fc" id="L100">            Catalogos catalogos = new Catalogos(jdbc);</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">            ResultadoImportacionDTO resultado = aplicar</span>
+<span class="fc" id="L102">                    ? tx.execute(estado -&gt; importador.importar(libro, catalogos, true))</span>
+<span class="fc" id="L103">                    : importador.importar(libro, catalogos, false);</span>
+<span class="fc" id="L104">            resultado.setArchivo(nombre);</span>
+<span class="pc bpc" id="L105" title="1 of 4 branches missed.">            if (aplicar &amp;&amp; resultado.getTotalAceptadas() &gt; 0) {</span>
+                // Sin lista de sondajes: una carga puede tocar decenas, y las
+                // pantallas abiertas simplemente recargan lo que muestran.
+<span class="fc" id="L108">                eventos.publishEvent(CambioDatos.de(plantilla, java.util.Set.of(), &quot;importacion&quot;,</span>
+<span class="fc" id="L109">                        resultado.getTotalAceptadas()));</span>
+            }
+<span class="fc" id="L111">            log.info(&quot;Plantilla {}: {} leídas, {} aceptadas, {} omitidas, {} rechazadas&quot;,</span>
+<span class="fc" id="L112">                    plantilla, resultado.getTotalLeidas(), resultado.getTotalAceptadas(),</span>
+<span class="fc" id="L113">                    resultado.getTotalOmitidas(), resultado.getTotalRechazadas());</span>
+<span class="fc" id="L114">            return resultado;</span>
+<span class="nc" id="L115">        } catch (ImportacionAbortadaException e) {</span>
+<span class="nc" id="L116">            log.error(&quot;Importación abortada&quot;, e);</span>
+<span class="nc" id="L117">            throw e;</span>
+<span class="nc" id="L118">        } catch (IOException e) {</span>
+<span class="nc" id="L119">            throw new IllegalArgumentException(</span>
+<span class="nc" id="L120">                    &quot;No se pudo leer el archivo: &quot; + e.getMessage(), e);</span>
+<span class="nc" id="L121">        } catch (RuntimeException e) {</span>
+            // POI avisa con excepciones no comprobadas cuando lo que llega no
+            // es un .xlsx: un .xls renombrado, un csv, o un libro dañado.
+<span class="nc" id="L124">            throw new IllegalArgumentException(</span>
+<span class="nc" id="L125">                    &quot;No se pudo abrir el archivo como libro de Excel: &quot; + e.getMessage(), e);</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReporteDiarioRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.reportes</a> &gt; <span class="el_source">ReporteDiarioRepository.java</span></div><h1>ReporteDiarioRepository.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.reportes;
+
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import com.boulder.boulder.reportes.ReporteDiario.FilaSondaje;
+
+/**
+ * Consultas del reporte diario (patrón DAO con JdbcTemplate).
+ *
+ * &lt;p&gt;Agrega cuatro partes distintos por sondaje en una sola consulta: perforación,
+ * logueo geológico, recepción de cajas y muestreo. Un sondaje aparece si tuvo
+ * actividad en cualquiera de ellos. Todos los valores van como parámetros.&lt;/p&gt;
+ */
+@Repository
+public class ReporteDiarioRepository {
+
+    private static final String POR_SONDAJE = &quot;&quot;&quot;
+            WITH perf AS (SELECT sondaje_id, sum(avance) AS m FROM operacional.prf_avance
+                           WHERE fecha = ? GROUP BY sondaje_id),
+                 logu AS (SELECT sondaje_id, sum(avance) AS m FROM operacional.log_avance
+                           WHERE fecha = ? AND tipo_logueo = 'geologico' GROUP BY sondaje_id),
+                 caja AS (SELECT sondaje_id, sum(total_cajas) AS n FROM operacional.log_recepcion_caja
+                           WHERE fecha = ? GROUP BY sondaje_id),
+                 mues AS (SELECT sondaje_id, sum(nro_muestras) AS n FROM operacional.mst_avance
+                           WHERE fecha = ? GROUP BY sondaje_id),
+                 ids  AS (SELECT sondaje_id FROM perf UNION SELECT sondaje_id FROM logu
+                          UNION SELECT sondaje_id FROM caja UNION SELECT sondaje_id FROM mues)
+            SELECT s.codigo,
+                   coalesce(perf.m, 0) AS perforado, coalesce(logu.m, 0) AS logueado,
+                   coalesce(caja.n, 0) AS cajas,     coalesce(mues.n, 0) AS muestras
+              FROM ids
+              JOIN operacional.prf_sondaje s ON s.id = ids.sondaje_id
+              LEFT JOIN perf ON perf.sondaje_id = ids.sondaje_id
+              LEFT JOIN logu ON logu.sondaje_id = ids.sondaje_id
+              LEFT JOIN caja ON caja.sondaje_id = ids.sondaje_id
+              LEFT JOIN mues ON mues.sondaje_id = ids.sondaje_id
+            &quot;&quot;&quot;;
+
+    private final JdbcTemplate jdbc;
+
+<span class="fc" id="L49">    public ReporteDiarioRepository(JdbcTemplate jdbc) {</span>
+<span class="fc" id="L50">        this.jdbc = jdbc;</span>
+<span class="fc" id="L51">    }</span>
+
+    /**
+     * @param fecha día consultado
+     * @return actividad por sondaje en el día, sin orden garantizado
+     */
+    public List&lt;FilaSondaje&gt; porSondaje(LocalDate fecha) {
+<span class="fc" id="L58">        Date dia = Date.valueOf(fecha);</span>
+<span class="fc" id="L59">        return jdbc.query(POR_SONDAJE, (rs, i) -&gt; new FilaSondaje(</span>
+<span class="fc" id="L60">                rs.getString(&quot;codigo&quot;),</span>
+<span class="fc" id="L61">                rs.getBigDecimal(&quot;perforado&quot;),</span>
+<span class="fc" id="L62">                rs.getBigDecimal(&quot;logueado&quot;),</span>
+<span class="fc" id="L63">                rs.getInt(&quot;cajas&quot;),</span>
+<span class="fc" id="L64">                rs.getInt(&quot;muestras&quot;)), dia, dia, dia, dia);</span>
+    }
+
+    /**
+     * @param desde primer día, incluido
+     * @param hasta último día, incluido
+     * @return metros perforados por día; los días sin partes no aparecen
+     */
+    public Map&lt;LocalDate, BigDecimal&gt; perforadoPorDia(LocalDate desde, LocalDate hasta) {
+<span class="fc" id="L73">        Map&lt;LocalDate, BigDecimal&gt; r = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L74">        jdbc.query(&quot;SELECT fecha, sum(avance) AS m FROM operacional.prf_avance &quot;</span>
+                        + &quot;WHERE fecha BETWEEN ? AND ? GROUP BY fecha ORDER BY fecha&quot;,
+                rs -&gt; {
+<span class="fc" id="L77">                    r.put(rs.getDate(&quot;fecha&quot;).toLocalDate(), rs.getBigDecimal(&quot;m&quot;));</span>
+<span class="fc" id="L78">                },</span>
+<span class="fc" id="L79">                Date.valueOf(desde), Date.valueOf(hasta));</span>
+<span class="fc" id="L80">        return r;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

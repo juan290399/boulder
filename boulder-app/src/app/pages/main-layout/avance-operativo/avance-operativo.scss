@@ -1,0 +1,78 @@
+/* Solo lo específico de esta pantalla. El resto (panel, tabla, chip, métrica,
+   barra de progreso) sale del sistema de diseño. */
+
+.fila-sondaje {
+  cursor: pointer;
+
+  &--abierta {
+    background: var(--bo-brand-soft) !important;
+  }
+}
+
+/* Las siete etapas del flujo, una al lado de la otra. La inicial debajo de
+   cada barra evita depender solo del color para saber cuál es cuál. */
+.etapas {
+  display: grid;
+  /* Sin número fijo de columnas: el backend decide cuántas etapas tiene el
+     flujo y la rejilla se reparte sola. Estaba en repeat(7, 1fr) y al pasar
+     el logueo a tres etapas se habría desbordado en silencio. */
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 4px;
+  align-items: center;
+}
+
+.etapas__item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: stretch;
+}
+
+.etapas__cap {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--bo-ink-3);
+  letter-spacing: 0.04em;
+}
+
+/* Pestañas del detalle. */
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.6rem 1.25rem 0;
+  border-bottom: 1px solid var(--bo-border);
+  overflow-x: auto;
+}
+
+.tabs__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--bo-ink-2);
+  transition: color var(--bo-t-fast), border-color var(--bo-t-fast);
+
+  &:hover { color: var(--bo-ink); }
+
+  i { font-size: 0.95rem; }
+}
+
+.tabs__btn--activo {
+  color: var(--bo-brand-600);
+  border-bottom-color: var(--bo-brand-500);
+  font-weight: 600;
+}
+
+/* El código de sondaje se partía en cuatro renglones: la columna es angosta y
+   los guiones son puntos de corte válidos para el navegador. */
+.fila-sondaje .mono {
+  white-space: nowrap;
+}

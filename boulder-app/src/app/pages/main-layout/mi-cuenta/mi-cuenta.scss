@@ -1,0 +1,35 @@
+/* Solo lo propio de Mi cuenta: el resto sale de styles.scss. */
+
+.cuenta-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: 1.25rem;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.perfil {
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  row-gap: 0.6rem;
+  margin-bottom: 1rem;
+
+  dt { font-size: 0.8rem; font-weight: 600; color: var(--bo-ink-2); }
+  dd { margin: 0; }
+}
+
+.reglas {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: var(--bo-ink-2);
+
+  li { display: flex; align-items: center; gap: 0.4rem; padding: 0.1rem 0; }
+  li.ok { color: var(--bo-ok); }
+}
+
+.tenue { color: var(--bo-ink-2); font-size: 0.8rem; }
+.mono { font-family: var(--bo-mono); }

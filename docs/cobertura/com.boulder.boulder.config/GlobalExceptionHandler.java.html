@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GlobalExceptionHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.config</a> &gt; <span class="el_source">GlobalExceptionHandler.java</span></div><h1>GlobalExceptionHandler.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.config;
+
+import java.time.OffsetDateTime;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.ErrorResponse;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.ServletWebRequest;
+import org.springframework.web.context.request.WebRequest;
+
+import jakarta.persistence.EntityNotFoundException;
+
+/**
+ * Manejador global de excepciones para la capa REST.
+ *
+ * &lt;p&gt;
+ * Traduce las excepciones de negocio y de validación a respuestas HTTP
+ * consistentes ({@code 404}, {@code 400}, {@code 409}, {@code 500}) con un
+ * cuerpo homogéneo, evitando que se propaguen errores {@code 500} genéricos.
+ * &lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@RestControllerAdvice
+<span class="fc" id="L36">public class GlobalExceptionHandler {</span>
+
+<span class="fc" id="L38">    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);</span>
+
+    private Map&lt;String, Object&gt; body(HttpStatus status, String message, WebRequest request) {
+<span class="fc" id="L41">        Map&lt;String, Object&gt; map = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L42">        map.put(&quot;timestamp&quot;, OffsetDateTime.now().toString());</span>
+<span class="fc" id="L43">        map.put(&quot;status&quot;, status.value());</span>
+<span class="fc" id="L44">        map.put(&quot;error&quot;, status.getReasonPhrase());</span>
+<span class="fc" id="L45">        map.put(&quot;message&quot;, message);</span>
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">        if (request instanceof ServletWebRequest servletWebRequest) {</span>
+<span class="fc" id="L47">            map.put(&quot;path&quot;, servletWebRequest.getRequest().getRequestURI());</span>
+        }
+<span class="fc" id="L49">        return map;</span>
+    }
+
+    /** Entidad no encontrada -&gt; 404. */
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleNotFound(EntityNotFoundException ex, WebRequest request) {
+<span class="nc" id="L55">        log.warn(&quot;Recurso no encontrado: {}&quot;, ex.getMessage());</span>
+<span class="nc" id="L56">        return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="nc" id="L57">                .body(body(HttpStatus.NOT_FOUND, ex.getMessage(), request));</span>
+    }
+
+    /** Argumentos inválidos de negocio -&gt; 400. */
+    @ExceptionHandler({ IllegalArgumentException.class, IllegalStateException.class })
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleBadRequest(RuntimeException ex, WebRequest request) {
+<span class="fc" id="L63">        log.warn(&quot;Solicitud inválida: {}&quot;, ex.getMessage());</span>
+<span class="fc" id="L64">        return ResponseEntity.status(HttpStatus.BAD_REQUEST)</span>
+<span class="fc" id="L65">                .body(body(HttpStatus.BAD_REQUEST, ex.getMessage(), request));</span>
+    }
+
+    /** Fallo de validación de {@code @Valid} sobre el cuerpo -&gt; 400. */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleValidation(MethodArgumentNotValidException ex, WebRequest request) {
+<span class="fc" id="L71">        String detalle = ex.getBindingResult().getFieldErrors().stream()</span>
+<span class="fc" id="L72">                .map(fe -&gt; fe.getField() + &quot;: &quot; + fe.getDefaultMessage())</span>
+<span class="fc" id="L73">                .collect(Collectors.joining(&quot;; &quot;));</span>
+<span class="fc" id="L74">        log.warn(&quot;Validación fallida: {}&quot;, detalle);</span>
+<span class="fc" id="L75">        Map&lt;String, Object&gt; map = body(HttpStatus.BAD_REQUEST, &quot;Datos de entrada inválidos&quot;, request);</span>
+<span class="fc" id="L76">        map.put(&quot;errores&quot;, detalle);</span>
+<span class="fc" id="L77">        return ResponseEntity.badRequest().body(map);</span>
+    }
+
+    /** Violación de integridad (FK, unique, check) -&gt; 409. */
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleIntegrity(
+            org.springframework.dao.DataIntegrityViolationException ex, WebRequest request) {
+<span class="nc" id="L84">        String causa = ex.getMostSpecificCause().getMessage();</span>
+<span class="nc" id="L85">        log.warn(&quot;Violación de integridad de datos: {}&quot;, causa);</span>
+<span class="nc" id="L86">        return ResponseEntity.status(HttpStatus.CONFLICT)</span>
+<span class="nc" id="L87">                .body(body(HttpStatus.CONFLICT, causa, request));</span>
+    }
+
+    /**
+     * Falta de permisos -&gt; 403.
+     *
+     * &lt;p&gt;
+     * Debe declararse aparte: el resolutor de excepciones de MVC corre
+     * &lt;em&gt;antes&lt;/em&gt; que el {@code ExceptionTranslationFilter} de Spring
+     * Security, así que sin este método el catch-all de abajo se tragaría el
+     * rechazo de {@code @PreAuthorize} y lo devolvería como 500. Relanzarla
+     * deja que la cadena de filtros la traduzca al 403 que corresponde.
+     * &lt;/p&gt;
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public void handleAccessDenied(AccessDeniedException ex) throws AccessDeniedException {
+<span class="fc" id="L103">        throw ex;</span>
+    }
+
+    /**
+     * Cualquier otro error no controlado -&gt; 500.
+     *
+     * &lt;p&gt;
+     * Las excepciones propias de Spring MVC ({@code NoResourceFoundException}
+     * para una ruta inexistente, {@code ResponseStatusException}, etc.)
+     * implementan {@link ErrorResponse} y ya traen su propio código. Sin este
+     * reenvío, pedir una URL que no existe se reportaba como &quot;Error interno del
+     * servidor&quot;, que apunta al sitio equivocado al diagnosticar.
+     * &lt;/p&gt;
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleGeneric(Exception ex, WebRequest request) {
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        if (ex instanceof ErrorResponse errorResponse) {</span>
+<span class="nc" id="L120">            HttpStatus status = HttpStatus.valueOf(errorResponse.getStatusCode().value());</span>
+<span class="nc" id="L121">            log.warn(&quot;Petición rechazada por MVC ({}): {}&quot;, status.value(), ex.getMessage());</span>
+<span class="nc" id="L122">            return ResponseEntity.status(status)</span>
+<span class="nc" id="L123">                    .body(body(status, ex.getMessage(), request));</span>
+        }
+<span class="nc" id="L125">        log.error(&quot;Error no controlado en la capa REST&quot;, ex);</span>
+<span class="nc" id="L126">        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)</span>
+<span class="nc" id="L127">                .body(body(HttpStatus.INTERNAL_SERVER_ERROR, &quot;Error interno del servidor&quot;, request));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

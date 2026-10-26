@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Output, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -12,6 +12,8 @@ import { AuthService } from '../../../services/auth.service';
   styleUrl: './login.scss'
 })
 export class Login {
+  private readonly cdr = inject(ChangeDetectorRef);
+
   @Output() loginExitoso = new EventEmitter<string[]>();
   @Output() cerrar = new EventEmitter<void>();
 
@@ -44,28 +46,21 @@ export class Login {
     this.loginForm.disable(); 
 
     this.authService.login(this.loginForm.value).subscribe({
-      next: (res: any) => {
+      next: (res) => {
         this.loading = false;
         this.authService.saveToken(res.token);
-        
-        const roles = this.authService.getRolesFromToken();
-        console.log('Login Exitoso. Roles detectados:', roles);
-        this.loginExitoso.emit(roles);
 
-        this.router.navigate(['/auth/seleccionar-rol']).then((navigated) => {
-          if (navigated) {
-            console.log('¡Navegación exitosa a la pantalla de selección de roles!');
-          } else {
-            console.error('El Router no completó la navegación.');
-          }
-        });
+        // RoleSelection vuelve a leer los roles del token; el evento es solo
+        // para quien embeba este componente como modal.
+        this.loginExitoso.emit(this.authService.getRolesFromToken());
+
+        this.router.navigate(['/auth/seleccionar-rol']);
       },
-      error: (err: any) => {
+      error: () => {
         this.loading = false;
-        this.loginForm.enable(); 
-        console.error(err);
-        this.errorMessage = err.error?.mensaje || 'Credenciales incorrectas o usuario inactivo';
-        alert(this.errorMessage);
+        this.loginForm.enable();
+        this.errorMessage = 'Credenciales incorrectas o usuario inactivo';
+        this.cdr.detectChanges();
       },
     });
   }

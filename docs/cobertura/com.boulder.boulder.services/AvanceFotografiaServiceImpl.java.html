@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AvanceFotografiaServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.services</a> &gt; <span class="el_source">AvanceFotografiaServiceImpl.java</span></div><h1>AvanceFotografiaServiceImpl.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.services;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.boulder.boulder.dominio.Revision;
+import com.boulder.boulder.dto.AvanceFotografiaDTO;
+import com.boulder.boulder.entities.AvanceFotografia;
+import com.boulder.boulder.repositories.AvanceFotografiaRepository;
+import com.boulder.boulder.repositories.AvanceOperativoRepository;
+
+/**
+ * Implementacion de los servicios de registro fotografico (CU13).
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@Service
+<span class="fc" id="L20">public class AvanceFotografiaServiceImpl</span>
+        extends AvanceOperativoServiceBase&lt;AvanceFotografia, AvanceFotografiaDTO&gt;
+        implements AvanceFotografiaService {
+
+    @Autowired
+    private AvanceFotografiaRepository repository;
+
+    @Override
+    protected AvanceOperativoRepository&lt;AvanceFotografia&gt; repositorio() {
+<span class="fc" id="L29">        return repository;</span>
+    }
+
+    @Override
+    protected AvanceFotografia nuevaEntidad() {
+<span class="nc" id="L34">        return new AvanceFotografia();</span>
+    }
+
+    @Override
+    protected AvanceFotografiaDTO nuevoDto() {
+<span class="fc" id="L39">        return new AvanceFotografiaDTO();</span>
+    }
+
+    @Override
+    protected String nombreParte() {
+<span class="fc" id="L44">        return &quot;registro fotografico&quot;;</span>
+    }
+
+    @Override
+    protected void aplicarDetalle(AvanceFotografiaDTO dto, AvanceFotografia entidad) {
+<span class="nc" id="L49">        entidad.setResponsable(dto.getResponsable());</span>
+<span class="nc" id="L50">        entidad.setBoxDesde(dto.getBoxDesde());</span>
+<span class="nc" id="L51">        entidad.setBoxHasta(dto.getBoxHasta());</span>
+<span class="nc" id="L52">        entidad.setTotalCajas(dto.getTotalCajas());</span>
+<span class="nc" id="L53">        entidad.setMarcadoDesde(dto.getMarcadoDesde());</span>
+<span class="nc" id="L54">        entidad.setMarcadoHasta(dto.getMarcadoHasta());</span>
+<span class="nc" id="L55">        entidad.setTotalMetraje(dto.getTotalMetraje());</span>
+<span class="nc" id="L56">        entidad.setSecoHumedo(dto.getSecoHumedo());</span>
+<span class="nc" id="L57">        entidad.setNroFotos(dto.getNroFotos());</span>
+<span class="nc" id="L58">        entidad.setRutaArchivos(dto.getRutaArchivos());</span>
+<span class="nc" id="L59">    }</span>
+
+    @Override
+    protected void revisar(AvanceFotografiaDTO dto, Revision revision) {
+<span class="fc" id="L63">        revision.cajas(&quot;cajas&quot;, dto.getBoxDesde(), dto.getBoxHasta())</span>
+<span class="fc" id="L64">                .tramo(&quot;marcado&quot;, dto.getMarcadoDesde(), dto.getMarcadoHasta())</span>
+<span class="fc" id="L65">                .opcion(&quot;seco_humedo&quot;, dto.getSecoHumedo(), &quot;seco&quot;, &quot;humedo&quot;);</span>
+<span class="fc" id="L66">    }</span>
+
+    @Override
+    protected void volcarDetalle(AvanceFotografia entidad, AvanceFotografiaDTO dto) {
+<span class="fc" id="L70">        dto.setResponsable(entidad.getResponsable());</span>
+<span class="fc" id="L71">        dto.setBoxDesde(entidad.getBoxDesde());</span>
+<span class="fc" id="L72">        dto.setBoxHasta(entidad.getBoxHasta());</span>
+<span class="fc" id="L73">        dto.setTotalCajas(entidad.getTotalCajas());</span>
+<span class="fc" id="L74">        dto.setMarcadoDesde(entidad.getMarcadoDesde());</span>
+<span class="fc" id="L75">        dto.setMarcadoHasta(entidad.getMarcadoHasta());</span>
+<span class="fc" id="L76">        dto.setTotalMetraje(entidad.getTotalMetraje());</span>
+<span class="fc" id="L77">        dto.setSecoHumedo(entidad.getSecoHumedo());</span>
+<span class="fc" id="L78">        dto.setNroFotos(entidad.getNroFotos());</span>
+<span class="fc" id="L79">        dto.setRutaArchivos(entidad.getRutaArchivos());</span>
+<span class="fc" id="L80">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

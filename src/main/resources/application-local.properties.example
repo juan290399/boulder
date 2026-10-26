@@ -1,0 +1,4 @@
+# Copiar como application-local.properties y completar. No versionar el archivo real.
+# JWT_SECRET: al menos 32 caracteres aleatorios (HMAC-SHA256).
+DB_PASSWORD=
+JWT_SECRET=

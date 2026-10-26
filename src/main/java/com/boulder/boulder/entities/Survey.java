@@ -57,4 +57,10 @@ public class Survey implements Serializable {
 
     @Column(name = "metodo_medicion", length = 50)
     private String metodoMedicion;
+
+    @Column(name = "medicion_utilizada")
+    private Short medicionUtilizada;
+
+    @Column(length = 10)
+    private String qc;
 }

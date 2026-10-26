@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SondajeServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.services</a> &gt; <span class="el_source">SondajeServiceImpl.java</span></div><h1>SondajeServiceImpl.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.services;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.boulder.boulder.dto.SondajeDTO;
+import com.boulder.boulder.entities.Sondaje;
+import com.boulder.boulder.entities.Proyecto;
+import com.boulder.boulder.entities.ProgramaSondaje;
+import com.boulder.boulder.entities.Collar;
+import com.boulder.boulder.entities.Plataforma;
+import com.boulder.boulder.entities.Maquina;
+
+import com.boulder.boulder.repositories.SondajeRepository;
+import com.boulder.boulder.repositories.ProyectoRepository;
+import com.boulder.boulder.repositories.ProgramaSondajeRepository;
+import com.boulder.boulder.repositories.CollarRepository;
+import com.boulder.boulder.repositories.PlataformaRepository;
+import com.boulder.boulder.repositories.MaquinaRepository;
+
+import jakarta.persistence.EntityNotFoundException;
+
+/**
+ * Implementación de los servicios de negocio para la gestión operativa de Sondajes.
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@Service
+<span class="fc" id="L38">public class SondajeServiceImpl implements SondajeService {</span>
+
+<span class="fc" id="L40">    private static final Logger log = LoggerFactory.getLogger(SondajeServiceImpl.class);</span>
+
+    @Autowired
+    private SondajeRepository sondajeRepository;
+    @Autowired
+    private ProyectoRepository proyectoRepository;
+    @Autowired
+    private ProgramaSondajeRepository programaSondajeRepository;
+    @Autowired
+    private CollarRepository collarRepository;
+    @Autowired
+    private PlataformaRepository plataformaRepository;
+    @Autowired
+    private MaquinaRepository maquinaRepository;
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;SondajeDTO&gt; listarTodos() {
+<span class="fc" id="L58">        log.debug(&quot;Consultando el registro general de sondajes operativos&quot;);</span>
+<span class="fc" id="L59">        return sondajeRepository.findAll().stream()</span>
+<span class="fc" id="L60">                .map(this::convertToDto)</span>
+<span class="fc" id="L61">                .collect(Collectors.toList());</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SondajeDTO obtenerPorId(UUID id) {
+<span class="nc" id="L67">        log.debug(&quot;Buscando registro de sondaje por ID único: {}&quot;, id);</span>
+<span class="nc" id="L68">        Sondaje sondaje = sondajeRepository.findById(id)</span>
+<span class="nc" id="L69">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Registro de sondaje no localizado con el ID provisto.&quot;));</span>
+<span class="nc" id="L70">        return convertToDto(sondaje);</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SondajeDTO obtenerPorCodigo(String codigo) {
+<span class="nc" id="L76">        log.debug(&quot;Buscando ejecución de sondaje por código único: {}&quot;, codigo);</span>
+<span class="nc" id="L77">        Sondaje sondaje = sondajeRepository.findByCodigo(codigo)</span>
+<span class="nc" id="L78">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;No se encontró ningún registro de sondaje con el código: &quot; + codigo));</span>
+<span class="nc" id="L79">        return convertToDto(sondaje);</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SondajeDTO obtenerPorCollar(UUID collarId) {
+<span class="nc" id="L85">        log.debug(&quot;Buscando el sondaje asociado de forma única al Collar ID: {}&quot;, collarId);</span>
+<span class="nc" id="L86">        return sondajeRepository.findByCollarId(collarId)</span>
+<span class="nc" id="L87">                .map(this::convertToDto)</span>
+<span class="nc" id="L88">                .orElseThrow(() -&gt; new jakarta.persistence.EntityNotFoundException(</span>
+                        &quot;No se encontró ninguna ejecución de sondaje para el Collar ID especificado.&quot;));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;SondajeDTO&gt; listarPorProyecto(UUID proyectoId) {
+<span class="nc" id="L95">        log.debug(&quot;Consultando el histórico completo de sondajes asignados al Proyecto ID: {}&quot;, proyectoId);</span>
+<span class="nc" id="L96">        return sondajeRepository.findByProyectoId(proyectoId).stream()</span>
+<span class="nc" id="L97">                .map(this::convertToDto)</span>
+<span class="nc" id="L98">                .collect(Collectors.toList());</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;SondajeDTO&gt; listarPorPlataforma(UUID plataformaId) {
+<span class="nc" id="L104">        log.debug(&quot;Filtrando ejecuciones de sondaje en la Plataforma ID: {}&quot;, plataformaId);</span>
+<span class="nc" id="L105">        return sondajeRepository.findByPlataformaId(plataformaId).stream()</span>
+<span class="nc" id="L106">                .map(this::convertToDto)</span>
+<span class="nc" id="L107">                .collect(Collectors.toList());</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;SondajeDTO&gt; listarPorMaquina(UUID maquinaId) {
+<span class="nc" id="L113">        log.debug(&quot;Filtrando sondajes perforados por la Máquina/Rig ID: {}&quot;, maquinaId);</span>
+<span class="nc" id="L114">        return sondajeRepository.findByMaquinaId(maquinaId).stream()</span>
+<span class="nc" id="L115">                .map(this::convertToDto)</span>
+<span class="nc" id="L116">                .collect(Collectors.toList());</span>
+    }
+
+    @Override
+    @Transactional
+    public SondajeDTO guardar(SondajeDTO dto) {
+<span class="nc" id="L122">        log.info(&quot;Registrando ejecución física de un nuevo Sondaje. Código: {}&quot;, dto.getCodigo());</span>
+        try {
+<span class="nc" id="L124">            Sondaje sondaje = new Sondaje();</span>
+<span class="nc" id="L125">            sondaje.setCodigo(dto.getCodigo());</span>
+<span class="nc" id="L126">            sondaje.setNombre(dto.getNombre());</span>
+<span class="nc" id="L127">            sondaje.setAzimutSetup(dto.getAzimutSetup());</span>
+<span class="nc" id="L128">            sondaje.setInclinacionSetup(dto.getInclinacionSetup());</span>
+<span class="nc" id="L129">            sondaje.setProfundidadActual(dto.getProfundidadActual());</span>
+<span class="nc" id="L130">            sondaje.setProfundidadFinal(dto.getProfundidadFinal());</span>
+<span class="nc" id="L131">            sondaje.setMedicionUtilizada(dto.getMedicionUtilizada());</span>
+<span class="nc" id="L132">            sondaje.setMedicionesTotales(dto.getMedicionesTotales());</span>
+<span class="nc" id="L133">            sondaje.setFechaInicio(dto.getFechaInicio());</span>
+<span class="nc" id="L134">            sondaje.setFechaFin(dto.getFechaFin());</span>
+<span class="nc" id="L135">            sondaje.setCampania(dto.getCampania());</span>
+<span class="nc" id="L136">            sondaje.setNotas(dto.getNotas());</span>
+
+<span class="nc bnc" id="L138" title="All 2 branches missed.">            if (dto.getProyectoId() != null) {</span>
+<span class="nc" id="L139">                Proyecto p = proyectoRepository.findById(dto.getProyectoId())</span>
+<span class="nc" id="L140">                        .orElseThrow(() -&gt; new EntityNotFoundException(&quot;El Proyecto asignado no existe.&quot;));</span>
+<span class="nc" id="L141">                sondaje.setProyecto(p);</span>
+            }
+<span class="nc bnc" id="L143" title="All 2 branches missed.">            if (dto.getProgramaSondajeId() != null) {</span>
+<span class="nc" id="L144">                ProgramaSondaje ps = programaSondajeRepository.findById(dto.getProgramaSondajeId())</span>
+<span class="nc" id="L145">                        .orElseThrow(() -&gt; new EntityNotFoundException(&quot;El Programa de Sondaje asignado no existe.&quot;));</span>
+<span class="nc" id="L146">                sondaje.setProgramaSondaje(ps);</span>
+            }
+<span class="nc bnc" id="L148" title="All 2 branches missed.">            if (dto.getCollarId() != null) {</span>
+<span class="nc" id="L149">                Collar c = collarRepository.findById(dto.getCollarId())</span>
+<span class="nc" id="L150">                        .orElseThrow(() -&gt; new EntityNotFoundException(&quot;El Collar asignado no existe.&quot;));</span>
+<span class="nc" id="L151">                sondaje.setCollar(c);</span>
+            }
+<span class="nc bnc" id="L153" title="All 2 branches missed.">            if (dto.getPlataformaId() != null) {</span>
+<span class="nc" id="L154">                Plataforma pl = plataformaRepository.findById(dto.getPlataformaId())</span>
+<span class="nc" id="L155">                        .orElseThrow(() -&gt; new EntityNotFoundException(&quot;La Plataforma asignada no existe.&quot;));</span>
+<span class="nc" id="L156">                sondaje.setPlataforma(pl);</span>
+            }
+<span class="nc bnc" id="L158" title="All 2 branches missed.">            if (dto.getMaquinaId() != null) {</span>
+<span class="nc" id="L159">                Maquina m = maquinaRepository.findById(dto.getMaquinaId())</span>
+<span class="nc" id="L160">                        .orElseThrow(() -&gt; new EntityNotFoundException(&quot;La Máquina asignada no existe.&quot;));</span>
+<span class="nc" id="L161">                sondaje.setMaquina(m);</span>
+            }
+
+<span class="nc" id="L164">            Sondaje guardado = sondajeRepository.save(sondaje);</span>
+<span class="nc" id="L165">            log.info(&quot;Sondaje guardado con éxito. ID: {}, Código: {}&quot;, guardado.getId(), guardado.getCodigo());</span>
+<span class="nc" id="L166">            return convertToDto(guardado);</span>
+<span class="nc" id="L167">        } catch (Exception e) {</span>
+<span class="nc" id="L168">            log.error(&quot;Fallo crítico al registrar el sondaje código: {}&quot;, dto.getCodigo(), e);</span>
+<span class="nc" id="L169">            throw e;</span>
+        }
+    }
+
+    @Override
+    @Transactional
+    public SondajeDTO actualizar(UUID id, SondajeDTO dto) {
+<span class="nc" id="L176">        log.info(&quot;Actualizando parámetros del Sondaje ID: {}&quot;, id);</span>
+        try {
+<span class="nc" id="L178">            Sondaje sondaje = sondajeRepository.findById(id)</span>
+<span class="nc" id="L179">                    .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Sondaje no existente en la base de datos.&quot;));</span>
+
+<span class="nc" id="L181">            sondaje.setNombre(dto.getNombre());</span>
+<span class="nc" id="L182">            sondaje.setAzimutSetup(dto.getAzimutSetup());</span>
+<span class="nc" id="L183">            sondaje.setInclinacionSetup(dto.getInclinacionSetup());</span>
+<span class="nc" id="L184">            sondaje.setProfundidadActual(dto.getProfundidadActual());</span>
+<span class="nc" id="L185">            sondaje.setProfundidadFinal(dto.getProfundidadFinal());</span>
+<span class="nc" id="L186">            sondaje.setMedicionUtilizada(dto.getMedicionUtilizada());</span>
+<span class="nc" id="L187">            sondaje.setMedicionesTotales(dto.getMedicionesTotales());</span>
+<span class="nc" id="L188">            sondaje.setFechaInicio(dto.getFechaInicio());</span>
+<span class="nc" id="L189">            sondaje.setFechaFin(dto.getFechaFin());</span>
+<span class="nc" id="L190">            sondaje.setCampania(dto.getCampania());</span>
+<span class="nc" id="L191">            sondaje.setNotas(dto.getNotas());</span>
+
+<span class="nc bnc" id="L193" title="All 6 branches missed.">            if (dto.getProyectoId() != null &amp;&amp; (sondaje.getProyecto() == null || !sondaje.getProyecto().getId().equals(dto.getProyectoId()))) {</span>
+<span class="nc" id="L194">                sondaje.setProyecto(proyectoRepository.findById(dto.getProyectoId())</span>
+<span class="nc" id="L195">                        .orElseThrow(() -&gt; new EntityNotFoundException(&quot;El nuevo Proyecto no existe.&quot;)));</span>
+            }
+<span class="nc bnc" id="L197" title="All 6 branches missed.">            if (dto.getProgramaSondajeId() != null &amp;&amp; (sondaje.getProgramaSondaje() == null || !sondaje.getProgramaSondaje().getId().equals(dto.getProgramaSondajeId()))) {</span>
+<span class="nc" id="L198">                sondaje.setProgramaSondaje(programaSondajeRepository.findById(dto.getProgramaSondajeId())</span>
+<span class="nc" id="L199">                        .orElseThrow(() -&gt; new EntityNotFoundException(&quot;El nuevo Programa de Sondaje no existe.&quot;)));</span>
+            }
+<span class="nc bnc" id="L201" title="All 6 branches missed.">            if (dto.getCollarId() != null &amp;&amp; (sondaje.getCollar() == null || !sondaje.getCollar().getId().equals(dto.getCollarId()))) {</span>
+<span class="nc" id="L202">                sondaje.setCollar(collarRepository.findById(dto.getCollarId())</span>
+<span class="nc" id="L203">                        .orElseThrow(() -&gt; new EntityNotFoundException(&quot;El nuevo Collar no existe.&quot;)));</span>
+            }
+<span class="nc bnc" id="L205" title="All 6 branches missed.">            if (dto.getPlataformaId() != null &amp;&amp; (sondaje.getPlataforma() == null || !sondaje.getPlataforma().getId().equals(dto.getPlataformaId()))) {</span>
+<span class="nc" id="L206">                sondaje.setPlataforma(plataformaRepository.findById(dto.getPlataformaId())</span>
+<span class="nc" id="L207">                        .orElseThrow(() -&gt; new EntityNotFoundException(&quot;La nueva Plataforma no existe.&quot;)));</span>
+            }
+<span class="nc bnc" id="L209" title="All 6 branches missed.">            if (dto.getMaquinaId() != null &amp;&amp; (sondaje.getMaquina() == null || !sondaje.getMaquina().getId().equals(dto.getMaquinaId()))) {</span>
+<span class="nc" id="L210">                sondaje.setMaquina(maquinaRepository.findById(dto.getMaquinaId())</span>
+<span class="nc" id="L211">                        .orElseThrow(() -&gt; new EntityNotFoundException(&quot;La nueva Máquina no existe.&quot;)));</span>
+            }
+
+<span class="nc" id="L214">            Sondaje actualizado = sondajeRepository.save(sondaje);</span>
+<span class="nc" id="L215">            log.info(&quot;Sondaje '{}' actualizado con éxito en terreno&quot;, actualizado.getCodigo());</span>
+<span class="nc" id="L216">            return convertToDto(actualizado);</span>
+<span class="nc" id="L217">        } catch (Exception e) {</span>
+<span class="nc" id="L218">            log.error(&quot;Error al modificar el sondaje ID: {}&quot;, id, e);</span>
+<span class="nc" id="L219">            throw e;</span>
+        }
+    }
+
+    private SondajeDTO convertToDto(Sondaje sondaje) {
+<span class="fc" id="L224">        SondajeDTO dto = new SondajeDTO();</span>
+<span class="fc" id="L225">        dto.setId(sondaje.getId());</span>
+<span class="fc" id="L226">        dto.setNumeroInterno(sondaje.getNumeroInterno());</span>
+<span class="fc" id="L227">        dto.setCodigo(sondaje.getCodigo());</span>
+<span class="fc" id="L228">        dto.setNombre(sondaje.getNombre());</span>
+<span class="fc" id="L229">        dto.setAzimutSetup(sondaje.getAzimutSetup());</span>
+<span class="fc" id="L230">        dto.setInclinacionSetup(sondaje.getInclinacionSetup());</span>
+<span class="fc" id="L231">        dto.setProfundidadActual(sondaje.getProfundidadActual());</span>
+<span class="fc" id="L232">        dto.setProfundidadFinal(sondaje.getProfundidadFinal());</span>
+<span class="fc" id="L233">        dto.setMedicionUtilizada(sondaje.getMedicionUtilizada());</span>
+<span class="fc" id="L234">        dto.setMedicionesTotales(sondaje.getMedicionesTotales());</span>
+<span class="fc" id="L235">        dto.setFechaInicio(sondaje.getFechaInicio());</span>
+<span class="fc" id="L236">        dto.setFechaFin(sondaje.getFechaFin());</span>
+<span class="fc" id="L237">        dto.setCampania(sondaje.getCampania());</span>
+<span class="fc" id="L238">        dto.setNotas(sondaje.getNotas());</span>
+
+<span class="pc bpc" id="L240" title="1 of 2 branches missed.">        if (sondaje.getProyecto() != null) {</span>
+<span class="fc" id="L241">            dto.setProyectoId(sondaje.getProyecto().getId());</span>
+        }
+<span class="fc bfc" id="L243" title="All 2 branches covered.">        if (sondaje.getProgramaSondaje() != null) {</span>
+<span class="fc" id="L244">            dto.setProgramaSondajeId(sondaje.getProgramaSondaje().getId());</span>
+        }
+<span class="pc bpc" id="L246" title="1 of 2 branches missed.">        if (sondaje.getCollar() != null) {</span>
+<span class="fc" id="L247">            dto.setCollarId(sondaje.getCollar().getId());</span>
+        }
+<span class="fc bfc" id="L249" title="All 2 branches covered.">        if (sondaje.getPlataforma() != null) {</span>
+<span class="fc" id="L250">            dto.setPlataformaId(sondaje.getPlataforma().getId());</span>
+        }
+<span class="fc bfc" id="L252" title="All 2 branches covered.">        if (sondaje.getMaquina() != null) {</span>
+<span class="fc" id="L253">            dto.setMaquinaId(sondaje.getMaquina().getId());</span>
+        }
+
+<span class="fc" id="L256">        return dto;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

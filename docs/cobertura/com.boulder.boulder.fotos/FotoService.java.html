@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FotoService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.fotos</a> &gt; <span class="el_source">FotoService.java</span></div><h1>FotoService.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.fotos;
+
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.OffsetDateTime;
+import java.util.HexFormat;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.imageio.ImageIO;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.boulder.boulder.entities.Foto;
+import com.boulder.boulder.entities.Sondaje;
+import com.boulder.boulder.eventos.CambioDatos;
+import com.boulder.boulder.repositories.FotoRepository;
+import com.boulder.boulder.repositories.SondajeRepository;
+
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+
+/**
+ * Subida, consulta y baja de fotos de testigo.
+ *
+ * &lt;p&gt;
+ * &lt;b&gt;Idempotente por id.&lt;/b&gt; El cliente puede traer el id de la foto —el tablet
+ * lo genera al tomarla—, así que reintentar una subida cortada no duplica
+ * nada: si ese id ya existe con el mismo hash, se devuelve lo que había.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;
+ * &lt;b&gt;El tipo se decide por el contenido, no por lo que declara el cliente.&lt;/b&gt;
+ * Se aceptan JPEG y PNG reconociendo los primeros bytes del archivo; un
+ * {@code .jpg} que en realidad es otra cosa se rechaza antes de tocar el disco.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;
+ * Junto a cada foto se guarda una miniatura de 480 px. La galería muestra
+ * decenas de fotos de un sondaje a la vez, y bajar los originales de varios
+ * megas cada uno la haría inservible con la conexión de un campamento.
+ * &lt;/p&gt;
+ */
+@Service
+@RequiredArgsConstructor
+public class FotoService {
+
+<span class="fc" id="L63">    private static final Logger log = LoggerFactory.getLogger(FotoService.class);</span>
+    private static final int ANCHO_MINIATURA = 480;
+
+    private final FotoRepository fotos;
+    private final SondajeRepository sondajes;
+    private final AlmacenFotos almacen;
+    private final ApplicationEventPublisher eventos;
+
+    /** Los datos de la foto que no salen del propio archivo. */
+<span class="nc" id="L72">    public record Metadatos(UUID sondajeId, Integer cajaDesde, Integer cajaHasta, BigDecimal desde,</span>
+            BigDecimal hasta, String condicion, OffsetDateTime tomadaEn, String observaciones) {
+    }
+
+    @Transactional
+    public Foto subir(UUID id, Metadatos m, byte[] contenido, String nombreArchivo,
+            String autor, String dispositivo) throws IOException {
+
+<span class="nc" id="L80">        String tipo = tipoPorContenido(contenido);</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (tipo == null) {</span>
+<span class="nc" id="L82">            throw new IllegalArgumentException(&quot;El archivo no es una imagen JPEG ni PNG.&quot;);</span>
+        }
+<span class="nc" id="L84">        validar(m);</span>
+<span class="nc" id="L85">        Sondaje sondaje = sondajes.findById(m.sondajeId())</span>
+<span class="nc" id="L86">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;El sondaje indicado no existe.&quot;));</span>
+
+<span class="nc" id="L88">        String hash = sha256(contenido);</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">        UUID idFoto = id != null ? id : UUID.randomUUID();</span>
+
+<span class="nc" id="L91">        Foto existente = fotos.findById(idFoto).orElse(null);</span>
+<span class="nc bnc" id="L92" title="All 6 branches missed.">        if (existente != null &amp;&amp; hash.equals(existente.getSha256()) &amp;&amp; existente.getEliminadoEn() == null) {</span>
+<span class="nc" id="L93">            log.info(&quot;Foto {} ya estaba subida con el mismo contenido; no se repite&quot;, idFoto);</span>
+<span class="nc" id="L94">            return existente;</span>
+        }
+
+<span class="nc" id="L97">        BufferedImage imagen = ImageIO.read(new ByteArrayInputStream(contenido));</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (imagen == null) {</span>
+<span class="nc" id="L99">            throw new IllegalArgumentException(&quot;No se pudo leer la imagen: el archivo parece dañado.&quot;);</span>
+        }
+
+<span class="nc bnc" id="L102" title="All 2 branches missed.">        String extension = &quot;image/png&quot;.equals(tipo) ? &quot;png&quot; : &quot;jpg&quot;;</span>
+<span class="nc" id="L103">        String carpeta = sondaje.getCodigo().replaceAll(&quot;[^A-Za-z0-9._-]&quot;, &quot;_&quot;);</span>
+<span class="nc" id="L104">        String clave = carpeta + &quot;/&quot; + idFoto + &quot;.&quot; + extension;</span>
+
+<span class="nc" id="L106">        almacen.guardar(clave, contenido);</span>
+<span class="nc" id="L107">        almacen.guardar(claveMiniatura(clave), miniatura(imagen));</span>
+
+<span class="nc bnc" id="L109" title="All 2 branches missed.">        Foto f = existente != null ? existente : new Foto();</span>
+<span class="nc" id="L110">        f.setId(idFoto);</span>
+<span class="nc" id="L111">        f.setSondajeId(m.sondajeId());</span>
+<span class="nc" id="L112">        f.setCajaDesde(m.cajaDesde());</span>
+<span class="nc" id="L113">        f.setCajaHasta(m.cajaHasta());</span>
+<span class="nc" id="L114">        f.setDesde(m.desde());</span>
+<span class="nc" id="L115">        f.setHasta(m.hasta());</span>
+<span class="nc" id="L116">        f.setCondicion(m.condicion());</span>
+<span class="nc" id="L117">        f.setTomadaEn(m.tomadaEn());</span>
+<span class="nc" id="L118">        f.setObservaciones(m.observaciones());</span>
+<span class="nc" id="L119">        f.setAutor(recortar(autor, 80));</span>
+<span class="nc" id="L120">        f.setDispositivo(recortar(dispositivo, 64));</span>
+<span class="nc" id="L121">        f.setArchivoOriginal(nombreArchivoSeguro(nombreArchivo));</span>
+<span class="nc" id="L122">        f.setTipoMime(tipo);</span>
+<span class="nc" id="L123">        f.setBytes((long) contenido.length);</span>
+<span class="nc" id="L124">        f.setAncho(imagen.getWidth());</span>
+<span class="nc" id="L125">        f.setAlto(imagen.getHeight());</span>
+<span class="nc" id="L126">        f.setSha256(hash);</span>
+<span class="nc" id="L127">        f.setClaveAlmacen(clave);</span>
+<span class="nc" id="L128">        f.setEliminadoEn(null);</span>
+<span class="nc" id="L129">        Foto guardada = fotos.save(f);</span>
+
+<span class="nc" id="L131">        eventos.publishEvent(CambioDatos.de(&quot;foto&quot;, Set.of(m.sondajeId()),</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">                dispositivo != null ? &quot;tablet&quot; : &quot;web&quot;, 1));</span>
+<span class="nc" id="L133">        log.info(&quot;Foto {} de {} guardada ({} bytes, {}x{})&quot;, idFoto, sondaje.getCodigo(),</span>
+<span class="nc" id="L134">                contenido.length, imagen.getWidth(), imagen.getHeight());</span>
+<span class="nc" id="L135">        return guardada;</span>
+    }
+
+    @Transactional(readOnly = true)
+    public List&lt;Foto&gt; listar(UUID sondajeId) {
+<span class="nc" id="L140">        return fotos.vigentesDe(sondajeId);</span>
+    }
+
+    @Transactional(readOnly = true)
+    public Foto obtener(UUID id) {
+<span class="nc" id="L145">        Foto f = fotos.findById(id).orElseThrow(() -&gt; new EntityNotFoundException(&quot;Foto no encontrada: &quot; + id));</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        if (f.getEliminadoEn() != null) {</span>
+<span class="nc" id="L147">            throw new EntityNotFoundException(&quot;Foto eliminada: &quot; + id);</span>
+        }
+<span class="nc" id="L149">        return f;</span>
+    }
+
+    public InputStream contenido(Foto f, boolean miniatura) throws IOException {
+<span class="nc bnc" id="L153" title="All 2 branches missed.">        String clave = miniatura ? claveMiniatura(f.getClaveAlmacen()) : f.getClaveAlmacen();</span>
+<span class="nc bnc" id="L154" title="All 4 branches missed.">        if (miniatura &amp;&amp; !almacen.existe(clave)) {</span>
+<span class="nc" id="L155">            clave = f.getClaveAlmacen();</span>
+        }
+<span class="nc" id="L157">        return almacen.abrir(clave);</span>
+    }
+
+    /**
+     * Baja lógica. El archivo se conserva: una foto de testigo borrada por
+     * error no se puede volver a tomar si el testigo ya se cortó.
+     */
+    @Transactional
+    public void eliminar(UUID id) {
+<span class="nc" id="L166">        Foto f = obtener(id);</span>
+<span class="nc" id="L167">        f.setEliminadoEn(OffsetDateTime.now());</span>
+<span class="nc" id="L168">        fotos.save(f);</span>
+<span class="nc" id="L169">        eventos.publishEvent(CambioDatos.de(&quot;foto&quot;, Set.of(f.getSondajeId()), &quot;web&quot;, 1));</span>
+<span class="nc" id="L170">    }</span>
+
+    // ------------------------------------------------------------------
+
+    private void validar(Metadatos m) {
+<span class="nc bnc" id="L175" title="All 2 branches missed.">        if (m.sondajeId() == null) {</span>
+<span class="nc" id="L176">            throw new IllegalArgumentException(&quot;Falta el sondaje de la foto.&quot;);</span>
+        }
+<span class="nc bnc" id="L178" title="All 4 branches missed.">        if (m.condicion() != null &amp;&amp; !m.condicion().isBlank()</span>
+<span class="nc bnc" id="L179" title="All 4 branches missed.">                &amp;&amp; !m.condicion().equals(&quot;seco&quot;) &amp;&amp; !m.condicion().equals(&quot;humedo&quot;)) {</span>
+<span class="nc" id="L180">            throw new IllegalArgumentException(&quot;La condición tiene que ser «seco» o «humedo».&quot;);</span>
+        }
+<span class="nc bnc" id="L182" title="All 6 branches missed.">        if (m.desde() != null &amp;&amp; m.hasta() != null &amp;&amp; m.hasta().compareTo(m.desde()) &lt; 0) {</span>
+<span class="nc" id="L183">            throw new IllegalArgumentException(&quot;El tramo está invertido: «hasta» es menor que «desde».&quot;);</span>
+        }
+<span class="nc bnc" id="L185" title="All 6 branches missed.">        if (m.cajaDesde() != null &amp;&amp; m.cajaHasta() != null &amp;&amp; m.cajaHasta() &lt; m.cajaDesde()) {</span>
+<span class="nc" id="L186">            throw new IllegalArgumentException(&quot;Las cajas están invertidas.&quot;);</span>
+        }
+<span class="nc" id="L188">    }</span>
+
+    /** JPEG empieza con FF D8 FF; PNG con 89 50 4E 47. */
+    static String tipoPorContenido(byte[] b) {
+<span class="nc bnc" id="L192" title="All 8 branches missed.">        if (b.length &gt; 3 &amp;&amp; (b[0] &amp; 0xFF) == 0xFF &amp;&amp; (b[1] &amp; 0xFF) == 0xD8 &amp;&amp; (b[2] &amp; 0xFF) == 0xFF) {</span>
+<span class="nc" id="L193">            return &quot;image/jpeg&quot;;</span>
+        }
+<span class="nc bnc" id="L195" title="All 10 branches missed.">        if (b.length &gt; 4 &amp;&amp; (b[0] &amp; 0xFF) == 0x89 &amp;&amp; b[1] == 'P' &amp;&amp; b[2] == 'N' &amp;&amp; b[3] == 'G') {</span>
+<span class="nc" id="L196">            return &quot;image/png&quot;;</span>
+        }
+<span class="nc" id="L198">        return null;</span>
+    }
+
+    private static String claveMiniatura(String clave) {
+<span class="nc" id="L202">        int punto = clave.lastIndexOf('.');</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">        return (punto &gt; 0 ? clave.substring(0, punto) : clave) + &quot;_min.jpg&quot;;</span>
+    }
+
+    private static byte[] miniatura(BufferedImage original) throws IOException {
+<span class="nc" id="L207">        int ancho = Math.min(ANCHO_MINIATURA, original.getWidth());</span>
+<span class="nc" id="L208">        int alto = Math.max(1, Math.round(original.getHeight() * (ancho / (float) original.getWidth())));</span>
+<span class="nc" id="L209">        BufferedImage chica = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);</span>
+<span class="nc" id="L210">        Graphics2D g = chica.createGraphics();</span>
+        try {
+<span class="nc" id="L212">            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);</span>
+<span class="nc" id="L213">            g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);</span>
+<span class="nc" id="L214">            g.drawImage(original, 0, 0, ancho, alto, null);</span>
+        } finally {
+<span class="nc" id="L216">            g.dispose();</span>
+        }
+<span class="nc" id="L218">        ByteArrayOutputStream salida = new ByteArrayOutputStream();</span>
+<span class="nc" id="L219">        ImageIO.write(chica, &quot;jpg&quot;, salida);</span>
+<span class="nc" id="L220">        return salida.toByteArray();</span>
+    }
+
+    private static String sha256(byte[] datos) {
+        try {
+<span class="nc" id="L225">            return HexFormat.of().formatHex(MessageDigest.getInstance(&quot;SHA-256&quot;).digest(datos));</span>
+<span class="nc" id="L226">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L227">            throw new IllegalStateException(e);</span>
+        }
+    }
+
+    /**
+     * Deja solo el nombre del archivo que mandó el cliente: sin ruta (los
+     * navegadores antiguos mandan {@code C:\fakepath\...} y un cliente
+     * malicioso puede mandar {@code ../../}), sin caracteres de control y con 255
+     * caracteres como máximo. {@link FilenameUtils#getName} reconoce las barras
+     * de Windows y de Unix sin importar el sistema del servidor.
+     *
+     * @param recibido el nombre tal como llegó en la petición; puede ser {@code null}
+     * @return el nombre limpio, o {@code null} si no queda nada
+     */
+    static String nombreArchivoSeguro(String recibido) {
+<span class="fc bfc" id="L242" title="All 2 branches covered.">        if (recibido == null) {</span>
+<span class="fc" id="L243">            return null;</span>
+        }
+<span class="fc" id="L245">        String sinControl = recibido.replaceAll(&quot;\\p{Cntrl}&quot;, &quot;&quot;);</span>
+<span class="fc" id="L246">        return StringUtils.truncate(StringUtils.trimToNull(FilenameUtils.getName(sinControl)), 255);</span>
+    }
+
+    private static String recortar(String s, int max) {
+<span class="nc bnc" id="L250" title="All 4 branches missed.">        return s == null ? null : (s.length() &gt; max ? s.substring(0, max) : s);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

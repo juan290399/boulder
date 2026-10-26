@@ -50,11 +50,11 @@ public class Sondaje implements Serializable {
     private Proyecto proyecto;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "programa_sondaje_id")
+    @JoinColumn(name = "programa_id")
     private ProgramaSondaje programaSondaje;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "collar_id")
+    @JoinColumn(name = "collar_id", nullable = false)
     private Collar collar;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -65,16 +65,16 @@ public class Sondaje implements Serializable {
     @JoinColumn(name = "maquina_id")
     private Maquina maquina;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, unique = true, length = 25)
     private String codigo;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 25)
     private String nombre;
 
-    @Column(name = "azimut_setup", nullable = false)
+    @Column(name = "azimut_setup")
     private Double azimutSetup;
 
-    @Column(name = "inclinacion_setup", nullable = false)
+    @Column(name = "inclinacion_setup")
     private Double inclinacionSetup;
 
     @Column(name = "profundidad_actual")
@@ -83,11 +83,20 @@ public class Sondaje implements Serializable {
     @Column(name = "profundidad_final")
     private Double profundidadFinal;
 
+    @Column(name = "medicion_utilizada")
+    private Short medicionUtilizada;
+
+    @Column(name = "mediciones_totales")
+    private Short medicionesTotales;
+
     @Column(name = "fecha_inicio")
     private LocalDate fechaInicio;
 
     @Column(name = "fecha_fin")
     private LocalDate fechaFin;
+
+    @Column(length = 25)
+    private String campania;
 
     @Column(columnDefinition = "TEXT")
     private String notas;

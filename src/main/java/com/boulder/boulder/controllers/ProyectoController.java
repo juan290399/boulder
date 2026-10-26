@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,8 +29,7 @@ import com.boulder.boulder.services.ProyectoService;
  * @since 1.0
  */
 @RestController
-@RequestMapping("/proyecto")
-@CrossOrigin(origins = "*") // Ajustar en producción a la URL específica de Angular
+@RequestMapping("/api/operacional/proyectos")
 public class ProyectoController {
 
     private static final Logger log = LoggerFactory.getLogger(ProyectoController.class);
@@ -59,6 +58,23 @@ public class ProyectoController {
         return ResponseEntity.ok(proyecto);
     }
 
+    /**
+     * Escritura reservada al rol ADMIN.
+     *
+     * <p>
+     * {@code base.proyecto} es una tabla maestra del esquema {@code base} y se mantiene
+     * desde el panel de administración. Las lecturas quedan abiertas a
+     * cualquier sesión porque los formularios operativos (sondaje, plataforma)
+     * las necesitan para poblar sus desplegables.
+     * </p>
+     *
+     * <p>
+     * La regla va en el método y no en {@code SecurityConfig} porque la ruta
+     * sigue bajo {@code /api/operacional/**}: mover la URL a
+     * {@code /api/base/**} habría cerrado también el GET.
+     * </p>
+     */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ProyectoDTO> guardar(@RequestBody ProyectoDTO dto) {
         log.info("HTTP POST - Intentando registrar nuevo proyecto con código: {}", dto.getCodigo());
@@ -66,6 +82,7 @@ public class ProyectoController {
         return new ResponseEntity<>(guardado, HttpStatus.CREATED);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<ProyectoDTO> actualizar(@PathVariable UUID id, @RequestBody ProyectoDTO dto) {
         log.info("HTTP PUT - Solicitud de actualización para el proyecto ID: {}", id);

@@ -1,0 +1,450 @@
+<div class="page-head">
+  <div>
+    <h1 class="page-head__title">Desvíos</h1>
+    <p class="page-head__sub">
+      Separación entre la trayectoria real del sondaje y la planificada.
+    </p>
+  </div>
+
+  <div class="page-head__actions">
+    <button type="button" class="btn btn-sm btn-primary" (click)="avisoAlta.set(null); nuevaMedicion.set(true)"
+            [disabled]="nuevaMedicion()">
+      <i class="bi bi-plus-lg me-1"></i>Nueva medición
+    </button>
+    <div class="btn-group btn-group-sm" role="group" aria-label="Vista">
+      <button type="button" class="btn"
+              [class.btn-primary]="vista() === 'sondaje'"
+              [class.btn-outline-secondary]="vista() !== 'sondaje'"
+              (click)="cambiarVista('sondaje')">Por sondaje</button>
+      <button type="button" class="btn"
+              [class.btn-primary]="vista() === 'perforista'"
+              [class.btn-outline-secondary]="vista() !== 'perforista'"
+              (click)="cambiarVista('perforista')">Por perforista</button>
+      <button type="button" class="btn"
+              [class.btn-primary]="vista() === 'maquina'"
+              [class.btn-outline-secondary]="vista() !== 'maquina'"
+              (click)="cambiarVista('maquina')">Por máquina</button>
+      <button type="button" class="btn"
+              [class.btn-primary]="vista() === 'trayectoria'"
+              [class.btn-outline-secondary]="vista() !== 'trayectoria'"
+              (click)="cambiarVista('trayectoria')">Trayectoria</button>
+    </div>
+  </div>
+</div>
+
+@if (error(); as mensaje) {
+  <div class="alert-inline"><i class="bi bi-exclamation-triangle"></i>{{ mensaje }}</div>
+}
+
+@if (avisoAlta(); as a) {
+  <div class="alert alert-success py-2 d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-check-circle me-1"></i>{{ a }}</span>
+    <button type="button" class="btn-close" aria-label="Cerrar" (click)="avisoAlta.set(null)"></button>
+  </div>
+}
+
+@if (nuevaMedicion()) {
+  <div class="panel">
+    <app-medicion-desvio [sondajeInicial]="seleccionada()?.sondajeId ?? null"
+                         (guardado)="medicionGuardada($event)" (cancelado)="nuevaMedicion.set(false)" />
+  </div>
+}
+
+<div class="panel">
+  @if (vista() === 'sondaje') {
+    <div class="panel__head">
+      <div class="toolbar">
+        <div class="toolbar__field">
+          <label class="form-label" for="filtro-codigo">Código de sondaje</label>
+          <input id="filtro-codigo" class="form-control form-control-sm"
+                 placeholder="DDH-VERO-S-038-26"
+                 [(ngModel)]="filtroCodigo" (keyup.enter)="cargar()" />
+        </div>
+        <button type="button" class="btn btn-sm btn-primary" (click)="cargar()">
+          <i class="bi bi-search me-1"></i>Buscar
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="limpiarFiltro()">
+          Limpiar
+        </button>
+      </div>
+      <span class="text-muted small">{{ porSondaje().length }} mediciones</span>
+    </div>
+  } @else if (vista() === 'trayectoria') {
+    <div class="panel__head">
+      <div class="toolbar">
+        <div class="toolbar__field" style="min-width: 320px;">
+          <label class="form-label" for="sel-sondaje-grafico">Sondaje</label>
+          <select id="sel-sondaje-grafico" class="form-select form-select-sm"
+                  [(ngModel)]="sondajeGrafico" (change)="graficarSondaje()">
+            <option value="">— Elige un sondaje —</option>
+            @for (s of sondajes(); track s.id) {
+              <option [value]="s.id">{{ s.codigo }} · {{ s.nombre }}</option>
+            }
+          </select>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="panel__head">
+      <h2 class="panel__title">
+        {{ vista() === 'perforista' ? 'Resumen por perforista' : 'Resumen por máquina' }}
+      </h2>
+      <span class="text-muted small">
+        {{ (vista() === 'perforista' ? porPerforista() : porMaquina()).length }} registros
+      </span>
+    </div>
+  }
+
+  @if (cargando()) {
+    <div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Cargando…</p></div>
+  } @else if (vista() === 'sondaje') {
+    @if (!porSondaje().length) {
+      <div class="empty-state">
+        <i class="bi bi-compass"></i>
+        <p>No hay mediciones de desviación para este filtro.</p>
+      </div>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Sondaje</th>
+              <th class="num">Prof.</th>
+              <th class="num">N.º med.</th>
+              <th>Fecha</th>
+              <th>Máquina</th>
+              <th>Perforista</th>
+              <th class="num">Δ Azimut</th>
+              <th class="num">Δ Inclinación</th>
+              <th class="num">Δ Metros</th>
+              <th>Desvío total</th>
+              <th>Decisión</th>
+              <th>Seguimiento</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (d of porSondaje(); track $index) {
+              <tr class="fila-medicion"
+                  [class.fila-medicion--abierta]="seleccionada() === d"
+                  (click)="seleccionar(d)">
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="bi"
+                       [class.bi-chevron-right]="seleccionada() !== d"
+                       [class.bi-chevron-down]="seleccionada() === d"></i>
+                    <div>
+                  <div class="mono fw-semibold">{{ d.sondajeCodigo }}</div>
+                  <div class="text-muted small">{{ d.sondajeNombre }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="num">{{ d.profundidad | number:'1.0-2' }} m</td>
+                <td class="num text-muted">{{ d.nroMedicion ?? '—' }}</td>
+                <td>{{ d.fechaMedicion }}</td>
+                <td class="mono">{{ d.maquinaCodigo ?? '—' }}</td>
+                <td>{{ d.perforista ?? '—' }}</td>
+                <td class="num">
+                  {{ (d.desvAzimut | number:'1.0-2') ?? '—' }}{{ d.desvAzimut !== null ? '°' : '' }}
+                  <span class="text-muted small">{{ d.desvAzimutSentido }}</span>
+                </td>
+                <td class="num">
+                  {{ (d.desvInclinacion | number:'1.0-2') ?? '—' }}{{ d.desvInclinacion !== null ? '°' : '' }}
+                  <span class="text-muted small">{{ d.desvInclinacionSentido }}</span>
+                </td>
+                <td class="num">{{ (d.desvMetros | number:'1.0-2') ?? '—' }}</td>
+                <td>
+                  @if (d.desvTotal !== null && d.desvTotal !== undefined) {
+                    <span [ngClass]="tonoDesvio(d.desvTotal)">
+                      {{ d.desvTotal | number:'1.0-2' }} m
+                    </span>
+                  } @else {
+                    <span class="text-muted">—</span>
+                  }
+                </td>
+                <td><span [ngClass]="tonoDecision(d.decision)">{{ d.decision ?? '—' }}</span></td>
+                <td>
+                  <span [ngClass]="tonoSeguimiento(d.estadoSeguimiento)">
+                    {{ etiquetaSeguimiento(d.estadoSeguimiento) }}
+                  </span>
+                  @if (d.responsableSeguimiento) {
+                    <div class="text-muted small">{{ d.responsableSeguimiento }}</div>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+  @else if (vista() === 'trayectoria') {
+    <div class="panel__body">
+      @if (cargandoTrayectoria()) {
+        <div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Cargando trayectoria…</p></div>
+      } @else if (!sondajeGrafico) {
+        <div class="empty-state">
+          <i class="bi bi-graph-up"></i>
+          <p>Elige un sondaje para ver su trayectoria planificada contra la medida.</p>
+        </div>
+      } @else if (trayectoria(); as t) {
+        @if (!t.estaciones.length) {
+          <div class="empty-state">
+            <i class="bi bi-graph-up"></i>
+            <p>Este sondaje no tiene estaciones de survey registradas.</p>
+          </div>
+        } @else {
+          <div class="metric-grid">
+            <div class="metric">
+              <div class="metric__label"><i class="bi bi-compass"></i>Azimut planificado</div>
+              <div class="metric__value">{{ t.azimutPlan | number:'1.0-2' }}°</div>
+              <div class="metric__hint">
+                desvío {{ t.desvAzimutUltimo | number:'1.0-2' }}° en la última estación
+              </div>
+            </div>
+            <div class="metric">
+              <div class="metric__label"><i class="bi bi-arrow-down-right"></i>Inclinación planificada</div>
+              <div class="metric__value">{{ t.inclinacionPlan | number:'1.0-2' }}°</div>
+              <div class="metric__hint">
+                desvío {{ t.desvInclinacionUltimo | number:'1.0-2' }}° en la última estación
+              </div>
+            </div>
+            <div class="metric">
+              <div class="metric__label"><i class="bi bi-rulers"></i>Estaciones</div>
+              <div class="metric__value">{{ t.estaciones.length }}</div>
+              <div class="metric__hint">hasta {{ t.profundidadUltima | number:'1.0-1' }} m</div>
+            </div>
+            <div class="metric">
+              <div class="metric__label"><i class="bi bi-flag"></i>Programado</div>
+              <div class="metric__value">{{ t.profundidadFinal | number:'1.0-1' }} m</div>
+              <div class="metric__hint">profundidad final del sondaje</div>
+            </div>
+          </div>
+
+          <div class="graficos">
+            <app-grafico-trayectoria
+              titulo="Comparativa de azimut"
+              [plan]="t.azimutPlan"
+              [puntos]="serieAzimut()"
+              color="var(--bo-warn)" />
+
+            <app-grafico-trayectoria
+              titulo="Comparativa de inclinación"
+              [plan]="t.inclinacionPlan"
+              [puntos]="serieInclinacion()"
+              color="var(--bo-brand-500)" />
+          </div>
+        }
+      } @else {
+        <div class="empty-state">
+          <i class="bi bi-exclamation-circle"></i>
+          <p>No se pudo cargar la trayectoria de este sondaje.</p>
+        </div>
+      }
+    </div>
+  }
+  @else {
+    @if (!(vista() === 'perforista' ? porPerforista() : porMaquina()).length) {
+      <div class="empty-state">
+        <i class="bi bi-bar-chart"></i>
+        <p>Todavía no hay mediciones suficientes para este resumen.</p>
+      </div>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>{{ vista() === 'perforista' ? 'Perforista' : 'Máquina' }}</th>
+              <th class="num">Mediciones</th>
+              <th class="num">Δ Az. prom.</th>
+              <th class="num">Δ Az. máx.</th>
+              <th class="num">Δ Dip prom.</th>
+              <th class="num">Δ Dip máx.</th>
+              <th class="num">Δ Metros prom.</th>
+              <th class="num">Δ Metros máx.</th>
+              <th class="num">Correcciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (vista() === 'perforista') {
+              @for (p of porPerforista(); track p.perforistaId) {
+                <tr>
+                  <td>
+                    <div class="fw-semibold">{{ p.perforista }}</div>
+                    <div class="text-muted small mono">{{ p.perforistaCodigo }}</div>
+                  </td>
+                  <td class="num">{{ p.nMediciones }}</td>
+                  <td class="num">{{ p.desvAzPromAbs | number:'1.0-2' }}°</td>
+                  <td class="num">{{ p.desvAzMaxAbs | number:'1.0-2' }}°</td>
+                  <td class="num">{{ p.desvDipPromAbs | number:'1.0-2' }}°</td>
+                  <td class="num">{{ p.desvDipMaxAbs | number:'1.0-2' }}°</td>
+                  <td class="num">{{ p.desvMetrosProm | number:'1.0-2' }}</td>
+                  <td class="num">
+                    <span [ngClass]="tonoDesvio(p.desvMetrosMax)">
+                      {{ p.desvMetrosMax | number:'1.0-2' }}
+                    </span>
+                  </td>
+                  <td class="num">{{ p.nCorrecciones }}</td>
+                </tr>
+              }
+            } @else {
+              @for (m of porMaquina(); track m.maquinaId) {
+                <tr>
+                  <td>
+                    <div class="fw-semibold mono">{{ m.maquinaCodigo }}</div>
+                    <div class="text-muted small">{{ m.maquinaNombre }}</div>
+                  </td>
+                  <td class="num">{{ m.nMediciones }}</td>
+                  <td class="num">{{ m.desvAzPromAbs | number:'1.0-2' }}°</td>
+                  <td class="num">{{ m.desvAzMaxAbs | number:'1.0-2' }}°</td>
+                  <td class="num">{{ m.desvDipPromAbs | number:'1.0-2' }}°</td>
+                  <td class="num">{{ m.desvDipMaxAbs | number:'1.0-2' }}°</td>
+                  <td class="num">{{ m.desvMetrosProm | number:'1.0-2' }}</td>
+                  <td class="num">
+                    <span [ngClass]="tonoDesvio(m.desvMetrosMax)">
+                      {{ m.desvMetrosMax | number:'1.0-2' }}
+                    </span>
+                  </td>
+                  <td class="num">{{ m.nCorrecciones }}</td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>
+
+@if (seleccionada(); as med) {
+  <div class="panel">
+    <div class="panel__head">
+      <h2 class="panel__title">
+        Medición de <span class="mono">{{ med.sondajeCodigo }}</span>
+        a los {{ med.profundidad | number:'1.0-2' }} m
+        <span class="text-muted fw-normal">· {{ med.fechaMedicion }}</span>
+      </h2>
+      <button type="button" class="btn btn-sm btn-outline-secondary"
+              (click)="seleccionar(med)" aria-label="Cerrar detalle">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="panel__body">
+
+      @if (cargandoTrayectoria()) {
+        <div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Cargando trayectoria…</p></div>
+      } @else if (trayectoria(); as t) {
+
+        <div class="metric-grid">
+          <div class="metric">
+            <div class="metric__label"><i class="bi bi-compass"></i>Azimut</div>
+            <div class="metric__value">{{ t.azimutPlan | number:'1.0-2' }}°</div>
+            <div class="metric__hint">
+              planificado · desvío {{ t.desvAzimutUltimo | number:'1.0-2' }}° en la última estación
+            </div>
+          </div>
+          <div class="metric">
+            <div class="metric__label"><i class="bi bi-arrow-down-right"></i>Inclinación</div>
+            <div class="metric__value">{{ t.inclinacionPlan | number:'1.0-2' }}°</div>
+            <div class="metric__hint">
+              planificada · desvío {{ t.desvInclinacionUltimo | number:'1.0-2' }}° en la última estación
+            </div>
+          </div>
+          <div class="metric">
+            <div class="metric__label"><i class="bi bi-rulers"></i>Estaciones</div>
+            <div class="metric__value">{{ t.estaciones.length }}</div>
+            <div class="metric__hint">hasta {{ t.profundidadUltima | number:'1.0-1' }} m</div>
+          </div>
+          <div class="metric">
+            <div class="metric__label"><i class="bi bi-flag"></i>Programado</div>
+            <div class="metric__value">{{ t.profundidadFinal | number:'1.0-1' }} m</div>
+            <div class="metric__hint">profundidad final del sondaje</div>
+          </div>
+        </div>
+
+        <div class="graficos">
+          <app-grafico-trayectoria
+            titulo="Comparativa de azimut"
+            [plan]="t.azimutPlan"
+            [puntos]="serieAzimut()"
+            color="var(--bo-warn)" />
+
+          <app-grafico-trayectoria
+            titulo="Comparativa de inclinación"
+            [plan]="t.inclinacionPlan"
+            [puntos]="serieInclinacion()"
+            color="var(--bo-brand-500)" />
+        </div>
+      } @else {
+        <!-- No es un error: hoy los dos conjuntos de datos no se tocan. Se dice
+             por qué y se ofrece la salida, en vez de dejar un cartel sin
+             explicación al final del clic. -->
+        <div class="empty-state">
+          <i class="bi bi-graph-up"></i>
+          <p>
+            <strong>{{ med.sondajeCodigo }}</strong> no tiene estaciones de survey cargadas,
+            así que no hay curvas que dibujar para esta medición.
+          </p>
+          <p class="mt-2">
+            Las trayectorias que sí están medidas se ven en la pestaña
+            <button type="button" class="btn btn-sm btn-outline-primary ms-1"
+                    (click)="cambiarVista('trayectoria')">
+              <i class="bi bi-graph-up me-1"></i>Trayectoria
+            </button>
+          </p>
+        </div>
+      }
+
+      <!-- Lo que hoy se escribe en el mensaje de WhatsApp debajo de la imagen:
+           por qué se desvió, qué hacer, y a quién le toca. -->
+      <h3 class="seccion">Seguimiento de la decisión</h3>
+
+      @if (aviso(); as texto) {
+        <div class="alert-inline alert-inline--ok">
+          <i class="bi bi-check-circle"></i>{{ texto }}
+        </div>
+      }
+
+      <div class="row g-3">
+        <div class="col-12 col-lg-6">
+          <label class="form-label" for="interpretacion">Interpretación</label>
+          <textarea id="interpretacion" class="form-control" rows="3"
+                    placeholder="Por qué se desvió. Ej.: el desvío en azimut se debe al terreno fracturado cortado entre los 85 y 95 m."
+                    [(ngModel)]="form.interpretacion"></textarea>
+        </div>
+
+        <div class="col-12 col-lg-6">
+          <label class="form-label" for="instruccion">Instrucción para la máquina</label>
+          <textarea id="instruccion" class="form-control" rows="3"
+                    placeholder="Qué hacer. Ej.: mantener los parámetros indicados, menos rotación y empuje moderado."
+                    [(ngModel)]="form.instruccion"></textarea>
+        </div>
+
+        <div class="col-12 col-md-5">
+          <label class="form-label" for="responsable">Responsable del seguimiento</label>
+          <input id="responsable" class="form-control" placeholder="Nombre de quien da seguimiento"
+                 [(ngModel)]="form.responsableSeguimiento" />
+        </div>
+
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="estado-seg">Estado</label>
+          <select id="estado-seg" class="form-select" [(ngModel)]="form.estadoSeguimiento">
+            <option value="sin_seguimiento">Sin seguimiento</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="en_curso">En curso</option>
+            <option value="cerrado">Cerrado</option>
+          </select>
+        </div>
+
+        <div class="col-12 col-md-3 d-flex align-items-end">
+          <button type="button" class="btn btn-primary w-100"
+                  (click)="guardarSeguimiento()" [disabled]="guardando()">
+            <i class="bi bi-save me-1"></i>
+            {{ guardando() ? 'Guardando…' : 'Guardar seguimiento' }}
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+}

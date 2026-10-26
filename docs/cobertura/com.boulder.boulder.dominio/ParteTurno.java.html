@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ParteTurno.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.dominio</a> &gt; <span class="el_source">ParteTurno.java</span></div><h1>ParteTurno.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.dominio;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Reglas aritméticas del parte de perforación por turno.
+ *
+ * &lt;p&gt;El perforista cierra el turno con tres números: desde, hasta y avance.
+ * El avance es la resta de los otros dos, así que si no cuadra, uno de los tres
+ * está mal tecleado y no hay forma de saber cuál. Las mismas reglas valen para
+ * el formulario y para la carga desde Excel.&lt;/p&gt;
+ */
+public final class ParteTurno {
+
+<span class="fc" id="L17">    private static final BigDecimal CIEN = BigDecimal.valueOf(100);</span>
+
+    private ParteTurno() {
+    }
+
+    /**
+     * Revisa los números de un parte de turno.
+     *
+     * @param desde       profundidad al inicio del turno, en metros
+     * @param hasta       profundidad al cierre del turno, en metros
+     * @param avance      metros perforados en el turno
+     * @param retornoPct  porcentaje de retorno de agua; puede ser {@code null}
+     * @param casingDesde inicio del tramo entubado; puede ser {@code null}
+     * @param casingHasta fin del tramo entubado; puede ser {@code null}
+     * @return los motivos de rechazo, vacío si el parte cuadra
+     */
+    public static List&lt;String&gt; errores(BigDecimal desde, BigDecimal hasta, BigDecimal avance,
+            BigDecimal retornoPct, BigDecimal casingDesde, BigDecimal casingHasta) {
+<span class="fc" id="L35">        List&lt;String&gt; errores = new ArrayList&lt;&gt;();</span>
+<span class="pc bpc" id="L36" title="1 of 4 branches missed.">        if (desde != null &amp;&amp; desde.signum() &lt; 0) {</span>
+<span class="fc" id="L37">            errores.add(&quot;desde (&quot; + desde.toPlainString() + &quot;) no puede ser negativo&quot;);</span>
+        }
+<span class="pc bpc" id="L39" title="2 of 6 branches missed.">        if (desde != null &amp;&amp; hasta != null &amp;&amp; hasta.compareTo(desde) &lt; 0) {</span>
+<span class="fc" id="L40">            errores.add(&quot;hasta (&quot; + hasta.toPlainString() + &quot;) no puede ser menor que desde (&quot;</span>
+<span class="fc" id="L41">                    + desde.toPlainString() + &quot;)&quot;);</span>
+<span class="pc bpc" id="L42" title="3 of 6 branches missed.">        } else if (desde != null &amp;&amp; hasta != null &amp;&amp; avance != null</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">                &amp;&amp; hasta.subtract(desde).compareTo(avance) != 0) {</span>
+<span class="fc" id="L44">            errores.add(&quot;avance (&quot; + avance.toPlainString() + &quot;) no coincide con hasta menos desde (&quot;</span>
+<span class="fc" id="L45">                    + hasta.subtract(desde).toPlainString() + &quot;)&quot;);</span>
+        }
+<span class="fc bfc" id="L47" title="All 6 branches covered.">        if (retornoPct != null &amp;&amp; (retornoPct.signum() &lt; 0 || retornoPct.compareTo(CIEN) &gt; 0)) {</span>
+<span class="fc" id="L48">            errores.add(&quot;retorno_pct: tiene que estar entre 0 y 100&quot;);</span>
+        }
+<span class="pc bpc" id="L50" title="1 of 6 branches missed.">        if (casingDesde != null &amp;&amp; casingHasta != null &amp;&amp; casingHasta.compareTo(casingDesde) &lt; 0) {</span>
+<span class="fc" id="L51">            errores.add(&quot;casing: termina (&quot; + casingHasta.toPlainString() + &quot;) antes de empezar (&quot;</span>
+<span class="fc" id="L52">                    + casingDesde.toPlainString() + &quot;)&quot;);</span>
+        }
+<span class="pc bpc" id="L54" title="1 of 6 branches missed.">        if (casingHasta != null &amp;&amp; hasta != null &amp;&amp; casingHasta.compareTo(hasta) &gt; 0) {</span>
+<span class="fc" id="L55">            errores.add(&quot;casing: baja hasta &quot; + casingHasta.toPlainString() + &quot; m y el pozo llega a &quot;</span>
+<span class="fc" id="L56">                    + hasta.toPlainString() + &quot; m&quot;);</span>
+        }
+<span class="fc" id="L58">        return errores;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

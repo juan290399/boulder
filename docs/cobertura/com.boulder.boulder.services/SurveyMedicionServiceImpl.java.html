@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SurveyMedicionServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.services</a> &gt; <span class="el_source">SurveyMedicionServiceImpl.java</span></div><h1>SurveyMedicionServiceImpl.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.services;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.boulder.boulder.dominio.Desviacion;
+import com.boulder.boulder.dominio.Revision;
+import com.boulder.boulder.dto.SurveyMedicionDTO;
+import com.boulder.boulder.entities.SurveyMedicion;
+import com.boulder.boulder.repositories.MaquinaRepository;
+import com.boulder.boulder.repositories.EmpleadoRepository;
+import com.boulder.boulder.repositories.SondajeRepository;
+import com.boulder.boulder.repositories.SurveyMedicionRepository;
+
+import jakarta.persistence.EntityNotFoundException;
+
+/**
+ * Implementación de los servicios de negocio para los eventos de medición de
+ * desviación de sondaje.
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@Service
+public class SurveyMedicionServiceImpl implements SurveyMedicionService {
+
+<span class="fc" id="L38">    private static final Logger log = LoggerFactory.getLogger(SurveyMedicionServiceImpl.class);</span>
+
+    private final SurveyMedicionRepository medicionRepository;
+    private final SondajeRepository sondajeRepository;
+    private final MaquinaRepository maquinaRepository;
+    private final EmpleadoRepository empleadoRepository;
+
+    public SurveyMedicionServiceImpl(SurveyMedicionRepository medicionRepository, SondajeRepository sondajeRepository,
+<span class="fc" id="L46">            MaquinaRepository maquinaRepository, EmpleadoRepository empleadoRepository) {</span>
+<span class="fc" id="L47">        this.medicionRepository = medicionRepository;</span>
+<span class="fc" id="L48">        this.sondajeRepository = sondajeRepository;</span>
+<span class="fc" id="L49">        this.maquinaRepository = maquinaRepository;</span>
+<span class="fc" id="L50">        this.empleadoRepository = empleadoRepository;</span>
+<span class="fc" id="L51">    }</span>
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;SurveyMedicionDTO&gt; listarTodos() {
+<span class="fc" id="L56">        log.debug(&quot;Consultando el histórico de mediciones de desviación&quot;);</span>
+<span class="fc" id="L57">        return medicionRepository.findAll().stream().map(this::convertToDto).collect(Collectors.toList());</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SurveyMedicionDTO obtenerPorId(UUID id) {
+<span class="nc" id="L63">        log.debug(&quot;Buscando medición de desviación ID: {}&quot;, id);</span>
+<span class="nc" id="L64">        return convertToDto(buscar(id));</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;SurveyMedicionDTO&gt; listarPorSondaje(UUID sondajeId) {
+<span class="nc" id="L70">        log.debug(&quot;Consultando mediciones de desviación del sondaje ID: {}&quot;, sondajeId);</span>
+<span class="nc" id="L71">        return medicionRepository.findBySondajeIdOrderByProfundidadAscNroMedicionAsc(sondajeId).stream()</span>
+<span class="nc" id="L72">                .map(this::convertToDto).collect(Collectors.toList());</span>
+    }
+
+    @Override
+    @Transactional
+    public SurveyMedicionDTO guardar(SurveyMedicionDTO dto) {
+<span class="fc" id="L78">        log.info(&quot;Registrando medición de desviación. Sondaje ID: {}, Profundidad: {}&quot;,</span>
+<span class="fc" id="L79">                dto.getSondajeId(), dto.getProfundidad());</span>
+<span class="fc" id="L80">        validar(dto, null);</span>
+<span class="fc" id="L81">        SurveyMedicion medicion = new SurveyMedicion();</span>
+<span class="fc" id="L82">        aplicar(dto, medicion);</span>
+<span class="fc" id="L83">        SurveyMedicion guardada = medicionRepository.save(medicion);</span>
+        // El INSERT se manda ya para devolver el número interno de la secuencia.
+<span class="fc" id="L85">        medicionRepository.flush();</span>
+<span class="fc" id="L86">        return convertToDto(guardada);</span>
+    }
+
+    @Override
+    @Transactional
+    public SurveyMedicionDTO actualizar(UUID id, SurveyMedicionDTO dto) {
+<span class="nc" id="L92">        log.info(&quot;Actualizando medición de desviación ID: {}&quot;, id);</span>
+<span class="nc" id="L93">        SurveyMedicion medicion = buscar(id);</span>
+<span class="nc" id="L94">        validar(dto, id);</span>
+<span class="nc" id="L95">        aplicar(dto, medicion);</span>
+<span class="nc" id="L96">        return convertToDto(medicionRepository.save(medicion));</span>
+    }
+
+    @Override
+    @Transactional
+    public void eliminar(UUID id) {
+<span class="nc" id="L102">        log.warn(&quot;Eliminando medición de desviación ID: {}&quot;, id);</span>
+<span class="nc" id="L103">        medicionRepository.delete(buscar(id));</span>
+<span class="nc" id="L104">    }</span>
+
+    /**
+     * Rechaza la medición con todos sus motivos juntos, numera la estación si no
+     * viene numerada y evita cargar dos veces la misma.
+     *
+     * @param idActual la medición que se corrige, para no compararla consigo misma
+     */
+    private void validar(SurveyMedicionDTO dto, UUID idActual) {
+<span class="fc" id="L113">        List&lt;String&gt; errores = new ArrayList&lt;&gt;(new Revision()</span>
+<span class="fc" id="L114">                .opcion(&quot;desv_azimut_sentido&quot;, dto.getDesvAzimutSentido(), &quot;izquierda&quot;, &quot;derecha&quot;)</span>
+<span class="fc" id="L115">                .opcion(&quot;desv_inclinacion_sentido&quot;, dto.getDesvInclinacionSentido(), &quot;arriba&quot;, &quot;abajo&quot;)</span>
+<span class="fc" id="L116">                .opcion(&quot;decision&quot;, dto.getDecision(), &quot;continuar&quot;, &quot;corregir&quot;, &quot;evaluar&quot;)</span>
+<span class="fc" id="L117">                .opcion(&quot;estado_seguimiento&quot;, dto.getEstadoSeguimiento(),</span>
+                        &quot;sin_seguimiento&quot;, &quot;pendiente&quot;, &quot;en_curso&quot;, &quot;cerrado&quot;)
+<span class="fc" id="L119">                .errores());</span>
+<span class="fc" id="L120">        fueraDeRango(errores, &quot;azimut_medido&quot;, dto.getAzimutMedido(), 0, 360);</span>
+<span class="fc" id="L121">        fueraDeRango(errores, &quot;azimut_plan&quot;, dto.getAzimutPlan(), 0, 360);</span>
+<span class="fc" id="L122">        fueraDeRango(errores, &quot;inclinacion_medida&quot;, dto.getInclinacionMedida(), -90, 90);</span>
+<span class="fc" id="L123">        fueraDeRango(errores, &quot;inclinacion_plan&quot;, dto.getInclinacionPlan(), -90, 90);</span>
+<span class="pc bpc" id="L124" title="2 of 4 branches missed.">        if (dto.getProfundidad() != null &amp;&amp; dto.getProfundidad().signum() &lt; 0) {</span>
+<span class="nc" id="L125">            errores.add(&quot;profundidad: no puede ser negativa&quot;);</span>
+        }
+<span class="fc bfc" id="L127" title="All 2 branches covered.">        if (!errores.isEmpty()) {</span>
+<span class="fc" id="L128">            throw new IllegalArgumentException(String.join(&quot;; &quot;, errores));</span>
+        }
+
+<span class="fc" id="L131">        List&lt;SurveyMedicion&gt; enLaEstacion = medicionRepository</span>
+<span class="fc" id="L132">                .findBySondajeIdOrderByProfundidadAscNroMedicionAsc(dto.getSondajeId()).stream()</span>
+<span class="pc bpc" id="L133" title="1 of 2 branches missed.">                .filter(m -&gt; !Objects.equals(m.getId(), idActual))</span>
+<span class="fc bfc" id="L134" title="All 2 branches covered.">                .filter(m -&gt; m.getProfundidad().compareTo(dto.getProfundidad()) == 0)</span>
+<span class="fc" id="L135">                .toList();</span>
+<span class="fc bfc" id="L136" title="All 2 branches covered.">        if (dto.getNroMedicion() == null) {</span>
+            // Se repite la medición en la misma estación cuando la primera sale
+            // dudosa; la nueva es la siguiente, no otra «1».
+<span class="fc" id="L139">            dto.setNroMedicion((short) (enLaEstacion.stream()</span>
+<span class="fc" id="L140">                    .map(SurveyMedicion::getNroMedicion).filter(Objects::nonNull)</span>
+<span class="fc" id="L141">                    .mapToInt(Short::intValue).max().orElse(0) + 1));</span>
+<span class="pc bpc" id="L142" title="1 of 2 branches missed.">        } else if (enLaEstacion.stream().anyMatch(m -&gt; dto.getNroMedicion().equals(m.getNroMedicion()))) {</span>
+<span class="fc" id="L143">            throw new IllegalStateException(&quot;Ya hay una medición N.º &quot; + dto.getNroMedicion() + &quot; a &quot;</span>
+<span class="fc" id="L144">                    + dto.getProfundidad().toPlainString() + &quot; m en este sondaje.&quot;);</span>
+        }
+<span class="fc" id="L146">    }</span>
+
+    private static void fueraDeRango(List&lt;String&gt; errores, String campo, Double valor, double min, double max) {
+<span class="fc bfc" id="L149" title="All 6 branches covered.">        if (valor != null &amp;&amp; (valor &lt; min || valor &gt; max)) {</span>
+<span class="fc" id="L150">            errores.add(campo + &quot;: tiene que estar entre &quot; + (int) min + &quot; y &quot; + (int) max + &quot; grados&quot;);</span>
+        }
+<span class="fc" id="L152">    }</span>
+
+    /**
+     * Con azimut e inclinación medidos, el desvío se calcula; no se confía en uno
+     * tecleado. El plan es el que viene o, si no, el setup del sondaje. Sin
+     * medidos (los partes viejos solo traen el desvío) se deja lo escrito.
+     */
+    private void calcularDesvio(SurveyMedicion m) {
+<span class="pc bpc" id="L160" title="1 of 4 branches missed.">        if (m.getAzimutMedido() == null || m.getInclinacionMedida() == null) {</span>
+<span class="fc" id="L161">            return;</span>
+        }
+<span class="fc bfc" id="L163" title="All 2 branches covered.">        if (m.getAzimutPlan() == null) {</span>
+<span class="fc" id="L164">            m.setAzimutPlan(m.getSondaje().getAzimutSetup());</span>
+        }
+<span class="fc bfc" id="L166" title="All 2 branches covered.">        if (m.getInclinacionPlan() == null) {</span>
+<span class="fc" id="L167">            m.setInclinacionPlan(m.getSondaje().getInclinacionSetup());</span>
+        }
+<span class="pc bpc" id="L169" title="2 of 4 branches missed.">        if (m.getAzimutPlan() == null || m.getInclinacionPlan() == null) {</span>
+<span class="nc" id="L170">            return;</span>
+        }
+<span class="fc" id="L172">        Desviacion d = Desviacion.calcular(m.getProfundidad().doubleValue(), m.getAzimutMedido(),</span>
+<span class="fc" id="L173">                m.getInclinacionMedida(), m.getAzimutPlan(), m.getInclinacionPlan());</span>
+<span class="fc" id="L174">        m.setDesvAzimut(redondear(d.azimut(), 4));</span>
+<span class="fc" id="L175">        m.setDesvAzimutSentido(d.sentidoAzimut());</span>
+<span class="fc" id="L176">        m.setDesvInclinacion(redondear(d.inclinacion(), 4));</span>
+<span class="fc" id="L177">        m.setDesvInclinacionSentido(d.sentidoInclinacion());</span>
+<span class="fc" id="L178">        m.setDesvTotal(redondear(d.total(), 4));</span>
+<span class="fc" id="L179">        m.setDesvMetros(redondear(d.metros(), 2));</span>
+<span class="fc" id="L180">    }</span>
+
+    private static double redondear(double valor, int decimales) {
+<span class="fc" id="L183">        return BigDecimal.valueOf(valor).setScale(decimales, RoundingMode.HALF_UP).doubleValue();</span>
+    }
+
+    private SurveyMedicion buscar(UUID id) {
+<span class="nc" id="L187">        return medicionRepository.findById(id)</span>
+<span class="nc" id="L188">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Medición de desviación no encontrada con ID: &quot; + id));</span>
+    }
+
+    private void aplicar(SurveyMedicionDTO dto, SurveyMedicion medicion) {
+<span class="fc" id="L192">        medicion.setSondaje(sondajeRepository.findById(dto.getSondajeId())</span>
+<span class="pc" id="L193">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;El Sondaje asignado no existe.&quot;)));</span>
+<span class="pc bpc" id="L194" title="1 of 2 branches missed.">        medicion.setMaquina(dto.getMaquinaId() == null ? null</span>
+<span class="nc" id="L195">                : maquinaRepository.findById(dto.getMaquinaId())</span>
+<span class="nc" id="L196">                        .orElseThrow(() -&gt; new EntityNotFoundException(&quot;La Máquina asignada no existe.&quot;)));</span>
+<span class="pc bpc" id="L197" title="1 of 2 branches missed.">        medicion.setPerforista(dto.getPerforistaId() == null ? null</span>
+<span class="nc" id="L198">                : empleadoRepository.findById(dto.getPerforistaId())</span>
+<span class="nc" id="L199">                        .orElseThrow(() -&gt; new EntityNotFoundException(&quot;El empleado asignado como perforista no existe.&quot;)));</span>
+
+<span class="fc" id="L201">        medicion.setProfundidad(dto.getProfundidad());</span>
+<span class="fc" id="L202">        medicion.setNroMedicion(dto.getNroMedicion());</span>
+<span class="fc" id="L203">        medicion.setFechaMedicion(dto.getFechaMedicion());</span>
+<span class="fc" id="L204">        medicion.setFechaHora(dto.getFechaHora());</span>
+<span class="fc" id="L205">        medicion.setResponsable(dto.getResponsable());</span>
+<span class="fc" id="L206">        medicion.setMetodo(dto.getMetodo());</span>
+<span class="fc" id="L207">        medicion.setInstrumento(dto.getInstrumento());</span>
+<span class="fc" id="L208">        medicion.setAzimutMedido(dto.getAzimutMedido());</span>
+<span class="fc" id="L209">        medicion.setInclinacionMedida(dto.getInclinacionMedida());</span>
+<span class="fc" id="L210">        medicion.setAzimutPlan(dto.getAzimutPlan());</span>
+<span class="fc" id="L211">        medicion.setInclinacionPlan(dto.getInclinacionPlan());</span>
+<span class="fc" id="L212">        medicion.setDesvAzimut(dto.getDesvAzimut());</span>
+<span class="fc" id="L213">        medicion.setDesvAzimutSentido(dto.getDesvAzimutSentido());</span>
+<span class="fc" id="L214">        medicion.setDesvInclinacion(dto.getDesvInclinacion());</span>
+<span class="fc" id="L215">        medicion.setDesvInclinacionSentido(dto.getDesvInclinacionSentido());</span>
+<span class="fc" id="L216">        medicion.setDesvMetros(dto.getDesvMetros());</span>
+<span class="fc" id="L217">        medicion.setDesvTotal(dto.getDesvTotal());</span>
+<span class="pc bpc" id="L218" title="1 of 2 branches missed.">        medicion.setEsPlanificada(dto.getEsPlanificada() != null ? dto.getEsPlanificada() : Boolean.FALSE);</span>
+<span class="fc" id="L219">        medicion.setDecision(dto.getDecision());</span>
+<span class="fc" id="L220">        medicion.setObservaciones(dto.getObservaciones());</span>
+<span class="fc" id="L221">        medicion.setInterpretacion(dto.getInterpretacion());</span>
+<span class="fc" id="L222">        medicion.setInstruccion(dto.getInstruccion());</span>
+<span class="fc" id="L223">        medicion.setResponsableSeguimiento(dto.getResponsableSeguimiento());</span>
+        // Una medicion sin instruccion no necesita seguimiento; solo pasa a
+        // pendiente cuando alguien escribe que hay algo que hacer.
+<span class="pc bpc" id="L226" title="1 of 2 branches missed.">        medicion.setEstadoSeguimiento(dto.getEstadoSeguimiento() != null</span>
+<span class="nc" id="L227">                ? dto.getEstadoSeguimiento()</span>
+<span class="pc bpc" id="L228" title="3 of 4 branches missed.">                : (dto.getInstruccion() != null &amp;&amp; !dto.getInstruccion().isBlank()</span>
+<span class="pc" id="L229">                        ? &quot;pendiente&quot; : &quot;sin_seguimiento&quot;));</span>
+<span class="fc" id="L230">        calcularDesvio(medicion);</span>
+<span class="fc" id="L231">    }</span>
+
+    private SurveyMedicionDTO convertToDto(SurveyMedicion m) {
+<span class="fc" id="L234">        SurveyMedicionDTO dto = new SurveyMedicionDTO();</span>
+<span class="fc" id="L235">        dto.setId(m.getId());</span>
+<span class="fc" id="L236">        dto.setNumeroInterno(m.getNumeroInterno());</span>
+<span class="pc bpc" id="L237" title="1 of 2 branches missed.">        if (m.getSondaje() != null) {</span>
+<span class="fc" id="L238">            dto.setSondajeId(m.getSondaje().getId());</span>
+        }
+<span class="fc bfc" id="L240" title="All 2 branches covered.">        if (m.getMaquina() != null) {</span>
+<span class="fc" id="L241">            dto.setMaquinaId(m.getMaquina().getId());</span>
+        }
+<span class="pc bpc" id="L243" title="1 of 2 branches missed.">        if (m.getPerforista() != null) {</span>
+<span class="nc" id="L244">            dto.setPerforistaId(m.getPerforista().getId());</span>
+        }
+<span class="fc" id="L246">        dto.setProfundidad(m.getProfundidad());</span>
+<span class="fc" id="L247">        dto.setNroMedicion(m.getNroMedicion());</span>
+<span class="fc" id="L248">        dto.setFechaMedicion(m.getFechaMedicion());</span>
+<span class="fc" id="L249">        dto.setFechaHora(m.getFechaHora());</span>
+<span class="fc" id="L250">        dto.setResponsable(m.getResponsable());</span>
+<span class="fc" id="L251">        dto.setMetodo(m.getMetodo());</span>
+<span class="fc" id="L252">        dto.setInstrumento(m.getInstrumento());</span>
+<span class="fc" id="L253">        dto.setAzimutMedido(m.getAzimutMedido());</span>
+<span class="fc" id="L254">        dto.setInclinacionMedida(m.getInclinacionMedida());</span>
+<span class="fc" id="L255">        dto.setAzimutPlan(m.getAzimutPlan());</span>
+<span class="fc" id="L256">        dto.setInclinacionPlan(m.getInclinacionPlan());</span>
+<span class="fc" id="L257">        dto.setDesvAzimut(m.getDesvAzimut());</span>
+<span class="fc" id="L258">        dto.setDesvAzimutSentido(m.getDesvAzimutSentido());</span>
+<span class="fc" id="L259">        dto.setDesvInclinacion(m.getDesvInclinacion());</span>
+<span class="fc" id="L260">        dto.setDesvInclinacionSentido(m.getDesvInclinacionSentido());</span>
+<span class="fc" id="L261">        dto.setDesvMetros(m.getDesvMetros());</span>
+<span class="fc" id="L262">        dto.setDesvTotal(m.getDesvTotal());</span>
+<span class="fc" id="L263">        dto.setEsPlanificada(m.getEsPlanificada());</span>
+<span class="fc" id="L264">        dto.setDecision(m.getDecision());</span>
+<span class="fc" id="L265">        dto.setObservaciones(m.getObservaciones());</span>
+<span class="fc" id="L266">        dto.setInterpretacion(m.getInterpretacion());</span>
+<span class="fc" id="L267">        dto.setInstruccion(m.getInstruccion());</span>
+<span class="fc" id="L268">        dto.setResponsableSeguimiento(m.getResponsableSeguimiento());</span>
+<span class="fc" id="L269">        dto.setEstadoSeguimiento(m.getEstadoSeguimiento());</span>
+<span class="fc" id="L270">        return dto;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

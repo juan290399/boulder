@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReporteDiarioService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.reportes</a> &gt; <span class="el_source">ReporteDiarioService.java</span></div><h1>ReporteDiarioService.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.reportes;
+
+import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.boulder.boulder.reportes.ReporteDiario.PuntoSerie;
+
+/**
+ * Arma el reporte diario consolidado a partir de los mismos registros que usa la
+ * operación: no hay que transcribir nada para generarlo.
+ *
+ * &lt;p&gt;El reloj se inyecta para que «hoy» se pueda fijar en las pruebas; en
+ * producción es la hora de Lima.&lt;/p&gt;
+ */
+@Service
+public class ReporteDiarioService {
+
+    private static final int DIAS_SERIE = 7;
+
+    private final ReporteDiarioRepository repositorio;
+    private final Clock reloj;
+
+<span class="fc" id="L30">    public ReporteDiarioService(ReporteDiarioRepository repositorio, Clock reloj) {</span>
+<span class="fc" id="L31">        this.repositorio = repositorio;</span>
+<span class="fc" id="L32">        this.reloj = reloj;</span>
+<span class="fc" id="L33">    }</span>
+
+    /**
+     * @param fecha día del reporte; {@code null} para hoy
+     * @return el reporte del día con la serie de los últimos siete días
+     * @throws IllegalArgumentException si la fecha es posterior a hoy
+     */
+    @Transactional(readOnly = true)
+    public ReporteDiario generar(LocalDate fecha) {
+<span class="fc" id="L42">        LocalDate hoy = LocalDate.now(reloj);</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">        LocalDate dia = fecha != null ? fecha : hoy;</span>
+<span class="fc bfc" id="L44" title="All 2 branches covered.">        if (dia.isAfter(hoy)) {</span>
+<span class="fc" id="L45">            throw new IllegalArgumentException(&quot;No hay reporte de un día que todavía no pasó: &quot; + dia);</span>
+        }
+<span class="fc" id="L47">        LocalDate desde = dia.minusDays(DIAS_SERIE - 1L);</span>
+<span class="fc" id="L48">        Map&lt;LocalDate, BigDecimal&gt; perforado = repositorio.perforadoPorDia(desde, dia);</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        List&lt;PuntoSerie&gt; serie = Stream.iterate(desde, d -&gt; !d.isAfter(dia), d -&gt; d.plusDays(1))</span>
+<span class="fc" id="L50">                .map(d -&gt; new PuntoSerie(d, perforado.getOrDefault(d, BigDecimal.ZERO)))</span>
+<span class="fc" id="L51">                .toList();</span>
+<span class="fc" id="L52">        return ReporteDiario.de(dia, repositorio.porSondaje(dia), serie);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -35,3 +35,18 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# Almacén local de fotos de testigo (boulder.fotos.directorio)
+/datos/
+
+# Bitácoras de ejecución (Logback y Angular)
+/logs/
+/boulder-app/logs/
+
+# Credenciales locales: nunca se versionan
+/src/main/resources/application-local.properties
+.env
+
+# Material del curso (indicaciones y rúbricas): no es obra propia
+/integrador/*INDICACION*
+/integrador/rubrica*

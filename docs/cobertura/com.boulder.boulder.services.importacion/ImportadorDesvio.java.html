@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ImportadorDesvio.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.services.importacion</a> &gt; <span class="el_source">ImportadorDesvio.java</span></div><h1>ImportadorDesvio.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.services.importacion;
+
+import java.math.BigDecimal;
+import java.util.UUID;
+
+import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.boulder.boulder.dto.importacion.ResultadoImportacionDTO;
+import com.boulder.boulder.entities.Empleado;
+import com.boulder.boulder.entities.Maquina;
+import com.boulder.boulder.entities.Sondaje;
+import com.boulder.boulder.entities.Survey;
+import com.boulder.boulder.entities.SurveyMedicion;
+import com.boulder.boulder.repositories.SurveyMedicionRepository;
+import com.boulder.boulder.repositories.SurveyRepository;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
+/**
+ * Carga la desviación de sondajes: las estaciones de la trayectoria y el
+ * evento de medición con su seguimiento.
+ *
+ * &lt;p&gt;
+ * Son dos cosas distintas y por eso van en dos hojas. Una estación es un punto
+ * medido del pozo —profundidad, azimut, inclinación— y hay cientos por sondaje;
+ * con ellas se dibuja la trayectoria. Una medición es el hecho de haber
+ * revisado la desviación en una fecha, con quién perforaba, qué se interpretó y
+ * qué se mandó hacer. Las estaciones dicen por dónde va el pozo; las mediciones
+ * dicen qué se decidió al respecto.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;
+ * La hoja de estaciones es la que hoy está vacía en veintiocho sondajes de los
+ * treinta y uno que tienen desviación registrada, y es la razón por la que el
+ * gráfico de trayectoria aparece en blanco en casi todos.
+ * &lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@Component
+<span class="fc" id="L46">public class ImportadorDesvio extends ImportadorBase {</span>
+
+    @Autowired
+    private SurveyRepository estaciones;
+    @Autowired
+    private SurveyMedicionRepository mediciones;
+
+    @PersistenceContext
+    private EntityManager em;
+
+    @Override
+    public String clave() {
+<span class="fc" id="L58">        return &quot;desvio&quot;;</span>
+    }
+
+    @Override
+    public String archivoPlantilla() {
+<span class="fc" id="L63">        return &quot;PLANTILLA_desvio.xlsx&quot;;</span>
+    }
+
+    @Override
+    public String descripcion() {
+<span class="fc" id="L68">        return &quot;Estaciones de trayectoria y mediciones de desviación con su seguimiento.&quot;;</span>
+    }
+
+    @Override
+    protected void procesar(Workbook libro, Catalogos catalogos, boolean aplicar,
+            ResultadoImportacionDTO resultado) {
+<span class="fc" id="L74">        estaciones(libro, catalogos, aplicar, resultado);</span>
+<span class="fc" id="L75">        mediciones(libro, catalogos, aplicar, resultado);</span>
+<span class="fc" id="L76">    }</span>
+
+    private void estaciones(Workbook libro, Catalogos cat, boolean aplicar, ResultadoImportacionDTO r) {
+<span class="fc" id="L79">        String sql = &quot;SELECT sondaje_id::text || '|' || &quot; + sqlNum(&quot;profundidad&quot;)</span>
+                + &quot; FROM operacional.prf_survey&quot;;
+
+<span class="fc" id="L82">        hoja(libro, &quot;ESTACIONES&quot;, &quot;operacional.prf_survey&quot;, sql, cat, aplicar, r, f -&gt; {</span>
+<span class="fc" id="L83">            UUID sondajeId = f.sondajeReq(&quot;sondaje_codigo&quot;);</span>
+<span class="fc" id="L84">            Double profundidad = f.dobleReq(&quot;profundidad&quot;);</span>
+<span class="fc" id="L85">            Double azimut = f.dobleReq(&quot;azimut&quot;);</span>
+<span class="fc" id="L86">            Double inclinacion = f.dobleReq(&quot;inclinacion&quot;);</span>
+
+<span class="fc" id="L88">            f.referencia(f.texto(&quot;sondaje_codigo&quot;) + &quot; @ &quot; + f.texto(&quot;profundidad&quot;) + &quot; m&quot;);</span>
+
+<span class="pc bpc" id="L90" title="3 of 6 branches missed.">            if (azimut != null &amp;&amp; (azimut &lt; 0 || azimut &gt; 360)) {</span>
+<span class="nc" id="L91">                f.error(&quot;azimut: tiene que estar entre 0 y 360 grados&quot;);</span>
+            }
+            // La inclinación se registra negativa hacia abajo, que es la
+            // convención del survey; se acepta el rango completo por si algún
+            // pozo sube.
+<span class="pc bpc" id="L96" title="3 of 6 branches missed.">            if (inclinacion != null &amp;&amp; (inclinacion &lt; -90 || inclinacion &gt; 90)) {</span>
+<span class="nc" id="L97">                f.error(&quot;inclinacion: tiene que estar entre -90 y 90 grados&quot;);</span>
+            }
+<span class="pc bpc" id="L99" title="2 of 4 branches missed.">            if (profundidad != null &amp;&amp; profundidad &lt; 0) {</span>
+<span class="nc" id="L100">                f.error(&quot;profundidad no puede ser negativa&quot;);</span>
+            }
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">            if (f.hayErrores()) {</span>
+<span class="nc" id="L103">                return null;</span>
+            }
+
+<span class="fc" id="L106">            Survey e = new Survey();</span>
+<span class="fc" id="L107">            e.setSondaje(em.getReference(Sondaje.class, sondajeId));</span>
+<span class="fc" id="L108">            e.setProfundidad(profundidad);</span>
+<span class="fc" id="L109">            e.setAzimut(azimut);</span>
+<span class="fc" id="L110">            e.setInclinacion(inclinacion);</span>
+<span class="fc" id="L111">            e.setMetodoMedicion(f.texto(&quot;metodo_medicion&quot;, 50));</span>
+<span class="fc" id="L112">            e.setQc(f.texto(&quot;qc&quot;, 10));</span>
+
+<span class="pc" id="L114">            return new Registro(clave(sondajeId, profundidad), () -&gt; estaciones.saveAndFlush(e));</span>
+        });
+<span class="fc" id="L116">    }</span>
+
+    private void mediciones(Workbook libro, Catalogos cat, boolean aplicar, ResultadoImportacionDTO r) {
+<span class="fc" id="L119">        String sql = &quot;SELECT sondaje_id::text || '|' || &quot; + sqlNum(&quot;profundidad&quot;) + &quot; || '|' || &quot;</span>
+<span class="fc" id="L120">                + sqlTexto(&quot;nro_medicion&quot;) + &quot; FROM operacional.prf_survey_medicion&quot;;</span>
+
+<span class="fc" id="L122">        hoja(libro, &quot;MEDICION&quot;, &quot;operacional.prf_survey_medicion&quot;, sql, cat, aplicar, r, f -&gt; {</span>
+<span class="fc" id="L123">            UUID sondajeId = f.sondajeReq(&quot;sondaje_codigo&quot;);</span>
+<span class="fc" id="L124">            BigDecimal profundidad = f.decimalReq(&quot;profundidad&quot;);</span>
+<span class="fc" id="L125">            Short nroMedicion = f.corto(&quot;nro_medicion&quot;);</span>
+
+<span class="fc" id="L127">            f.referencia(f.texto(&quot;sondaje_codigo&quot;) + &quot; @ &quot; + f.texto(&quot;profundidad&quot;) + &quot; m&quot;);</span>
+
+<span class="fc" id="L129">            SurveyMedicion e = new SurveyMedicion();</span>
+<span class="fc" id="L130">            e.setFechaMedicion(f.fechaReq(&quot;fecha_medicion&quot;));</span>
+<span class="fc" id="L131">            e.setProfundidad(profundidad);</span>
+<span class="fc" id="L132">            e.setNroMedicion(nroMedicion);</span>
+<span class="fc" id="L133">            e.setMetodo(f.texto(&quot;metodo&quot;, 50));</span>
+<span class="fc" id="L134">            e.setInstrumento(f.texto(&quot;instrumento&quot;, 50));</span>
+<span class="fc" id="L135">            e.setAzimutPlan(f.doble(&quot;azimut_plan&quot;));</span>
+<span class="fc" id="L136">            e.setInclinacionPlan(f.doble(&quot;inclinacion_plan&quot;));</span>
+<span class="fc" id="L137">            e.setAzimutMedido(f.doble(&quot;azimut_medido&quot;));</span>
+<span class="fc" id="L138">            e.setInclinacionMedida(f.doble(&quot;inclinacion_medida&quot;));</span>
+<span class="fc" id="L139">            e.setDesvAzimut(f.doble(&quot;desv_azimut&quot;));</span>
+<span class="fc" id="L140">            e.setDesvAzimutSentido(f.opcion(&quot;desv_azimut_sentido&quot;, false, &quot;izquierda&quot;, &quot;derecha&quot;));</span>
+<span class="fc" id="L141">            e.setDesvInclinacion(f.doble(&quot;desv_inclinacion&quot;));</span>
+<span class="fc" id="L142">            e.setDesvInclinacionSentido(f.opcion(&quot;desv_inclinacion_sentido&quot;, false, &quot;arriba&quot;, &quot;abajo&quot;));</span>
+<span class="fc" id="L143">            e.setDesvMetros(f.doble(&quot;desv_metros&quot;));</span>
+<span class="fc" id="L144">            e.setDesvTotal(f.doble(&quot;desv_total&quot;));</span>
+<span class="fc" id="L145">            e.setDecision(f.opcion(&quot;decision&quot;, false, &quot;continuar&quot;, &quot;corregir&quot;, &quot;evaluar&quot;));</span>
+<span class="fc" id="L146">            e.setInterpretacion(f.texto(&quot;interpretacion&quot;));</span>
+<span class="fc" id="L147">            e.setInstruccion(f.texto(&quot;instruccion&quot;));</span>
+<span class="fc" id="L148">            e.setResponsableSeguimiento(f.texto(&quot;responsable_seguimiento&quot;, 80));</span>
+<span class="fc" id="L149">            e.setEsPlanificada(Boolean.FALSE);</span>
+
+            // El perforista viene como nombre suelto. Se guarda siempre el
+            // texto en responsable —es lo que dice el parte— y además se
+            // resuelve la relación cuando la persona está dada de alta.
+<span class="fc" id="L154">            String perforista = f.texto(&quot;perforista&quot;, 80);</span>
+<span class="fc" id="L155">            e.setResponsable(perforista);</span>
+
+<span class="fc" id="L157">            UUID maquinaId = f.maquina(&quot;maquina_codigo&quot;);</span>
+
+            // Una instrucción sin seguimiento declarado nace pendiente: si hay
+            // algo que hacer, el estado por defecto no puede ser «sin
+            // seguimiento», que es justamente lo que hace que se pierda.
+<span class="fc" id="L162">            String estado = f.opcion(&quot;estado_seguimiento&quot;, false,</span>
+                    &quot;sin_seguimiento&quot;, &quot;pendiente&quot;, &quot;en_curso&quot;, &quot;cerrado&quot;);
+<span class="pc bpc" id="L164" title="1 of 2 branches missed.">            if (estado == null) {</span>
+<span class="nc bnc" id="L165" title="All 4 branches missed.">                estado = e.getInstruccion() != null &amp;&amp; !e.getInstruccion().isBlank()</span>
+<span class="nc" id="L166">                        ? &quot;pendiente&quot;</span>
+<span class="nc" id="L167">                        : &quot;sin_seguimiento&quot;;</span>
+            }
+<span class="fc" id="L169">            e.setEstadoSeguimiento(estado);</span>
+
+<span class="pc bpc" id="L171" title="3 of 6 branches missed.">            if (e.getAzimutMedido() != null &amp;&amp; (e.getAzimutMedido() &lt; 0 || e.getAzimutMedido() &gt; 360)) {</span>
+<span class="nc" id="L172">                f.error(&quot;azimut_medido: tiene que estar entre 0 y 360 grados&quot;);</span>
+            }
+<span class="pc bpc" id="L174" title="2 of 4 branches missed.">            if (profundidad != null &amp;&amp; profundidad.signum() &lt; 0) {</span>
+<span class="nc" id="L175">                f.error(&quot;profundidad no puede ser negativa&quot;);</span>
+            }
+<span class="pc bpc" id="L177" title="1 of 2 branches missed.">            if (f.hayErrores()) {</span>
+<span class="nc" id="L178">                return null;</span>
+            }
+
+<span class="fc" id="L181">            e.setSondaje(em.getReference(Sondaje.class, sondajeId));</span>
+<span class="pc bpc" id="L182" title="1 of 2 branches missed.">            if (maquinaId != null) {</span>
+<span class="fc" id="L183">                e.setMaquina(em.getReference(Maquina.class, maquinaId));</span>
+            }
+<span class="pc bpc" id="L185" title="1 of 2 branches missed.">            if (perforista != null) {</span>
+<span class="nc" id="L186">                UUID empleadoId = f.empleado(perforista);</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">                if (empleadoId != null) {</span>
+<span class="nc" id="L188">                    e.setPerforista(em.getReference(Empleado.class, empleadoId));</span>
+                }
+            }
+
+<span class="fc" id="L192">            return new Registro(clave(sondajeId, profundidad, nroMedicion),</span>
+<span class="nc" id="L193">                    () -&gt; mediciones.saveAndFlush(e));</span>
+        });
+<span class="fc" id="L195">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

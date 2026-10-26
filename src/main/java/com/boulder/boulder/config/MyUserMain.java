@@ -49,9 +49,14 @@ public class MyUserMain implements UserDetails {
         return true;
     }
 
+    /**
+     * Refleja {@code base.usuario.estado}. Si esto devuelve siempre true, el
+     * flag de cuenta activa queda decorativo y los usuarios dados de baja
+     * pueden iniciar sesión igual.
+     */
     @Override
     public boolean isEnabled() {
-        return true;
+        return Boolean.TRUE.equals(usuario.getEstado());
     }
 
     public Usuario getUsuarioEntity() {
