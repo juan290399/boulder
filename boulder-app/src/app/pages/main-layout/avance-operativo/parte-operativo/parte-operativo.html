@@ -1,0 +1,101 @@
+<form class="parte" (ngSubmit)="guardar()">
+  <div class="panel__head">
+    <h2 class="panel__title">
+      {{ editando ? 'Corregir parte' : 'Nuevo parte' }} de {{ etiqueta() | lowercase }}
+      · <span class="mono">{{ sondajeCodigo() }}</span>
+    </h2>
+    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cancelado.emit()" aria-label="Cerrar">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <div class="panel__body">
+    @if (error(); as mensaje) {
+      <div class="alert-inline"><i class="bi bi-exclamation-triangle"></i>{{ mensaje }}</div>
+    }
+
+    <fieldset class="bloque">
+      <legend>Parte</legend>
+      <div class="row g-2">
+        <div class="col-6 col-md-3">
+          <label class="form-label" for="po-fecha">Fecha *</label>
+          <input id="po-fecha" name="fecha" type="date" class="form-control form-control-sm"
+                 [max]="hoyIso" required [(ngModel)]="f.fecha">
+        </div>
+        <div class="col-6 col-md-4">
+          <span class="form-label d-block">Turno</span>
+          <div class="btn-group btn-group-sm w-100" role="group" aria-label="Turno">
+            <input type="radio" class="btn-check" name="turno" id="po-dia" value="dia" [(ngModel)]="f.turno">
+            <label class="btn btn-outline-primary" for="po-dia"><i class="bi bi-sun me-1"></i>Día</label>
+            <input type="radio" class="btn-check" name="turno" id="po-noche" value="noche" [(ngModel)]="f.turno">
+            <label class="btn btn-outline-primary" for="po-noche"><i class="bi bi-moon me-1"></i>Noche</label>
+            <input type="radio" class="btn-check" name="turno" id="po-sin" [value]="null" [(ngModel)]="f.turno">
+            <label class="btn btn-outline-primary" for="po-sin">Sin turno</label>
+          </div>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="bloque">
+      <legend>Detalle</legend>
+      <datalist id="po-lineas">
+        @for (l of lineas; track l) { <option [value]="l"></option> }
+      </datalist>
+
+      <div class="row g-2 align-items-end">
+        @for (c of config.campos; track c.campo) {
+          <div [class]="ancho(c)">
+            @if (c.tipo === 'calculado') {
+              <span class="form-label d-block">{{ c.etiqueta }}</span>
+              <div class="avance" [class.avance--vacio]="numero(c.campo) === null">
+                {{ numero(c.campo) === null ? '—' : (numero(c.campo) | number:'1.2-2') + ' m' }}
+              </div>
+            } @else {
+              <label class="form-label" [for]="'po-' + c.campo">{{ c.etiqueta }}{{ c.requerido ? ' *' : '' }}</label>
+              @switch (c.tipo) {
+                @case ('opcion') {
+                  <select class="form-select form-select-sm" [id]="'po-' + c.campo" [name]="c.campo"
+                          [ngModel]="valor(c.campo)" (ngModelChange)="cambiar(c.campo, $event)">
+                    <option [ngValue]="null">—</option>
+                    @for (o of c.opciones; track o.valor) { <option [ngValue]="o.valor">{{ o.texto }}</option> }
+                  </select>
+                }
+                @case ('texto') {
+                  <input class="form-control form-control-sm" [id]="'po-' + c.campo" [name]="c.campo" maxlength="120"
+                         [ngModel]="valor(c.campo)" (ngModelChange)="cambiar(c.campo, $event)">
+                }
+                @case ('linea') {
+                  <input class="form-control form-control-sm text-uppercase" [id]="'po-' + c.campo" [name]="c.campo"
+                         maxlength="10" list="po-lineas"
+                         [ngModel]="valor(c.campo)" (ngModelChange)="cambiar(c.campo, $event)">
+                }
+                @default {
+                  <input type="number" class="form-control form-control-sm num" [id]="'po-' + c.campo" [name]="c.campo"
+                         min="0" [step]="c.tipo === 'entero' ? 1 : 0.01" [max]="c.tipo === 'porcentaje' ? 100 : null"
+                         [ngModel]="valor(c.campo)" (ngModelChange)="cambiar(c.campo, $event)">
+                }
+              }
+            }
+          </div>
+        }
+      </div>
+    </fieldset>
+
+    <label class="form-label" for="po-observaciones">Observaciones</label>
+    <textarea id="po-observaciones" name="observaciones" rows="2" class="form-control form-control-sm mb-3"
+              [(ngModel)]="f.observaciones"></textarea>
+
+    @if (avisos().length) {
+      <ul class="avisos">
+        @for (a of avisos(); track a) { <li><i class="bi bi-exclamation-circle me-1"></i>{{ a }}</li> }
+      </ul>
+    }
+
+    <div class="acciones">
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cancelado.emit()">Cancelar</button>
+      <button type="submit" class="btn btn-sm btn-primary" [disabled]="!completo() || guardando()">
+        <i class="bi bi-check-lg me-1"></i>{{ guardando() ? 'Guardando…' : (editando ? 'Guardar corrección' : 'Registrar parte') }}
+      </button>
+    </div>
+  </div>
+</form>

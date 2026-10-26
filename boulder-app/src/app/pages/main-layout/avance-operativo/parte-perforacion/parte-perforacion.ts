@@ -35,7 +35,7 @@ type Formulario = Omit<AvancePerforacion, 'avance' | 'desde' | 'hasta'> & {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './parte-perforacion.html',
-  styleUrl: './parte-perforacion.scss',
+  styleUrl: '../formulario-parte.scss',
 })
 export class PartePerforacionForm implements OnInit {
 

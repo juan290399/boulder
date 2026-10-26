@@ -156,9 +156,16 @@
 @if (seleccionado(); as fila) {
   @if (formulario(); as fm) {
     <div class="panel">
-      <app-parte-perforacion
-        [sondajeId]="fila.sondajeId" [sondajeCodigo]="fila.sondajeCodigo" [parte]="fm.parte"
-        (guardado)="parteGuardado($event)" (cancelado)="formulario.set(null)" />
+      @if (fm.clave === 'perforacion') {
+        <app-parte-perforacion
+          [sondajeId]="fila.sondajeId" [sondajeCodigo]="fila.sondajeCodigo" [parte]="comoPerforacion(fm.parte)"
+          (guardado)="parteGuardado($event)" (cancelado)="formulario.set(null)" />
+      } @else {
+        <app-parte-operativo
+          [clave]="fm.clave" [etiqueta]="tipoActual.etiqueta" [anteriores]="partes()"
+          [sondajeId]="fila.sondajeId" [sondajeCodigo]="fila.sondajeCodigo" [parte]="fm.parte"
+          (guardado)="parteGuardado($event)" (cancelado)="formulario.set(null)" />
+      }
     </div>
   }
 
@@ -168,8 +175,9 @@
         Partes de <span class="mono">{{ fila.sondajeCodigo }}</span>
       </h2>
       <div class="d-flex gap-2">
-        <button type="button" class="btn btn-sm btn-primary" (click)="nuevoParte()" [disabled]="formulario()">
-          <i class="bi bi-plus-lg me-1"></i>Parte de perforación
+        <button type="button" class="btn btn-sm btn-primary" (click)="nuevoParte()"
+                [disabled]="formulario() || cargandoPartes()">
+          <i class="bi bi-plus-lg me-1"></i>Parte de {{ tipoActual.etiqueta | lowercase }}
         </button>
         <button type="button" class="btn btn-sm btn-outline-secondary"
                 (click)="seleccionar(fila)" aria-label="Cerrar detalle">
@@ -215,7 +223,7 @@
                 <th [class.num]="col.numerica">{{ col.titulo }}</th>
               }
               <th>Estado</th>
-              @if (tipoActivo() === 'perforacion') { <th></th> }
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -228,14 +236,12 @@
                   <td [class.num]="col.numerica">{{ valor(parte, col.campo) ?? '—' }}</td>
                 }
                 <td><span class="chip chip--brand">{{ parte.estado }}</span></td>
-                @if (tipoActivo() === 'perforacion') {
-                  <td class="text-end">
-                    <button type="button" class="btn btn-sm btn-link" title="Corregir" (click)="editarParte(parte)"
-                            [attr.aria-label]="'Corregir parte ' + parte.numeroInterno">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                  </td>
-                }
+                <td class="text-end">
+                  <button type="button" class="btn btn-sm btn-link" title="Corregir" (click)="editarParte(parte)"
+                          [attr.aria-label]="'Corregir parte ' + parte.numeroInterno">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                </td>
               </tr>
             }
           </tbody>
