@@ -8,6 +8,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.boulder.boulder.dominio.ParteTurno;
 import com.boulder.boulder.dto.importacion.ResultadoImportacionDTO;
 import com.boulder.boulder.entities.AvancePerforacion;
 import com.boulder.boulder.entities.AvancePersonal;
@@ -89,20 +90,10 @@ public class ImportadorPerforacion extends ImportadorBase {
             UUID plataformaId = f.plataforma("plataforma_codigo");
             BigDecimal retorno = f.decimal("retorno_pct");
 
-            if (desde != null && hasta != null && hasta.compareTo(desde) < 0) {
-                f.error("hasta (" + hasta.toPlainString() + ") no puede ser menor que desde ("
-                        + desde.toPlainString() + ")");
-            }
-            // El parte de turno se cierra restando; cuando la resta no da, uno
-            // de los tres números está mal tecleado y no se puede saber cuál.
-            if (desde != null && hasta != null && avance != null
-                    && hasta.subtract(desde).compareTo(avance) != 0) {
-                f.error("avance (" + avance.toPlainString() + ") no coincide con hasta menos desde ("
-                        + hasta.subtract(desde).toPlainString() + ")");
-            }
-            if (retorno != null && (retorno.signum() < 0 || retorno.compareTo(BigDecimal.valueOf(100)) > 0)) {
-                f.error("retorno_pct: tiene que estar entre 0 y 100");
-            }
+            // Las mismas reglas que el formulario: un parte no cuadra distinto
+            // según por dónde entre.
+            ParteTurno.errores(desde, hasta, avance, retorno,
+                    f.decimal("casing_desde"), f.decimal("casing_hasta")).forEach(f::error);
 
             AvancePerforacion e = new AvancePerforacion();
             e.setSondajeCodigo(f.texto("sondaje_codigo", 30));
