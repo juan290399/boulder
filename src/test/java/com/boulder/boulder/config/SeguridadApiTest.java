@@ -2,7 +2,9 @@ package com.boulder.boulder.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -52,6 +54,21 @@ class SeguridadApiTest {
         mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(cuerpo))
                 .andExpect(status().isTooManyRequests())
                 .andExpect(jsonPath("$.mensaje").exists());
+    }
+
+    @Test
+    @DisplayName("CORS: el frontend configurado pasa; un origen ajeno se rechaza")
+    void cors() throws Exception {
+        mvc.perform(options("/api/operacional/sondajes")
+                        .header("Origin", "http://localhost:4200")
+                        .header("Access-Control-Request-Method", "GET"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:4200"));
+
+        mvc.perform(options("/api/operacional/sondajes")
+                        .header("Origin", "https://sitio-ajeno.example")
+                        .header("Access-Control-Request-Method", "GET"))
+                .andExpect(status().isForbidden());
     }
 
     @Test

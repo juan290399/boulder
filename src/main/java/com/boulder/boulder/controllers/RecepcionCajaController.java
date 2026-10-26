@@ -1,7 +1,6 @@
 package com.boulder.boulder.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,7 +19,6 @@ import com.boulder.boulder.services.RecepcionCajaService;
  */
 @RestController
 @RequestMapping("/api/operacional/recepcion-cajas")
-@CrossOrigin(origins = "*")
 public class RecepcionCajaController extends AvanceOperativoControllerBase<RecepcionCajaDTO> {
 
     @Autowired

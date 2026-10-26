@@ -1,7 +1,6 @@
 package com.boulder.boulder.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,7 +19,6 @@ import com.boulder.boulder.services.AvanceDensidadService;
  */
 @RestController
 @RequestMapping("/api/operacional/avances-densidad")
-@CrossOrigin(origins = "*")
 public class AvanceDensidadController extends AvanceOperativoControllerBase<AvanceDensidadDTO> {
 
     @Autowired
