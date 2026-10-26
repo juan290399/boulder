@@ -1,5 +1,6 @@
 plugins {
 	java
+	jacoco
 	id("org.springframework.boot") version "4.0.6"
 	id("io.spring.dependency-management") version "1.1.7"
 }
@@ -76,4 +77,31 @@ tasks.withType<JavaCompile> {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+	// Cada corrida de pruebas deja el informe de cobertura actualizado.
+	finalizedBy(tasks.named("jacocoTestReport"))
+}
+
+// Cobertura de las pruebas con JaCoCo: build/reports/jacoco/test/html/index.html.
+tasks.named<JacocoReport>("jacocoTestReport") {
+	dependsOn(tasks.named("test"))
+	reports {
+		html.required = true
+		xml.required = true
+	}
+}
+
+// Documentación técnica con Javadoc: build/docs/javadoc/index.html.
+// Se omiten los avisos por comentarios faltantes en getters y métodos obvios;
+// los errores de sintaxis de Javadoc siguen haciendo fallar la tarea.
+tasks.named<Javadoc>("javadoc") {
+	val opciones = options as StandardJavadocDocletOptions
+	opciones.encoding = "UTF-8"
+	opciones.charSet = "UTF-8"
+	opciones.docEncoding = "UTF-8"
+	opciones.locale = "es"
+	opciones.windowTitle = "Boulder Drilling · API"
+	opciones.docTitle = "Boulder Drilling — documentación técnica del backend"
+	opciones.links("https://docs.oracle.com/en/java/javase/21/docs/api/")
+	opciones.addStringOption("Xdoclint:all,-missing", "-quiet")
+	opciones.tags("apiNote:a:Nota de la API:", "implNote:a:Nota de implementación:")
 }
