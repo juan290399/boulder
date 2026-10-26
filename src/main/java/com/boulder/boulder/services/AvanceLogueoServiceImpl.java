@@ -3,6 +3,7 @@ package com.boulder.boulder.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.boulder.boulder.dominio.Revision;
 import com.boulder.boulder.dto.AvanceLogueoDTO;
 import com.boulder.boulder.entities.AvanceLogueo;
 import com.boulder.boulder.repositories.AvanceLogueoRepository;
@@ -51,6 +52,14 @@ public class AvanceLogueoServiceImpl
         entidad.setAvance(dto.getAvance());
         entidad.setGeologo(dto.getGeologo());
         entidad.setPctCompletado(dto.getPctCompletado());
+    }
+
+    @Override
+    protected void revisar(AvanceLogueoDTO dto, Revision revision) {
+        revision.opcion("tipo_logueo", dto.getTipoLogueo(), "geologico", "geotecnico", "estructural", "rapido")
+                .tramo("tramo", dto.getDesde(), dto.getHasta())
+                .avance(dto.getDesde(), dto.getHasta(), dto.getAvance())
+                .porcentaje("pct_completado", dto.getPctCompletado());
     }
 
     @Override

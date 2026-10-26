@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.boulder.boulder.dominio.Revision;
 import com.boulder.boulder.dto.AvanceOperativoDTO;
 import com.boulder.boulder.entities.AvanceOperativo;
 import com.boulder.boulder.eventos.CambioDatos;
@@ -76,6 +77,13 @@ public abstract class AvanceOperativoServiceBase<E extends AvanceOperativo, D ex
     /** Copia de la entidad al DTO los campos propios del parte. */
     protected abstract void volcarDetalle(E entidad, D dto);
 
+    /**
+     * Comprobaciones propias del parte (tramos, cajas, listas cerradas). Por
+     * defecto ninguna; la cabecera común ya se revisa en la base.
+     */
+    protected void revisar(D dto, Revision revision) {
+    }
+
     // ------------------------------------------------------------------ CRUD
 
     @Override
@@ -121,10 +129,13 @@ public abstract class AvanceOperativoServiceBase<E extends AvanceOperativo, D ex
     public D guardar(D dto) {
         log.info("Registrando parte de {}. Sondaje: {}, Fecha: {}", nombreParte(),
                 dto.getSondajeCodigo() != null ? dto.getSondajeCodigo() : dto.getSondajeId(), dto.getFecha());
+        validar(dto);
         E entidad = nuevaEntidad();
         aplicarCabecera(dto, entidad);
         aplicarDetalle(dto, entidad);
         E guardado = repositorio().save(entidad);
+        // El INSERT se manda ya para que vuelva el número interno de la secuencia.
+        repositorio().flush();
         log.info("Parte de {} registrado. ID: {}", nombreParte(), guardado.getId());
         avisar(guardado);
         return convertToDto(guardado);
@@ -134,6 +145,7 @@ public abstract class AvanceOperativoServiceBase<E extends AvanceOperativo, D ex
     @Transactional
     public D actualizar(UUID id, D dto) {
         log.info("Actualizando parte de {} ID: {}", nombreParte(), id);
+        validar(dto);
         E entidad = buscar(id);
         aplicarCabecera(dto, entidad);
         aplicarDetalle(dto, entidad);
@@ -152,6 +164,19 @@ public abstract class AvanceOperativoServiceBase<E extends AvanceOperativo, D ex
     }
 
     // ------------------------------------------------------------- auxiliares
+
+    /**
+     * Rechaza el parte con todos sus motivos juntos antes de tocar la base. Sin
+     * esto, un error de tecleo llega a PostgreSQL y vuelve como una violación de
+     * CHECK que no dice qué campo falla, o directamente se guarda.
+     */
+    private void validar(D dto) {
+        Revision revision = new Revision().opcion("turno", dto.getTurno(), "dia", "noche");
+        revisar(dto, revision);
+        if (!revision.valida()) {
+            throw new IllegalArgumentException(String.join("; ", revision.errores()));
+        }
+    }
 
     /** Avisa a las pantallas abiertas que cambió el frente de este sondaje. */
     private void avisar(E entidad) {
@@ -189,6 +214,12 @@ public abstract class AvanceOperativoServiceBase<E extends AvanceOperativo, D ex
         entidad.setSondaje(dto.getSondajeId() == null ? null
                 : sondajeRepository.findById(dto.getSondajeId())
                         .orElseThrow(() -> new EntityNotFoundException("El Sondaje asignado no existe.")));
+
+        // El formulario manda solo el id; el código de texto se completa con el
+        // del sondaje. El que viene tecleado (carga de Excel) se respeta.
+        if (entidad.getSondaje() != null && (entidad.getSondajeCodigo() == null || entidad.getSondajeCodigo().isBlank())) {
+            entidad.setSondajeCodigo(entidad.getSondaje().getCodigo());
+        }
     }
 
     /**

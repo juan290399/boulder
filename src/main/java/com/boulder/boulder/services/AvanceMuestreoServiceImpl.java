@@ -3,6 +3,7 @@ package com.boulder.boulder.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.boulder.boulder.dominio.Revision;
 import com.boulder.boulder.dto.AvanceMuestreoDTO;
 import com.boulder.boulder.entities.AvanceMuestreo;
 import com.boulder.boulder.repositories.AvanceMuestreoRepository;
@@ -54,6 +55,13 @@ public class AvanceMuestreoServiceImpl
         entidad.setNroMuestrasEmbolsadas(dto.getNroMuestrasEmbolsadas());
         entidad.setNroCostales(dto.getNroCostales());
         entidad.setNroLotes(dto.getNroLotes());
+    }
+
+    @Override
+    protected void revisar(AvanceMuestreoDTO dto, Revision revision) {
+        revision.opcion("estado_muestreo", dto.getEstadoMuestreo(), "en_proceso", "finalizado")
+                .tramo("tramo", dto.getDesde(), dto.getHasta())
+                .avance(dto.getDesde(), dto.getHasta(), dto.getAvance());
     }
 
     @Override

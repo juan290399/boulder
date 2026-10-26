@@ -3,6 +3,7 @@ package com.boulder.boulder.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.boulder.boulder.dominio.Revision;
 import com.boulder.boulder.dto.AvanceFotografiaDTO;
 import com.boulder.boulder.entities.AvanceFotografia;
 import com.boulder.boulder.repositories.AvanceFotografiaRepository;
@@ -55,6 +56,13 @@ public class AvanceFotografiaServiceImpl
         entidad.setSecoHumedo(dto.getSecoHumedo());
         entidad.setNroFotos(dto.getNroFotos());
         entidad.setRutaArchivos(dto.getRutaArchivos());
+    }
+
+    @Override
+    protected void revisar(AvanceFotografiaDTO dto, Revision revision) {
+        revision.cajas("cajas", dto.getBoxDesde(), dto.getBoxHasta())
+                .tramo("marcado", dto.getMarcadoDesde(), dto.getMarcadoHasta())
+                .opcion("seco_humedo", dto.getSecoHumedo(), "seco", "humedo");
     }
 
     @Override
