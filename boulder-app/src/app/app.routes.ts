@@ -11,6 +11,7 @@ import { Roles } from './pages/admin-layout/roles/roles';
 import { Empleados } from './pages/admin-layout/empleados/empleados';
 import { Empresa } from './pages/admin-layout/empresa/empresa';
 import { Proyecto } from './pages/admin-layout/proyecto/proyecto';
+import { Diccionarios } from './pages/admin-layout/diccionarios/diccionarios';
 import { Plataforma } from './pages/main-layout/plataforma/plataforma';
 import { Maquina } from './pages/main-layout/maquina/maquina';
 import { Sondaje } from './pages/main-layout/sondaje/sondaje';
@@ -49,6 +50,7 @@ export const routes: Routes = [
       { path: 'empleados', component: Empleados },
       { path: 'empresas', component: Empresa },
       { path: 'proyectos', component: Proyecto },
+      { path: 'diccionarios', component: Diccionarios },
     ],
   },
   {
