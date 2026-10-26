@@ -35,24 +35,24 @@ import jakarta.servlet.http.HttpServletRequest;
 
     public String generateToken(Authentication auth) {
 
-<span class="nc" id="L38">        String username = auth.getName();</span>
+<span class="fc" id="L38">        String username = auth.getName();</span>
 
         // Solo las authorities de rol. Spring Security añade además factores de
         // autenticación (FACTOR_PASSWORD, etc.); si se copian al claim acaban
         // apareciendo como roles en el cliente.
-<span class="nc" id="L43">        List&lt;String&gt; roles = auth.getAuthorities().stream()</span>
-<span class="nc" id="L44">                .map(GrantedAuthority::getAuthority)</span>
-<span class="nc" id="L45">                .filter(a -&gt; a.startsWith(&quot;ROLE_&quot;))</span>
-<span class="nc" id="L46">                .toList();</span>
+<span class="fc" id="L43">        List&lt;String&gt; roles = auth.getAuthorities().stream()</span>
+<span class="fc" id="L44">                .map(GrantedAuthority::getAuthority)</span>
+<span class="fc" id="L45">                .filter(a -&gt; a.startsWith(&quot;ROLE_&quot;))</span>
+<span class="fc" id="L46">                .toList();</span>
 
-<span class="nc" id="L48">        return Jwts.builder()</span>
-<span class="nc" id="L49">                .subject(username)</span>
-<span class="nc" id="L50">                .claim(&quot;nombre&quot;, nombreVisible(auth, username))</span>
-<span class="nc" id="L51">                .claim(&quot;roles&quot;, roles)</span>
-<span class="nc" id="L52">                .issuedAt(new Date())</span>
-<span class="nc" id="L53">                .expiration(new Date(System.currentTimeMillis() + expirationMs))</span>
-<span class="nc" id="L54">                .signWith(getSigningKey())</span>
-<span class="nc" id="L55">                .compact();</span>
+<span class="fc" id="L48">        return Jwts.builder()</span>
+<span class="fc" id="L49">                .subject(username)</span>
+<span class="fc" id="L50">                .claim(&quot;nombre&quot;, nombreVisible(auth, username))</span>
+<span class="fc" id="L51">                .claim(&quot;roles&quot;, roles)</span>
+<span class="fc" id="L52">                .issuedAt(new Date())</span>
+<span class="fc" id="L53">                .expiration(new Date(System.currentTimeMillis() + expirationMs))</span>
+<span class="fc" id="L54">                .signWith(getSigningKey())</span>
+<span class="fc" id="L55">                .compact();</span>
     }
 
     /**
@@ -65,7 +65,7 @@ import jakarta.servlet.http.HttpServletRequest;
      * &lt;/p&gt;
      */
     private String nombreVisible(Authentication auth, String porDefecto) {
-<span class="nc bnc" id="L68" title="All 2 branches missed.">        if (auth.getPrincipal() instanceof MyUserMain principal) {</span>
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">        if (auth.getPrincipal() instanceof MyUserMain principal) {</span>
 <span class="nc" id="L69">            Usuario usuario = principal.getUsuarioEntity();</span>
 <span class="nc" id="L70">            String completo = (usuario.getNombres() + &quot; &quot;</span>
 <span class="nc bnc" id="L71" title="All 2 branches missed.">                    + (usuario.getApellidos() != null ? usuario.getApellidos() : &quot;&quot;)).trim();</span>
@@ -73,25 +73,25 @@ import jakarta.servlet.http.HttpServletRequest;
 <span class="nc" id="L73">                return completo;</span>
             }
         }
-<span class="nc" id="L76">        return porDefecto;</span>
+<span class="fc" id="L76">        return porDefecto;</span>
     }
 
     public Claims getAllClaims(String token) {
-<span class="pc" id="L80">        return Jwts.parser()</span>
+<span class="fc" id="L80">        return Jwts.parser()</span>
 <span class="fc" id="L81">                .verifyWith(getSigningKey())</span>
 <span class="fc" id="L82">                .build()</span>
-<span class="nc" id="L83">                .parseSignedClaims(token)</span>
-<span class="nc" id="L84">                .getPayload();</span>
+<span class="fc" id="L83">                .parseSignedClaims(token)</span>
+<span class="fc" id="L84">                .getPayload();</span>
     }
 
     public String getUsernameFromToken(String token) {
-<span class="nc" id="L88">        return getAllClaims(token).getSubject();</span>
+<span class="fc" id="L88">        return getAllClaims(token).getSubject();</span>
     }
 
     public boolean validateToken(String token) {
         try {
-<span class="nc" id="L93">            getAllClaims(token);</span>
-<span class="nc" id="L94">            return true;</span>
+<span class="fc" id="L93">            getAllClaims(token);</span>
+<span class="fc" id="L94">            return true;</span>
 <span class="fc" id="L95">        } catch (JwtException | IllegalArgumentException e) {</span>
 <span class="fc" id="L96">            return false;</span>
         }

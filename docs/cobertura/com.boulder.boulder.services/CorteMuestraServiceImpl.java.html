@@ -10,7 +10,7 @@ import com.boulder.boulder.repositories.AvanceOperativoRepository;
 import com.boulder.boulder.repositories.CorteMuestraRepository;
 
 /**
- * Implementacion de los servicios de corte geoquimico (UC18).
+ * Implementacion de los servicios de corte geoquimico (CU14).
  *
  * @author jvelazco
  * @version 1.0

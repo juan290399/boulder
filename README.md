@@ -67,7 +67,8 @@ El detalle por paquete está en el Javadoc.
 
 ## Seguridad
 
-- Contraseñas con BCrypt; sesión con JWT firmado (HMAC-SHA256).
+- Contraseñas con BCrypt; sesión con JWT firmado (HMAC-SHA256). Un token deja de valer en
+  cuanto su cuenta se desactiva o se borra (`CuentasActivas`, caché de Guava de 30 s).
 - Credenciales fuera del repositorio: `DB_PASSWORD` y `JWT_SECRET` salen de variables
   de entorno o de `application-local.properties`, que está en `.gitignore`.
 - Bloqueo tras 5 intentos fallidos de inicio de sesión durante 15 minutos (caché de
@@ -83,7 +84,7 @@ El detalle por paquete está en el Javadoc.
 
 | Librería | Dónde y para qué |
 |---|---|
-| Google Guava | Caché de intentos fallidos con expiración (`LimiteIntentosLogin`), estructura de catálogos memorizada, colecciones inmutables, `Preconditions` |
+| Google Guava | Caché de intentos fallidos con expiración (`LimiteIntentosLogin`), caché de cuentas activas (`CuentasActivas`), estructura de catálogos memorizada, colecciones inmutables, `Preconditions` |
 | Apache POI | Importador de plantillas `.xlsx` y exportación del reporte diario a Excel |
 | Apache Commons Lang | Normalización de códigos de sondaje y textos (`StringUtils`) |
 | Apache Commons IO | Nombre de archivo seguro de las fotos (`FilenameUtils`) |
@@ -91,7 +92,7 @@ El detalle por paquete está en el Javadoc.
 
 ## Pruebas (TDD)
 
-185 pruebas en 24 clases: unitarias con JUnit y Mockito, de la capa web con MockMvc
+192 pruebas en 25 clases: unitarias con JUnit y Mockito, de la capa web con MockMvc
 y de integración contra PostgreSQL (cada una se deshace al terminar). El historial
 muestra el ciclo: un commit `test(…) (rojo)` con la prueba que falla y el siguiente
 `feat(…) (verde)` con lo que la hace pasar.
@@ -100,10 +101,10 @@ muestra el ciclo: un commit `test(…) (rojo)` con la prueba que falla y el sigu
 
 | Cobertura (JaCoCo) | |
 |---|---|
-| Líneas | 54.9 % |
-| Ramas | 45.2 % |
-| Métodos | 56.9 % |
-| Clases | 94.4 % |
+| Líneas | 55.7 % |
+| Ramas | 45.4 % |
+| Métodos | 57.7 % |
+| Clases | 94.5 % |
 
 ```bash
 ./gradlew test jacocoTestReport

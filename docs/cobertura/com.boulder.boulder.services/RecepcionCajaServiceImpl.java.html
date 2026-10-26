@@ -10,7 +10,7 @@ import com.boulder.boulder.repositories.AvanceOperativoRepository;
 import com.boulder.boulder.repositories.RecepcionCajaRepository;
 
 /**
- * Implementacion de los servicios de recepcion de cajas de campo (UC16).
+ * Implementacion de los servicios de recepcion de cajas de campo (CU12).
  *
  * @author jvelazco
  * @version 1.0
