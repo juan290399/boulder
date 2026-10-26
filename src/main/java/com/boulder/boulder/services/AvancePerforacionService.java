@@ -21,4 +21,13 @@ public interface AvancePerforacionService {
     AvancePerforacionDTO guardar(AvancePerforacionDTO dto);
     AvancePerforacionDTO actualizar(UUID id, AvancePerforacionDTO dto);
     void eliminar(UUID id);
+
+    /**
+     * Borrador del parte siguiente de un sondaje: desde dónde arranca el turno
+     * y con qué máquina, plataforma y dotación terminó el anterior.
+     *
+     * @param sondajeId el sondaje
+     * @return un parte sin guardar, para precargar el formulario
+     */
+    AvancePerforacionDTO sugerencia(UUID sondajeId);
 }
