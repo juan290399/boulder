@@ -18,6 +18,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+
+import org.hibernate.annotations.Generated;
+
 import lombok.Data;
 
 /**
@@ -43,6 +46,7 @@ public class AvancePerforacion implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Generated
     @Column(name = "numero_interno", insertable = false, updatable = false)
     private Integer numeroInterno;
 

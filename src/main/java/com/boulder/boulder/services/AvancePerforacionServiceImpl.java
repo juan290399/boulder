@@ -100,6 +100,9 @@ public class AvancePerforacionServiceImpl implements AvancePerforacionService {
         aplicarCabecera(dto, avance);
         reemplazarPersonal(dto, avance);
         AvancePerforacion guardado = avanceRepository.save(avance);
+        // El INSERT se manda ya, no al cerrar la transacción: así vuelve el
+        // número interno que asigna la secuencia (@Generated) en la respuesta.
+        avanceRepository.flush();
         log.info("Parte de avance registrado. ID: {}", guardado.getId());
         return convertToDto(guardado);
     }

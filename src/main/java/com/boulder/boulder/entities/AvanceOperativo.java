@@ -12,6 +12,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MappedSuperclass;
+
+import org.hibernate.annotations.Generated;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -55,6 +58,7 @@ public abstract class AvanceOperativo implements Serializable {
     private UUID id;
 
     /** Correlativo legible que asigna la secuencia de la tabla; la base manda. */
+    @Generated
     @Column(name = "numero_interno", insertable = false, updatable = false)
     private Integer numeroInterno;
 
