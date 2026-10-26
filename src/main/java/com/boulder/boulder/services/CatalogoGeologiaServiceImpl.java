@@ -104,7 +104,7 @@ public class CatalogoGeologiaServiceImpl implements CatalogoGeologiaService {
             throw new IllegalArgumentException("El nombre es obligatorio y tiene " + LARGO_NOMBRE + " caracteres como máximo.");
         }
         if (e.tiene("grupo_id") && datos.getGrupoId() == null) {
-            throw new IllegalArgumentException("Elegí el grupo litológico al que pertenece.");
+            throw new IllegalArgumentException("Elige el grupo litológico al que pertenece.");
         }
         validarColor(e, datos);
 

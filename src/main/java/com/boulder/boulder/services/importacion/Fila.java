@@ -233,7 +233,7 @@ public class Fila {
                 // se prueba el siguiente formato
             }
         }
-        error(columna + ": «" + v + "» no es una fecha (usá AAAA-MM-DD)");
+        error(columna + ": «" + v + "» no es una fecha (usa AAAA-MM-DD)");
         return null;
     }
 
