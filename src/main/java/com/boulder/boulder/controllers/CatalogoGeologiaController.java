@@ -1,6 +1,7 @@
 package com.boulder.boulder.controllers;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.boulder.boulder.dto.CatalogoGeologiaDTO;
+import com.boulder.boulder.repositories.CatalogoGeologiaRepository.Estructura;
 import com.boulder.boulder.services.CatalogoGeologiaService;
 
 /**
@@ -52,6 +54,12 @@ public class CatalogoGeologiaController {
     public ResponseEntity<List<CatalogoGeologiaDTO>> listarTodos() {
         log.info("HTTP GET - Descarga completa de catálogos geológicos");
         return ResponseEntity.ok(catalogoService.listarTodos());
+    }
+
+    /** Columnas opcionales y largo del código de cada catálogo, para armar el formulario. */
+    @GetMapping("/estructura")
+    public Map<String, Estructura> estructura() {
+        return catalogoService.estructura();
     }
 
     /**

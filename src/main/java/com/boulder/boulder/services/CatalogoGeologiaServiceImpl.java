@@ -1,6 +1,7 @@
 package com.boulder.boulder.services;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -47,6 +48,11 @@ public class CatalogoGeologiaServiceImpl implements CatalogoGeologiaService {
         List<CatalogoGeologiaDTO> catalogos = catalogoRepository.listarTodos();
         log.debug("Entregando {} entradas de catálogo geológico", catalogos.size());
         return catalogos;
+    }
+
+    @Override
+    public Map<String, Estructura> estructura() {
+        return catalogoRepository.estructura();
     }
 
     @Override

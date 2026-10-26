@@ -49,6 +49,19 @@ class CatalogoGeologiaControllerTest {
 
     @Test
     @WithMockUser(roles = "GEOLOGO")
+    @DisplayName("La estructura de cada catálogo se publica para armar el formulario")
+    void estructura() throws Exception {
+        when(servicio.estructura()).thenReturn(java.util.Map.of("lit_diccionario",
+                new com.boulder.boulder.repositories.CatalogoGeologiaRepository.Estructura(
+                        java.util.Set.of("grupo_id", "color_r", "esta_activo"), 4)));
+        mvc.perform(get("/api/geologia/catalogos/estructura"))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .jsonPath("$.lit_diccionario.largoCodigo").value(4));
+    }
+
+    @Test
+    @WithMockUser(roles = "GEOLOGO")
     @DisplayName("Un geólogo no puede dar de alta códigos")
     void geologoNoEscribe() throws Exception {
         mvc.perform(post("/api/geologia/catalogos/alt_intensidad")
