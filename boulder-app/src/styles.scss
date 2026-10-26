@@ -746,3 +746,31 @@ body {
 .panel.panel__body {
   padding: 1.25rem;
 }
+
+
+/* ------------------------------------------------------------- impresión */
+
+/* Al imprimir (o guardar como PDF) queda solo el contenido de la pantalla:
+   sin menú lateral, sin cabecera y sin botones marcados con .no-print. Lo usa
+   el reporte diario para su versión en PDF. */
+@media print {
+  app-navbar,
+  app-header,
+  .no-print {
+    display: none !important;
+  }
+
+  .app-main {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  .panel {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+}

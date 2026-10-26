@@ -1,0 +1,89 @@
+<div class="page-head">
+  <div>
+    <h1 class="page-head__title">Reporte diario consolidado</h1>
+    <p class="page-head__sub">Perforación, logueo, almacén y muestreo del día, desde los mismos registros de la operación.</p>
+  </div>
+  <div class="page-head__actions no-print">
+    <input type="date" class="form-control form-control-sm fecha" [max]="hoyIso"
+           aria-label="Fecha del reporte"
+           [ngModel]="fecha()" (ngModelChange)="cambiarFecha($event)">
+    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="exportarExcel()"
+            [disabled]="!reporte() || descargando()">
+      <i class="bi bi-file-earmark-excel me-1"></i>{{ descargando() ? 'Descargando…' : 'Excel' }}
+    </button>
+    <button type="button" class="btn btn-sm btn-primary" (click)="imprimir()" [disabled]="!reporte()">
+      <i class="bi bi-printer me-1"></i>Imprimir / PDF
+    </button>
+  </div>
+</div>
+
+@if (error(); as mensaje) {
+  <div class="alert-inline"><i class="bi bi-exclamation-triangle"></i>{{ mensaje }}</div>
+}
+
+@if (cargando()) {
+  <div class="panel"><div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Generando…</p></div></div>
+} @else if (reporte(); as r) {
+
+  <p class="solo-impresion">Reporte del {{ r.fecha }}</p>
+
+  <div class="metric-grid">
+    <div class="metric"><div class="metric__label"><i class="bi bi-arrow-down-circle"></i>Perforado</div>
+      <div class="metric__value">{{ r.totalPerforado | number:'1.2-2' }} m</div></div>
+    <div class="metric"><div class="metric__label"><i class="bi bi-journal-text"></i>Logueo geológico</div>
+      <div class="metric__value">{{ r.totalLogueado | number:'1.2-2' }} m</div></div>
+    <div class="metric"><div class="metric__label"><i class="bi bi-box-seam"></i>Cajas recibidas</div>
+      <div class="metric__value">{{ r.totalCajas }}</div></div>
+    <div class="metric"><div class="metric__label"><i class="bi bi-eyedropper"></i>Muestras</div>
+      <div class="metric__value">{{ r.totalMuestras }}</div></div>
+  </div>
+
+  <div class="reporte-grid">
+    <div class="panel">
+      <div class="panel__head"><h2 class="panel__title">Metros perforados, últimos 7 días</h2></div>
+      <div class="grafico" role="img" aria-label="Metros perforados por día">
+        @for (b of barras(); track b.fecha) {
+          <div class="grafico__col" [class.hoy]="b.fecha === r.fecha">
+            <span class="grafico__valor">{{ b.metros > 0 ? (b.metros | number:'1.0-1') : '' }}</span>
+            <div class="grafico__barra" [style.height.%]="b.alto"></div>
+            <span class="grafico__dia">{{ diaCorto(b.fecha) }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel__head"><h2 class="panel__title">Detalle por sondaje</h2></div>
+      @if (!r.sondajes.length) {
+        <div class="empty-state"><i class="bi bi-calendar-x"></i><p>Sin partes registrados ese día.</p></div>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr><th>Sondaje</th><th class="num">Perforado (m)</th><th class="num">Logueado (m)</th>
+                <th class="num">Cajas</th><th class="num">Muestras</th></tr>
+            </thead>
+            <tbody>
+              @for (s of r.sondajes; track s.codigo) {
+                <tr>
+                  <td class="mono">{{ s.codigo }}</td>
+                  <td class="num">{{ s.perforado | number:'1.2-2' }}</td>
+                  <td class="num">{{ s.logueado | number:'1.2-2' }}</td>
+                  <td class="num">{{ s.cajas }}</td>
+                  <td class="num">{{ s.muestras }}</td>
+                </tr>
+              }
+              <tr class="total">
+                <td>Total</td>
+                <td class="num">{{ r.totalPerforado | number:'1.2-2' }}</td>
+                <td class="num">{{ r.totalLogueado | number:'1.2-2' }}</td>
+                <td class="num">{{ r.totalCajas }}</td>
+                <td class="num">{{ r.totalMuestras }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+}

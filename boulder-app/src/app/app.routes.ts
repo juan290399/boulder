@@ -11,6 +11,7 @@ import { Roles } from './pages/admin-layout/roles/roles';
 import { Empleados } from './pages/admin-layout/empleados/empleados';
 import { Empresa } from './pages/admin-layout/empresa/empresa';
 import { Proyecto } from './pages/admin-layout/proyecto/proyecto';
+import { Diccionarios } from './pages/admin-layout/diccionarios/diccionarios';
 import { Plataforma } from './pages/main-layout/plataforma/plataforma';
 import { Maquina } from './pages/main-layout/maquina/maquina';
 import { Sondaje } from './pages/main-layout/sondaje/sondaje';
@@ -19,6 +20,8 @@ import { Desvio } from './pages/main-layout/desvio/desvio';
 import { Quicklog } from './pages/main-layout/quicklog/quicklog';
 import { Importacion } from './pages/main-layout/importacion/importacion';
 import { Fotos } from './pages/main-layout/fotos/fotos';
+import { MiCuenta } from './pages/main-layout/mi-cuenta/mi-cuenta';
+import { ReporteDiarioPage } from './pages/main-layout/reporte-diario/reporte-diario';
 
 export const routes: Routes = [
   {
@@ -48,6 +51,7 @@ export const routes: Routes = [
       { path: 'empleados', component: Empleados },
       { path: 'empresas', component: Empresa },
       { path: 'proyectos', component: Proyecto },
+      { path: 'diccionarios', component: Diccionarios },
     ],
   },
   {
@@ -61,8 +65,10 @@ export const routes: Routes = [
       { path: 'quicklog', component: Quicklog },
       { path: 'fotos', component: Fotos },
       { path: 'importar', component: Importacion },
+      { path: 'reportes', component: ReporteDiarioPage },
       { path: 'plataformas', component: Plataforma },
       { path: 'maquinas', component: Maquina },
+      { path: 'mi-cuenta', component: MiCuenta },
       // Empresas y proyectos se administran en /admin. El destino por defecto
       // es el frente de avance y no el listado de sondajes: la pregunta con la
       // que se entra a trabajar no es "qué sondajes hay" —son 72— sino "de qué

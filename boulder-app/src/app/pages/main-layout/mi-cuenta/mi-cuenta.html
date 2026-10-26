@@ -1,0 +1,73 @@
+<div class="page-head">
+  <div>
+    <h1 class="page-head__title">Mi cuenta</h1>
+    <p class="page-head__sub">Datos de acceso de la cuenta con la que iniciaste sesión.</p>
+  </div>
+</div>
+
+<div class="cuenta-grid">
+
+  <div class="panel">
+    <div class="panel__head"><h2 class="panel__title">Perfil</h2></div>
+    <div class="panel__body">
+      @if (cuenta(); as c) {
+        <dl class="perfil">
+          <dt>Usuario</dt><dd class="mono">{{ c.usuario }}</dd>
+          <dt>Nombre</dt><dd>{{ c.nombres }} {{ c.apellidos }}</dd>
+          <dt>Correo</dt><dd>{{ c.correo }}</dd>
+          <dt>Roles</dt>
+          <dd>
+            @for (r of c.roles ?? []; track r) {
+              <span class="chip chip--info me-1">{{ r }}</span>
+            } @empty {
+              <span class="tenue">Sin roles asignados</span>
+            }
+          </dd>
+        </dl>
+        <p class="tenue mb-0">El rol con el que trabajas se elige al iniciar sesión.</p>
+      } @else {
+        <div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Cargando…</p></div>
+      }
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel__head"><h2 class="panel__title">Cambiar contraseña</h2></div>
+    <form class="panel__body" (ngSubmit)="cambiar()" autocomplete="off">
+
+      @if (exito()) {
+        <div class="alert alert-success py-2"><i class="bi bi-check-circle me-1"></i>Contraseña cambiada.</div>
+      }
+      @if (error(); as mensaje) {
+        <div class="alert-inline"><i class="bi bi-exclamation-triangle"></i>{{ mensaje }}</div>
+      }
+
+      <label class="form-label" for="actual">Contraseña actual *</label>
+      <input id="actual" name="actual" type="password" class="form-control mb-3"
+             autocomplete="current-password"
+             [ngModel]="actual()" (ngModelChange)="actual.set($event)">
+
+      <label class="form-label" for="nueva">Nueva contraseña *</label>
+      <input id="nueva" name="nueva" type="password" class="form-control mb-3"
+             autocomplete="new-password"
+             [ngModel]="nueva()" (ngModelChange)="nueva.set($event)">
+
+      <label class="form-label" for="repetida">Repetir la nueva contraseña *</label>
+      <input id="repetida" name="repetida" type="password" class="form-control mb-3"
+             autocomplete="new-password"
+             [ngModel]="repetida()" (ngModelChange)="repetida.set($event)">
+
+      <ul class="reglas">
+        @for (r of reglas(); track r.texto) {
+          <li [class.ok]="r.ok"><i class="bi" [class.bi-check-circle-fill]="r.ok" [class.bi-circle]="!r.ok"></i>{{ r.texto }}</li>
+        }
+      </ul>
+
+      <button type="submit" class="btn btn-primary" [disabled]="!listo() || guardando()">
+        <i class="bi bi-key me-1"></i>{{ guardando() ? 'Guardando…' : 'Cambiar contraseña' }}
+      </button>
+      <p class="tenue mt-2 mb-0">Se guarda cifrada (BCrypt). Si la actual no coincide, no se cambia nada.</p>
+    </form>
+  </div>
+
+</div>
