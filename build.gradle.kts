@@ -32,6 +32,17 @@ dependencies {
 	// porque las plantillas llevan validación de datos y eso es xlsx.
 	implementation("org.apache.poi:poi-ooxml:5.5.1")
 
+	// Librerías de apoyo:
+	// - Guava: caché con expiración para limitar intentos de inicio de sesión y
+	//   precondiciones en los servicios.
+	// - Commons Lang: normalización de texto (acentos, espacios, relleno) para
+	//   reconocer un mismo sondaje escrito de formas distintas.
+	// - Commons IO: nombres y extensiones de archivo seguros en el almacén de
+	//   fotos, sin rutas que se salgan de la carpeta.
+	implementation("com.google.guava:guava:33.4.8-jre")
+	implementation("org.apache.commons:commons-lang3:3.18.0")
+	implementation("commons-io:commons-io:2.21.0")
+
 	implementation("org.postgresql:postgresql:42.6.0")
     implementation("jakarta.validation:jakarta.validation-api:3.0.2")
 
