@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReporteDiarioExcel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.reportes</a> &gt; <span class="el_source">ReporteDiarioExcel.java</span></div><h1>ReporteDiarioExcel.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.reportes;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.math.BigDecimal;
+
+import org.apache.poi.ss.usermodel.BorderStyle;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import com.boulder.boulder.reportes.ReporteDiario.FilaSondaje;
+
+/**
+ * Exporta el reporte diario a Excel con Apache POI.
+ *
+ * &lt;p&gt;Los metros y las cantidades se escriben como números, para que la gerencia
+ * pueda sumar y filtrar. Los textos se escriben siempre con
+ * {@code setCellValue(String)}, nunca como fórmula: un código de sondaje que
+ * empiece con «=» queda como texto y no se ejecuta al abrir el archivo
+ * (inyección de fórmulas, CWE-1236).&lt;/p&gt;
+ */
+public final class ReporteDiarioExcel {
+
+<span class="fc" id="L28">    private static final String[] CABECERA = {&quot;Sondaje&quot;, &quot;Perforado (m)&quot;, &quot;Logueado (m)&quot;, &quot;Cajas&quot;, &quot;Muestras&quot;};</span>
+
+    private ReporteDiarioExcel() {
+    }
+
+    /**
+     * @param r el reporte del día
+     * @return el libro .xlsx listo para descargar
+     * @throws IOException si no se puede escribir el libro
+     */
+    public static byte[] generar(ReporteDiario r) throws IOException {
+<span class="fc" id="L39">        try (XSSFWorkbook libro = new XSSFWorkbook(); ByteArrayOutputStream salida = new ByteArrayOutputStream()) {</span>
+<span class="fc" id="L40">            Sheet hoja = libro.createSheet(r.fecha().toString());</span>
+<span class="fc" id="L41">            CellStyle negrita = estiloNegrita(libro);</span>
+<span class="fc" id="L42">            CellStyle metros = libro.createCellStyle();</span>
+<span class="fc" id="L43">            metros.setDataFormat(libro.createDataFormat().getFormat(&quot;#,##0.00&quot;));</span>
+
+<span class="fc" id="L45">            texto(hoja.createRow(0), 0, &quot;Reporte diario consolidado del &quot; + r.fecha(), negrita);</span>
+
+<span class="fc" id="L47">            Row cab = hoja.createRow(2);</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">            for (int i = 0; i &lt; CABECERA.length; i++) {</span>
+<span class="fc" id="L49">                texto(cab, i, CABECERA[i], negrita);</span>
+            }
+
+<span class="fc" id="L52">            int fila = 3;</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">            for (FilaSondaje s : r.sondajes()) {</span>
+<span class="fc" id="L54">                Row row = hoja.createRow(fila++);</span>
+<span class="fc" id="L55">                texto(row, 0, s.codigo(), null);</span>
+<span class="fc" id="L56">                numero(row, 1, s.perforado(), metros);</span>
+<span class="fc" id="L57">                numero(row, 2, s.logueado(), metros);</span>
+<span class="fc" id="L58">                row.createCell(3).setCellValue(s.cajas());</span>
+<span class="fc" id="L59">                row.createCell(4).setCellValue(s.muestras());</span>
+<span class="fc" id="L60">            }</span>
+
+<span class="fc" id="L62">            Row total = hoja.createRow(fila);</span>
+<span class="fc" id="L63">            texto(total, 0, &quot;Total&quot;, negrita);</span>
+<span class="fc" id="L64">            numero(total, 1, r.totalPerforado(), metros);</span>
+<span class="fc" id="L65">            numero(total, 2, r.totalLogueado(), metros);</span>
+<span class="fc" id="L66">            total.createCell(3).setCellValue(r.totalCajas());</span>
+<span class="fc" id="L67">            total.createCell(4).setCellValue(r.totalMuestras());</span>
+
+<span class="fc bfc" id="L69" title="All 2 branches covered.">            for (int i = 0; i &lt; CABECERA.length; i++) {</span>
+<span class="fc" id="L70">                hoja.autoSizeColumn(i);</span>
+            }
+<span class="fc" id="L72">            libro.write(salida);</span>
+<span class="fc" id="L73">            return salida.toByteArray();</span>
+        }
+    }
+
+    private static void texto(Row fila, int col, String valor, CellStyle estilo) {
+<span class="fc" id="L78">        Cell c = fila.createCell(col);</span>
+<span class="fc" id="L79">        c.setCellValue(valor);</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">        if (estilo != null) {</span>
+<span class="fc" id="L81">            c.setCellStyle(estilo);</span>
+        }
+<span class="fc" id="L83">    }</span>
+
+    private static void numero(Row fila, int col, BigDecimal valor, CellStyle estilo) {
+<span class="fc" id="L86">        Cell c = fila.createCell(col);</span>
+<span class="fc" id="L87">        c.setCellValue(valor.doubleValue());</span>
+<span class="fc" id="L88">        c.setCellStyle(estilo);</span>
+<span class="fc" id="L89">    }</span>
+
+    private static CellStyle estiloNegrita(XSSFWorkbook libro) {
+<span class="fc" id="L92">        Font f = libro.createFont();</span>
+<span class="fc" id="L93">        f.setBold(true);</span>
+<span class="fc" id="L94">        CellStyle s = libro.createCellStyle();</span>
+<span class="fc" id="L95">        s.setFont(f);</span>
+<span class="fc" id="L96">        s.setBorderBottom(BorderStyle.THIN);</span>
+<span class="fc" id="L97">        return s;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

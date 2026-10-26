@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UsuarioController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.controllers</a> &gt; <span class="el_source">UsuarioController.java</span></div><h1>UsuarioController.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.controllers;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.boulder.boulder.dto.UsuarioDTO;
+import com.boulder.boulder.services.UsuarioService;
+
+/**
+ * Controlador REST para la administración de usuarios, perfiles y estados de cuenta.
+ *
+ * &lt;p&gt;
+ * Todo el controlador es exclusivo del rol ADMIN. La regla vive además en
+ * {@code SecurityConfig} para {@code /api/base/**}; la anotación la repite aquí
+ * para que la intención quede escrita junto al código que protege y siga en pie
+ * si algún día cambia la configuración de rutas.
+ * &lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@RestController
+@RequestMapping(&quot;/api/base/usuarios&quot;)
+@PreAuthorize(&quot;hasRole('ADMIN')&quot;)
+<span class="fc" id="L42">public class UsuarioController {</span>
+
+<span class="fc" id="L44">    private static final Logger log = LoggerFactory.getLogger(UsuarioController.class);</span>
+
+    @Autowired
+    private UsuarioService usuarioService;
+
+    @GetMapping
+    public ResponseEntity&lt;List&lt;UsuarioDTO&gt;&gt; listarTodos() {
+<span class="fc" id="L51">        log.info(&quot;HTTP GET - Solicitud de listado de usuarios del sistema&quot;);</span>
+<span class="fc" id="L52">        return ResponseEntity.ok(usuarioService.listarTodos());</span>
+    }
+
+    @GetMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;UsuarioDTO&gt; obtenerPorId(@PathVariable UUID id) {
+<span class="nc" id="L57">        log.info(&quot;HTTP GET - Buscando cuenta de usuario ID: {}&quot;, id);</span>
+<span class="nc" id="L58">        return ResponseEntity.ok(usuarioService.obtenerPorId(id));</span>
+    }
+
+    @GetMapping(&quot;/username/{username}&quot;)
+    public ResponseEntity&lt;UsuarioDTO&gt; obtenerPorUsuario(@PathVariable String username) {
+<span class="nc" id="L63">        log.info(&quot;HTTP GET - Consultando perfil operacional del identificador: {}&quot;, username);</span>
+<span class="nc" id="L64">        return ResponseEntity.ok(usuarioService.obtenerPorUsuario(username));</span>
+    }
+
+    @PostMapping
+    public ResponseEntity&lt;UsuarioDTO&gt; guardar(@RequestBody UsuarioDTO dto) {
+<span class="nc" id="L69">        log.info(&quot;HTTP POST - Solicitud de alta para el nuevo usuario: {}&quot;, dto.getUsuario());</span>
+<span class="nc" id="L70">        UsuarioDTO guardado = usuarioService.guardar(dto);</span>
+<span class="nc" id="L71">        return new ResponseEntity&lt;&gt;(guardado, HttpStatus.CREATED);</span>
+    }
+
+    @PutMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;UsuarioDTO&gt; actualizar(@PathVariable UUID id, @RequestBody UsuarioDTO dto) {
+<span class="nc" id="L76">        log.info(&quot;HTTP PUT - Modificando ficha de datos personales del usuario ID: {}&quot;, id);</span>
+<span class="nc" id="L77">        return ResponseEntity.ok(usuarioService.actualizar(id, dto));</span>
+    }
+
+    /**
+     * Reemplaza el conjunto completo de roles del usuario.
+     *
+     * &lt;p&gt;
+     * El cuerpo es la lista de códigos tal como están en {@code base.rol.codigo}
+     * ({@code [&quot;ADMIN&quot;,&quot;GEOLOGO&quot;]}), sin el prefijo {@code ROLE_}. Una lista vacía
+     * revoca todos los roles.
+     * &lt;/p&gt;
+     *
+     * &lt;p&gt;
+     * Los cambios no alcanzan a los tokens ya emitidos: el usuario afectado
+     * conserva sus permisos anteriores hasta que vuelve a iniciar sesión.
+     * &lt;/p&gt;
+     */
+    @PutMapping(&quot;/{id}/roles&quot;)
+    public ResponseEntity&lt;UsuarioDTO&gt; asignarRoles(@PathVariable UUID id, @RequestBody List&lt;String&gt; codigos) {
+<span class="nc" id="L96">        log.warn(&quot;HTTP PUT - Reasignando roles del usuario ID: {} -&gt; {}&quot;, id, codigos);</span>
+<span class="nc" id="L97">        return ResponseEntity.ok(usuarioService.asignarRoles(id, codigos));</span>
+    }
+
+    /**
+     * Endpoint atómico para activar o suspender una cuenta de usuario de forma rápida.
+     */
+    @PatchMapping(&quot;/{id}/estado&quot;)
+    public ResponseEntity&lt;Void&gt; cambiarEstado(@PathVariable UUID id, @RequestParam boolean activo) {
+<span class="nc" id="L105">        log.warn(&quot;HTTP PATCH - Modificando disponibilidad de acceso para el usuario ID: {} -&gt; activo: {}&quot;, id, activo);</span>
+<span class="nc" id="L106">        usuarioService.cambiarEstado(id, activo);</span>
+<span class="nc" id="L107">        return ResponseEntity.noContent().build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AvanceOperativo.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.entities</a> &gt; <span class="el_source">AvanceOperativo.java</span></div><h1>AvanceOperativo.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.entities;
+
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.UUID;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MappedSuperclass;
+
+import org.hibernate.annotations.Generated;
+
+import lombok.Getter;
+import lombok.Setter;
+
+/**
+ * Cabecera común a todos los partes de avance operativo (UC16 a UC20).
+ *
+ * &lt;p&gt;
+ * Las siete tablas del flujo posterior a la perforación —logueo, recepción de
+ * cajas, fotografía, corte geoquímico, muestreo, corte de densidad y estufa—
+ * comparten exactamente los mismos ocho campos de cabecera. Se declaran una
+ * sola vez aquí para que un cambio en el criterio de identificación del parte
+ * no haya que replicarlo siete veces.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;
+ * El sondaje se puede indicar por relación o por código suelto. No es un
+ * descuido: el {@code CHECK} de cada tabla exige uno de los dos, y hay partes
+ * legítimos que no corresponden a un único sondaje —un lote de estufa que
+ * mezcla testigos de varios se registra con el código {@code VARIOS} y sin
+ * relación.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;
+ * Se usa {@code @Getter}/{@code @Setter} en vez de {@code @Data} a propósito:
+ * el {@code toString()} que genera {@code @Data} recorre {@link #sondaje}, que
+ * es perezoso, y revienta con {@code LazyInitializationException} en cuanto
+ * alguien loguea la entidad fuera de la transacción.
+ * &lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@MappedSuperclass
+@Getter
+@Setter
+<span class="fc" id="L54">public abstract class AvanceOperativo implements Serializable {</span>
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    /** Correlativo legible que asigna la secuencia de la tabla; la base manda. */
+    @Generated
+    @Column(name = &quot;numero_interno&quot;, insertable = false, updatable = false)
+    private Integer numeroInterno;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;sondaje_id&quot;)
+    private Sondaje sondaje;
+
+    @Column(name = &quot;sondaje_codigo&quot;, length = 30)
+    private String sondajeCodigo;
+
+    @Column(nullable = false)
+    private LocalDate fecha;
+
+    @Column(length = 10)
+    private String turno;
+
+<span class="fc" id="L78">    @Column(length = 20, nullable = false)</span>
+    private String estado = &quot;registrado&quot;;
+
+    @Column(columnDefinition = &quot;TEXT&quot;)
+    private String observaciones;
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AvanceLogueo.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.entities</a> &gt; <span class="el_source">AvanceLogueo.java</span></div><h1>AvanceLogueo.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.entities;
+
+import java.math.BigDecimal;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+/**
+ * Parte diario de avance de logueo (UC16).
+ *
+ * &lt;p&gt;
+ * Registra el tramo de testigo descrito por el geólogo en un turno, separado
+ * por tipo de logueo: un mismo sondaje puede llevar el geológico en 175 m y el
+ * estructural en 204 m, y son frentes independientes.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;Se persiste en la tabla {@code operacional.log_avance}.&lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@Entity
+@Table(name = &quot;log_avance&quot;, schema = &quot;operacional&quot;)
+@Getter
+@Setter
+<span class="fc" id="L30">public class AvanceLogueo extends AvanceOperativo {</span>
+
+    /** geologico | geotecnico | estructural | rapido (lo restringe un CHECK). */
+    @Column(name = &quot;tipo_logueo&quot;, length = 20, nullable = false)
+    private String tipoLogueo;
+
+    @Column(nullable = false, precision = 9, scale = 2)
+    private BigDecimal desde;
+
+    @Column(nullable = false, precision = 9, scale = 2)
+    private BigDecimal hasta;
+
+    @Column(nullable = false, precision = 9, scale = 2)
+    private BigDecimal avance;
+
+    @Column(length = 80)
+    private String geologo;
+
+    @Column(name = &quot;pct_completado&quot;, precision = 5, scale = 2)
+    private BigDecimal pctCompletado;
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

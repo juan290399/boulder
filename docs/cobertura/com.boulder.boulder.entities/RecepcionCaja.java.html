@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RecepcionCaja.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.entities</a> &gt; <span class="el_source">RecepcionCaja.java</span></div><h1>RecepcionCaja.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.entities;
+
+import java.math.BigDecimal;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+/**
+ * Recepción de cajas de campo en el almacén de testigos (apoyo a UC16).
+ *
+ * &lt;p&gt;
+ * Es el eslabón entre la perforación y el logueo: hasta que las cajas no se
+ * reciben y se contrastan sus marcas de profundidad, el geólogo no tiene qué
+ * describir. El metraje recibido casi nunca coincide con el perforado, y esa
+ * diferencia es justamente lo que el parte deja registrado.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;Se persiste en la tabla {@code operacional.log_recepcion_caja}.&lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@Entity
+@Table(name = &quot;log_recepcion_caja&quot;, schema = &quot;operacional&quot;)
+@Getter
+@Setter
+<span class="fc" id="L31">public class RecepcionCaja extends AvanceOperativo {</span>
+
+    @Column(length = 80)
+    private String responsable;
+
+    @Column(name = &quot;box_desde&quot;)
+    private Integer boxDesde;
+
+    @Column(name = &quot;box_hasta&quot;)
+    private Integer boxHasta;
+
+    @Column(name = &quot;total_cajas&quot;)
+    private Integer totalCajas;
+
+    @Column(name = &quot;marcado_desde&quot;, precision = 9, scale = 2)
+    private BigDecimal marcadoDesde;
+
+    @Column(name = &quot;marcado_hasta&quot;, precision = 9, scale = 2)
+    private BigDecimal marcadoHasta;
+
+    @Column(name = &quot;total_metraje&quot;, precision = 9, scale = 2)
+    private BigDecimal totalMetraje;
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

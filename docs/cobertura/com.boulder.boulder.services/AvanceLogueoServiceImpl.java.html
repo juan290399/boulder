@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AvanceLogueoServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.services</a> &gt; <span class="el_source">AvanceLogueoServiceImpl.java</span></div><h1>AvanceLogueoServiceImpl.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.services;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.boulder.boulder.dominio.Revision;
+import com.boulder.boulder.dto.AvanceLogueoDTO;
+import com.boulder.boulder.entities.AvanceLogueo;
+import com.boulder.boulder.repositories.AvanceLogueoRepository;
+import com.boulder.boulder.repositories.AvanceOperativoRepository;
+
+/**
+ * Implementacion de los servicios de partes de avance de logueo (UC16).
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@Service
+<span class="fc" id="L20">public class AvanceLogueoServiceImpl</span>
+        extends AvanceOperativoServiceBase&lt;AvanceLogueo, AvanceLogueoDTO&gt;
+        implements AvanceLogueoService {
+
+    @Autowired
+    private AvanceLogueoRepository repository;
+
+    @Override
+    protected AvanceOperativoRepository&lt;AvanceLogueo&gt; repositorio() {
+<span class="fc" id="L29">        return repository;</span>
+    }
+
+    @Override
+    protected AvanceLogueo nuevaEntidad() {
+<span class="nc" id="L34">        return new AvanceLogueo();</span>
+    }
+
+    @Override
+    protected AvanceLogueoDTO nuevoDto() {
+<span class="fc" id="L39">        return new AvanceLogueoDTO();</span>
+    }
+
+    @Override
+    protected String nombreParte() {
+<span class="fc" id="L44">        return &quot;avance de logueo&quot;;</span>
+    }
+
+    @Override
+    protected void aplicarDetalle(AvanceLogueoDTO dto, AvanceLogueo entidad) {
+<span class="nc" id="L49">        entidad.setTipoLogueo(dto.getTipoLogueo());</span>
+<span class="nc" id="L50">        entidad.setDesde(dto.getDesde());</span>
+<span class="nc" id="L51">        entidad.setHasta(dto.getHasta());</span>
+<span class="nc" id="L52">        entidad.setAvance(dto.getAvance());</span>
+<span class="nc" id="L53">        entidad.setGeologo(dto.getGeologo());</span>
+<span class="nc" id="L54">        entidad.setPctCompletado(dto.getPctCompletado());</span>
+<span class="nc" id="L55">    }</span>
+
+    @Override
+    protected void revisar(AvanceLogueoDTO dto, Revision revision) {
+<span class="fc" id="L59">        revision.opcion(&quot;tipo_logueo&quot;, dto.getTipoLogueo(), &quot;geologico&quot;, &quot;geotecnico&quot;, &quot;estructural&quot;, &quot;rapido&quot;)</span>
+<span class="fc" id="L60">                .tramo(&quot;tramo&quot;, dto.getDesde(), dto.getHasta())</span>
+<span class="fc" id="L61">                .avance(dto.getDesde(), dto.getHasta(), dto.getAvance())</span>
+<span class="fc" id="L62">                .porcentaje(&quot;pct_completado&quot;, dto.getPctCompletado());</span>
+<span class="fc" id="L63">    }</span>
+
+    @Override
+    protected void volcarDetalle(AvanceLogueo entidad, AvanceLogueoDTO dto) {
+<span class="fc" id="L67">        dto.setTipoLogueo(entidad.getTipoLogueo());</span>
+<span class="fc" id="L68">        dto.setDesde(entidad.getDesde());</span>
+<span class="fc" id="L69">        dto.setHasta(entidad.getHasta());</span>
+<span class="fc" id="L70">        dto.setAvance(entidad.getAvance());</span>
+<span class="fc" id="L71">        dto.setGeologo(entidad.getGeologo());</span>
+<span class="fc" id="L72">        dto.setPctCompletado(entidad.getPctCompletado());</span>
+<span class="fc" id="L73">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

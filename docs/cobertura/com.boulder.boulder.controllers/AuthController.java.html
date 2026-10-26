@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.controllers</a> &gt; <span class="el_source">AuthController.java</span></div><h1>AuthController.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.controllers;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.boulder.boulder.dto.RegistroDTO;
+import com.boulder.boulder.dto.UsuarioDTO;
+import com.boulder.boulder.services.UsuarioService;
+
+import jakarta.validation.Valid;
+
+/**
+ * Controlador REST para las operaciones públicas de autenticación.
+ *
+ * &lt;p&gt;
+ * El inicio de sesión ({@code POST /api/auth/login}) no se declara aquí: lo
+ * atiende {@link com.boulder.boulder.config.JwtAuthenticationFilter} a nivel de
+ * filtro de Spring Security. Este controlador solo cubre el auto-registro.
+ * &lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@RestController
+@RequestMapping(&quot;/api/auth&quot;)
+<span class="fc" id="L34">public class AuthController {</span>
+
+<span class="fc" id="L36">    private static final Logger log = LoggerFactory.getLogger(AuthController.class);</span>
+
+    @Autowired
+    private UsuarioService usuarioService;
+
+    /**
+     * Auto-registro público. La cuenta se crea inactiva y sin roles; hasta que un
+     * administrador la habilite, el login responderá &quot;usuario inactivo&quot;.
+     */
+    @PostMapping(&quot;/register&quot;)
+    public ResponseEntity&lt;UsuarioDTO&gt; registrar(@Valid @RequestBody RegistroDTO dto) {
+<span class="nc" id="L47">        log.info(&quot;HTTP POST - Auto-registro de la cuenta: {}&quot;, dto.getUsuario());</span>
+<span class="nc" id="L48">        return new ResponseEntity&lt;&gt;(usuarioService.registrar(dto), HttpStatus.CREATED);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

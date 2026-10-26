@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AvanceDensidadServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.services</a> &gt; <span class="el_source">AvanceDensidadServiceImpl.java</span></div><h1>AvanceDensidadServiceImpl.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.services;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.boulder.boulder.dominio.Revision;
+import com.boulder.boulder.dto.AvanceDensidadDTO;
+import com.boulder.boulder.entities.AvanceDensidad;
+import com.boulder.boulder.repositories.AvanceDensidadRepository;
+import com.boulder.boulder.repositories.AvanceOperativoRepository;
+
+/**
+ * Implementacion de los servicios de estufa y calculo de densidad (UC20).
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@Service
+<span class="fc" id="L20">public class AvanceDensidadServiceImpl</span>
+        extends AvanceOperativoServiceBase&lt;AvanceDensidad, AvanceDensidadDTO&gt;
+        implements AvanceDensidadService {
+
+    @Autowired
+    private AvanceDensidadRepository repository;
+
+    @Override
+    protected AvanceOperativoRepository&lt;AvanceDensidad&gt; repositorio() {
+<span class="fc" id="L29">        return repository;</span>
+    }
+
+    @Override
+    protected AvanceDensidad nuevaEntidad() {
+<span class="nc" id="L34">        return new AvanceDensidad();</span>
+    }
+
+    @Override
+    protected AvanceDensidadDTO nuevoDto() {
+<span class="fc" id="L39">        return new AvanceDensidadDTO();</span>
+    }
+
+    @Override
+    protected String nombreParte() {
+<span class="fc" id="L44">        return &quot;estufa de densidad&quot;;</span>
+    }
+
+    @Override
+    protected void aplicarDetalle(AvanceDensidadDTO dto, AvanceDensidad entidad) {
+<span class="nc" id="L49">        entidad.setResponsable(dto.getResponsable());</span>
+<span class="nc" id="L50">        entidad.setEtapa(dto.getEtapa());</span>
+<span class="nc" id="L51">        entidad.setNroMuestras(dto.getNroMuestras());</span>
+<span class="nc" id="L52">        entidad.setTemperaturaC(dto.getTemperaturaC());</span>
+<span class="nc" id="L53">        entidad.setTipoLinea(dto.getTipoLinea());</span>
+<span class="nc" id="L54">        entidad.setDesde(dto.getDesde());</span>
+<span class="nc" id="L55">        entidad.setHasta(dto.getHasta());</span>
+<span class="nc" id="L56">    }</span>
+
+    @Override
+    protected void revisar(AvanceDensidadDTO dto, Revision revision) {
+<span class="fc" id="L60">        revision.opcion(&quot;etapa&quot;, dto.getEtapa(), &quot;corte&quot;, &quot;secado_1&quot;, &quot;secado_2&quot;, &quot;pesado&quot;, &quot;calculo&quot;)</span>
+<span class="fc" id="L61">                .tramo(&quot;tramo&quot;, dto.getDesde(), dto.getHasta());</span>
+<span class="fc" id="L62">    }</span>
+
+    @Override
+    protected void volcarDetalle(AvanceDensidad entidad, AvanceDensidadDTO dto) {
+<span class="fc" id="L66">        dto.setResponsable(entidad.getResponsable());</span>
+<span class="fc" id="L67">        dto.setEtapa(entidad.getEtapa());</span>
+<span class="fc" id="L68">        dto.setNroMuestras(entidad.getNroMuestras());</span>
+<span class="fc" id="L69">        dto.setTemperaturaC(entidad.getTemperaturaC());</span>
+<span class="fc" id="L70">        dto.setTipoLinea(entidad.getTipoLinea());</span>
+<span class="fc" id="L71">        dto.setDesde(entidad.getDesde());</span>
+<span class="fc" id="L72">        dto.setHasta(entidad.getHasta());</span>
+<span class="fc" id="L73">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

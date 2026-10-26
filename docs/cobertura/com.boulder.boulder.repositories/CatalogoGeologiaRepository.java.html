@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CatalogoGeologiaRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.repositories</a> &gt; <span class="el_source">CatalogoGeologiaRepository.java</span></div><h1>CatalogoGeologiaRepository.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.repositories;
+
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import com.boulder.boulder.dto.CatalogoGeologiaDTO;
+
+/**
+ * Lee de una vez los veintiún diccionarios del esquema {@code geologia}.
+ *
+ * &lt;p&gt;&lt;b&gt;Por qué no son veintiuna entidades JPA.&lt;/b&gt; Serían veintiuna clases,
+ * veintiún repositorios y veintiún servicios para describir lo mismo: cuatro
+ * columnas iguales y tres opcionales. El cliente las consume aplanadas en una
+ * sola tabla, así que mapearlas una a una solo serviría para volver a juntarlas
+ * después.&lt;/p&gt;
+ *
+ * &lt;p&gt;&lt;b&gt;Por qué la consulta se construye sola.&lt;/b&gt; La lista de catálogos crece:
+ * en septiembre de 2026 entraron seis de golpe (los {@code est_*}). Si estuviera
+ * escrita a mano, añadir el vigésimo segundo obligaría a acordarse de tocar esto,
+ * y el síntoma sería un botón vacío en el tablet, sin error en ningún log. Se
+ * toma del propio catálogo de PostgreSQL: &lt;em&gt;toda tabla base de
+ * {@code geologia} es un diccionario&lt;/em&gt;, y de cada una se mira cuáles de las
+ * tres columnas opcionales tiene.&lt;/p&gt;
+ *
+ * &lt;p&gt;Las vistas quedan fuera por el filtro {@code BASE TABLE}: {@code geologia}
+ * tiene además tres {@code vw_mm_paleta_*} para exportar a Micromine, que no son
+ * catálogos.&lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@Repository
+<span class="fc" id="L50">public class CatalogoGeologiaRepository {</span>
+
+    private static final String ESQUEMA = &quot;geologia&quot;;
+
+    /** Columnas obligatorias, las que definen lo que es un catálogo. */
+    private static final String COLUMNAS_BASE = &quot;id, numero_interno, codigo, nombre&quot;;
+
+    @Autowired
+    private JdbcTemplate jdbc;
+
+    public List&lt;CatalogoGeologiaDTO&gt; listarTodos() {
+<span class="fc" id="L61">        String sql = construirConsulta(inventariarColumnas());</span>
+
+<span class="fc" id="L63">        return jdbc.query(sql, (rs, fila) -&gt; {</span>
+<span class="fc" id="L64">            CatalogoGeologiaDTO dto = new CatalogoGeologiaDTO();</span>
+<span class="fc" id="L65">            dto.setId((java.util.UUID) rs.getObject(&quot;id&quot;));</span>
+<span class="fc" id="L66">            dto.setTipo(rs.getString(&quot;tipo&quot;));</span>
+<span class="fc" id="L67">            dto.setCodigo(rs.getString(&quot;codigo&quot;));</span>
+<span class="fc" id="L68">            dto.setNombre(rs.getString(&quot;nombre&quot;));</span>
+<span class="fc" id="L69">            dto.setGrupoId((java.util.UUID) rs.getObject(&quot;grupo_id&quot;));</span>
+<span class="fc" id="L70">            dto.setColorR(leerShort(rs, &quot;color_r&quot;));</span>
+<span class="fc" id="L71">            dto.setColorG(leerShort(rs, &quot;color_g&quot;));</span>
+<span class="fc" id="L72">            dto.setColorB(leerShort(rs, &quot;color_b&quot;));</span>
+<span class="fc" id="L73">            dto.setNumeroInterno((Integer) rs.getObject(&quot;numero_interno&quot;));</span>
+<span class="fc" id="L74">            dto.setEstaActivo(rs.getBoolean(&quot;esta_activo&quot;));</span>
+<span class="fc" id="L75">            return dto;</span>
+        });
+    }
+
+    /** {@code null} y no cero: la ausencia de color hay que poder distinguirla del negro. */
+    private Short leerShort(java.sql.ResultSet rs, String columna) throws java.sql.SQLException {
+<span class="fc" id="L81">        short valor = rs.getShort(columna);</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">        return rs.wasNull() ? null : valor;</span>
+    }
+
+    /** Qué columnas tiene de verdad cada tabla base de {@code geologia}. */
+    private Map&lt;String, Set&lt;String&gt;&gt; inventariarColumnas() {
+<span class="fc" id="L87">        Map&lt;String, Set&lt;String&gt;&gt; porTabla = new LinkedHashMap&lt;&gt;();</span>
+
+<span class="fc" id="L89">        jdbc.query(</span>
+            &quot;SELECT c.table_name, c.column_name &quot;
+          + &quot;  FROM information_schema.columns c &quot;
+          + &quot;  JOIN information_schema.tables t &quot;
+          + &quot;    ON t.table_schema = c.table_schema AND t.table_name = c.table_name &quot;
+          + &quot; WHERE c.table_schema = ? AND t.table_type = 'BASE TABLE' &quot;
+          + &quot; ORDER BY c.table_name&quot;,
+            rs -&gt; {
+<span class="fc" id="L97">                porTabla.computeIfAbsent(rs.getString(&quot;table_name&quot;), t -&gt; new TreeSet&lt;&gt;())</span>
+<span class="fc" id="L98">                        .add(rs.getString(&quot;column_name&quot;));</span>
+<span class="fc" id="L99">            },</span>
+            ESQUEMA);
+
+<span class="fc" id="L102">        return porTabla;</span>
+    }
+
+    private String construirConsulta(Map&lt;String, Set&lt;String&gt;&gt; porTabla) {
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">        if (porTabla.isEmpty()) {</span>
+<span class="nc" id="L107">            throw new IllegalStateException(</span>
+                &quot;El esquema '&quot; + ESQUEMA + &quot;' no tiene ninguna tabla de catálogo.&quot;);
+        }
+
+<span class="fc" id="L111">        List&lt;String&gt; partes = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">        for (Map.Entry&lt;String, Set&lt;String&gt;&gt; entrada : porTabla.entrySet()) {</span>
+<span class="fc" id="L113">            String tabla = entrada.getKey();</span>
+<span class="fc" id="L114">            Set&lt;String&gt; columnas = entrada.getValue();</span>
+
+            // Los nombres salen del catálogo de PostgreSQL, no de la petición,
+            // asi que no hay nada que parametrizar aquí.
+<span class="fc" id="L118">            partes.add(</span>
+                &quot;SELECT &quot; + COLUMNAS_BASE
+              // `codigo` es character(N) en varias tablas y llega con relleno a
+              // la derecha. El cliente lo pinta tal cual en el botón.
+              + &quot; , trim(codigo) AS codigo_limpio&quot;
+              + &quot; , '&quot; + tabla + &quot;'::text AS tipo&quot;
+<span class="fc" id="L124">              + opcional(columnas, &quot;grupo_id&quot;, &quot;uuid&quot;)</span>
+<span class="fc" id="L125">              + opcional(columnas, &quot;color_r&quot;, &quot;smallint&quot;)</span>
+<span class="fc" id="L126">              + opcional(columnas, &quot;color_g&quot;, &quot;smallint&quot;)</span>
+<span class="fc" id="L127">              + opcional(columnas, &quot;color_b&quot;, &quot;smallint&quot;)</span>
+<span class="fc bfc" id="L128" title="All 2 branches covered.">              + (columnas.contains(&quot;esta_activo&quot;)</span>
+<span class="fc" id="L129">                    ? &quot; , esta_activo&quot;</span>
+<span class="fc" id="L130">                    : &quot; , true AS esta_activo&quot;)</span>
+              + &quot; FROM &quot; + ESQUEMA + &quot;.&quot; + tabla);
+<span class="fc" id="L132">        }</span>
+
+        // El SELECT exterior se queda con el `codigo` ya recortado y descarta el
+        // original; hacerlo dentro obligaria a repetir el trim en cada rama.
+<span class="fc" id="L136">        return &quot;SELECT id, tipo, codigo_limpio AS codigo, nombre, grupo_id,&quot;</span>
+             + &quot; color_r, color_g, color_b, numero_interno, esta_activo&quot;
+<span class="fc" id="L138">             + &quot; FROM (&quot; + String.join(&quot; UNION ALL &quot;, partes) + &quot;) c&quot;</span>
+             + &quot; ORDER BY tipo, numero_interno&quot;;
+    }
+
+    private String opcional(Set&lt;String&gt; columnas, String columna, String tipo) {
+<span class="fc bfc" id="L143" title="All 2 branches covered.">        return columnas.contains(columna)</span>
+<span class="fc" id="L144">            ? &quot; , &quot; + columna</span>
+<span class="fc" id="L145">            : &quot; , NULL::&quot; + tipo + &quot; AS &quot; + columna;</span>
+    }
+
+    /**
+     * Forma de un catálogo: qué columnas opcionales tiene y cuántos caracteres
+     * admite su código.
+     *
+     * @param columnas    las opcionales presentes ({@code grupo_id}, {@code color_r}, ...)
+     * @param largoCodigo largo máximo de la columna {@code codigo}
+     */
+<span class="fc" id="L155">    public record Estructura(Set&lt;String&gt; columnas, int largoCodigo) {</span>
+
+        public boolean tiene(String columna) {
+<span class="fc" id="L158">            return columnas.contains(columna);</span>
+        }
+    }
+
+    /**
+     * La estructura se lee del catálogo de PostgreSQL y se guarda cinco minutos
+     * (Guava {@code Suppliers.memoizeWithExpiration}): cambia solo cuando se
+     * agrega una tabla con un script, y consultarla en cada escritura sería
+     * trabajo repetido.
+     */
+<span class="fc" id="L168">    private final Supplier&lt;Map&lt;String, Estructura&gt;&gt; estructura =</span>
+<span class="fc" id="L169">            Suppliers.memoizeWithExpiration(this::leerEstructura, Duration.ofMinutes(5));</span>
+
+    /** Catálogos existentes y su forma. Es también la lista blanca de nombres de tabla. */
+    public Map&lt;String, Estructura&gt; estructura() {
+<span class="fc" id="L173">        return estructura.get();</span>
+    }
+
+    private Map&lt;String, Estructura&gt; leerEstructura() {
+<span class="fc" id="L177">        Map&lt;String, Set&lt;String&gt;&gt; columnas = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L178">        Map&lt;String, Integer&gt; largo = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L179">        jdbc.query(</span>
+            &quot;SELECT c.table_name, c.column_name, c.character_maximum_length &quot;
+          + &quot;  FROM information_schema.columns c &quot;
+          + &quot;  JOIN information_schema.tables t &quot;
+          + &quot;    ON t.table_schema = c.table_schema AND t.table_name = c.table_name &quot;
+          + &quot; WHERE c.table_schema = ? AND t.table_type = 'BASE TABLE'&quot;,
+            rs -&gt; {
+<span class="fc" id="L186">                String tabla = rs.getString(&quot;table_name&quot;);</span>
+<span class="fc" id="L187">                String columna = rs.getString(&quot;column_name&quot;);</span>
+<span class="fc" id="L188">                columnas.computeIfAbsent(tabla, t -&gt; new TreeSet&lt;&gt;()).add(columna);</span>
+<span class="fc bfc" id="L189" title="All 2 branches covered.">                if (&quot;codigo&quot;.equals(columna)) {</span>
+<span class="fc" id="L190">                    largo.put(tabla, rs.getInt(&quot;character_maximum_length&quot;));</span>
+                }
+<span class="fc" id="L192">            },</span>
+            ESQUEMA);
+<span class="fc" id="L194">        ImmutableMap.Builder&lt;String, Estructura&gt; r = ImmutableMap.builder();</span>
+<span class="fc" id="L195">        columnas.forEach((tabla, cols) -&gt; r.put(tabla, new Estructura(ImmutableSet.copyOf(cols),</span>
+<span class="fc" id="L196">                largo.getOrDefault(tabla, 0))));</span>
+<span class="fc" id="L197">        return r.build();</span>
+    }
+
+    /**
+     * Inserta una entrada. El nombre de la tabla se valida contra
+     * {@link #estructura()} (nunca se concatena texto que no salga de ahí) y todos
+     * los valores van como parámetros.
+     *
+     * @return el identificador que asignó la base
+     */
+    public UUID insertar(String tipo, CatalogoGeologiaDTO datos) {
+<span class="fc" id="L208">        Estructura e = exigir(tipo);</span>
+<span class="fc" id="L209">        List&lt;String&gt; cols = new ArrayList&lt;&gt;(List.of(&quot;codigo&quot;, &quot;nombre&quot;));</span>
+<span class="fc" id="L210">        List&lt;Object&gt; valores = new ArrayList&lt;&gt;(List.of(datos.getCodigo(), datos.getNombre()));</span>
+<span class="fc" id="L211">        agregarOpcionales(e, datos, cols, valores);</span>
+<span class="fc" id="L212">        String sql = &quot;INSERT INTO &quot; + ESQUEMA + &quot;.&quot; + tipo + &quot; (&quot; + String.join(&quot;, &quot;, cols) + &quot;) VALUES (&quot;</span>
+<span class="fc" id="L213">                + String.join(&quot;, &quot;, java.util.Collections.nCopies(cols.size(), &quot;?&quot;)) + &quot;) RETURNING id&quot;;</span>
+<span class="fc" id="L214">        return jdbc.queryForObject(sql, UUID.class, valores.toArray());</span>
+    }
+
+    /** @return filas afectadas: 0 si el identificador no existe en ese catálogo */
+    public int actualizar(String tipo, UUID id, CatalogoGeologiaDTO datos) {
+<span class="nc" id="L219">        Estructura e = exigir(tipo);</span>
+<span class="nc" id="L220">        List&lt;String&gt; cols = new ArrayList&lt;&gt;(List.of(&quot;codigo&quot;, &quot;nombre&quot;));</span>
+<span class="nc" id="L221">        List&lt;Object&gt; valores = new ArrayList&lt;&gt;(List.of(datos.getCodigo(), datos.getNombre()));</span>
+<span class="nc" id="L222">        agregarOpcionales(e, datos, cols, valores);</span>
+<span class="nc" id="L223">        valores.add(id);</span>
+<span class="nc" id="L224">        String sql = &quot;UPDATE &quot; + ESQUEMA + &quot;.&quot; + tipo + &quot; SET &quot;</span>
+<span class="nc" id="L225">                + String.join(&quot;, &quot;, cols.stream().map(c -&gt; c + &quot; = ?&quot;).toList()) + &quot; WHERE id = ?&quot;;</span>
+<span class="nc" id="L226">        return jdbc.update(sql, valores.toArray());</span>
+    }
+
+    /** @return filas afectadas: 0 si el identificador no existe en ese catálogo */
+    public int cambiarEstado(String tipo, UUID id, boolean activo) {
+<span class="fc" id="L231">        Estructura e = exigir(tipo);</span>
+<span class="fc" id="L232">        Preconditions.checkState(e.tiene(&quot;esta_activo&quot;), &quot;El catálogo %s no admite desactivación&quot;, tipo);</span>
+<span class="fc" id="L233">        return jdbc.update(&quot;UPDATE &quot; + ESQUEMA + &quot;.&quot; + tipo + &quot; SET esta_activo = ? WHERE id = ?&quot;, activo, id);</span>
+    }
+
+    private Estructura exigir(String tipo) {
+<span class="fc" id="L237">        Estructura e = estructura().get(tipo);</span>
+<span class="fc bfc" id="L238" title="All 2 branches covered.">        if (e == null) {</span>
+<span class="fc" id="L239">            throw new IllegalArgumentException(&quot;Catálogo desconocido: &quot; + tipo);</span>
+        }
+<span class="fc" id="L241">        return e;</span>
+    }
+
+    private static void agregarOpcionales(Estructura e, CatalogoGeologiaDTO d, List&lt;String&gt; cols, List&lt;Object&gt; valores) {
+<span class="pc bpc" id="L245" title="1 of 2 branches missed.">        if (e.tiene(&quot;grupo_id&quot;)) {</span>
+<span class="fc" id="L246">            cols.add(&quot;grupo_id&quot;);</span>
+<span class="fc" id="L247">            valores.add(d.getGrupoId());</span>
+        }
+<span class="pc bpc" id="L249" title="1 of 2 branches missed.">        if (e.tiene(&quot;color_r&quot;)) {</span>
+<span class="fc" id="L250">            cols.addAll(List.of(&quot;color_r&quot;, &quot;color_g&quot;, &quot;color_b&quot;));</span>
+<span class="fc" id="L251">            valores.add(d.getColorR());</span>
+<span class="fc" id="L252">            valores.add(d.getColorG());</span>
+<span class="fc" id="L253">            valores.add(d.getColorB());</span>
+        }
+<span class="fc" id="L255">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

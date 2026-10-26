@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AvanceDensidad.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.entities</a> &gt; <span class="el_source">AvanceDensidad.java</span></div><h1>AvanceDensidad.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.entities;
+
+import java.math.BigDecimal;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+/**
+ * Parte de procesamiento de densidad en estufa (UC20).
+ *
+ * &lt;p&gt;
+ * El ensayo pasa por cinco etapas encadenadas —corte, dos secados, pesado y
+ * cálculo— y cada una genera su propio parte sobre el mismo juego de muestras.
+ * Las bandejas de estufa mezclan testigos de varios sondajes, así que este es
+ * el parte donde el sondaje puede quedar sin relación y registrarse como
+ * {@code VARIOS}.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;Se persiste en la tabla {@code operacional.dns_avance}.&lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@Entity
+@Table(name = &quot;dns_avance&quot;, schema = &quot;operacional&quot;)
+@Getter
+@Setter
+<span class="fc" id="L32">public class AvanceDensidad extends AvanceOperativo {</span>
+
+    @Column(length = 80)
+    private String responsable;
+
+    /** corte | secado_1 | secado_2 | pesado | calculo (lo restringe un CHECK). */
+    @Column(length = 20, nullable = false)
+    private String etapa;
+
+    @Column(name = &quot;nro_muestras&quot;, nullable = false)
+    private Integer nroMuestras;
+
+    @Column(name = &quot;temperatura_c&quot;, precision = 5, scale = 1)
+    private BigDecimal temperaturaC;
+
+    @Column(name = &quot;tipo_linea&quot;, length = 10)
+    private String tipoLinea;
+
+    @Column(precision = 9, scale = 2)
+    private BigDecimal desde;
+
+    @Column(precision = 9, scale = 2)
+    private BigDecimal hasta;
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

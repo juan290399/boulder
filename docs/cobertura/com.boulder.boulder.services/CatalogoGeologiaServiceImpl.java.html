@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CatalogoGeologiaServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.services</a> &gt; <span class="el_source">CatalogoGeologiaServiceImpl.java</span></div><h1>CatalogoGeologiaServiceImpl.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.services;
+
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Stream;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.boulder.boulder.dto.CatalogoGeologiaDTO;
+import com.boulder.boulder.repositories.CatalogoGeologiaRepository;
+import com.boulder.boulder.repositories.CatalogoGeologiaRepository.Estructura;
+
+import jakarta.persistence.EntityNotFoundException;
+
+/**
+ * Implementación del servicio de catálogos geológicos.
+ *
+ * &lt;p&gt;Las reglas de negocio viven aquí y el acceso a datos en
+ * {@link CatalogoGeologiaRepository} (patrón DAO): el servicio decide si un
+ * código es válido; el repositorio solo sabe escribirlo. Las dependencias entran
+ * por el constructor, de modo que las reglas se prueban con un repositorio
+ * simulado.&lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.1
+ * @since 1.0
+ */
+@Service
+public class CatalogoGeologiaServiceImpl implements CatalogoGeologiaService {
+
+<span class="fc" id="L36">    private static final Logger log = LoggerFactory.getLogger(CatalogoGeologiaServiceImpl.class);</span>
+    private static final int LARGO_NOMBRE = 150;
+
+    private final CatalogoGeologiaRepository catalogoRepository;
+
+<span class="fc" id="L41">    public CatalogoGeologiaServiceImpl(CatalogoGeologiaRepository catalogoRepository) {</span>
+<span class="fc" id="L42">        this.catalogoRepository = catalogoRepository;</span>
+<span class="fc" id="L43">    }</span>
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;CatalogoGeologiaDTO&gt; listarTodos() {
+<span class="fc" id="L48">        List&lt;CatalogoGeologiaDTO&gt; catalogos = catalogoRepository.listarTodos();</span>
+<span class="fc" id="L49">        log.debug(&quot;Entregando {} entradas de catálogo geológico&quot;, catalogos.size());</span>
+<span class="fc" id="L50">        return catalogos;</span>
+    }
+
+    @Override
+    public Map&lt;String, Estructura&gt; estructura() {
+<span class="fc" id="L55">        return catalogoRepository.estructura();</span>
+    }
+
+    @Override
+    @Transactional
+    public CatalogoGeologiaDTO crear(String tipo, CatalogoGeologiaDTO datos) {
+<span class="fc" id="L61">        CatalogoGeologiaDTO limpio = validar(tipo, datos);</span>
+<span class="fc" id="L62">        limpio.setId(catalogoRepository.insertar(tipo, limpio));</span>
+<span class="fc" id="L63">        limpio.setEstaActivo(true);</span>
+<span class="fc" id="L64">        log.info(&quot;Catálogo {}: alta del código {}&quot;, tipo, limpio.getCodigo());</span>
+<span class="fc" id="L65">        return limpio;</span>
+    }
+
+    @Override
+    @Transactional
+    public CatalogoGeologiaDTO actualizar(String tipo, UUID id, CatalogoGeologiaDTO datos) {
+<span class="fc" id="L71">        CatalogoGeologiaDTO limpio = validar(tipo, datos);</span>
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">        if (catalogoRepository.actualizar(tipo, id, limpio) == 0) {</span>
+<span class="fc" id="L73">            throw new EntityNotFoundException(&quot;No existe esa entrada en el catálogo &quot; + tipo);</span>
+        }
+<span class="nc" id="L75">        limpio.setId(id);</span>
+<span class="nc" id="L76">        log.info(&quot;Catálogo {}: código {} actualizado&quot;, tipo, limpio.getCodigo());</span>
+<span class="nc" id="L77">        return limpio;</span>
+    }
+
+    @Override
+    @Transactional
+    public void cambiarEstado(String tipo, UUID id, boolean activo) {
+<span class="fc" id="L83">        Estructura e = estructura(tipo);</span>
+<span class="fc bfc" id="L84" title="All 2 branches covered.">        if (!e.tiene(&quot;esta_activo&quot;)) {</span>
+<span class="fc" id="L85">            throw new IllegalStateException(&quot;El catálogo &quot; + tipo + &quot; no admite desactivación.&quot;);</span>
+        }
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">        if (catalogoRepository.cambiarEstado(tipo, id, activo) == 0) {</span>
+<span class="nc" id="L88">            throw new EntityNotFoundException(&quot;No existe esa entrada en el catálogo &quot; + tipo);</span>
+        }
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">        log.info(&quot;Catálogo {}: entrada {} {}&quot;, tipo, id, activo ? &quot;activada&quot; : &quot;desactivada&quot;);</span>
+<span class="fc" id="L91">    }</span>
+
+    /** Aplica las reglas y devuelve una copia normalizada; no modifica lo que llegó. */
+    private CatalogoGeologiaDTO validar(String tipo, CatalogoGeologiaDTO datos) {
+<span class="fc" id="L95">        Estructura e = estructura(tipo);</span>
+
+<span class="fc" id="L97">        String codigo = StringUtils.upperCase(StringUtils.trimToEmpty(datos.getCodigo()));</span>
+<span class="fc bfc" id="L98" title="All 6 branches covered.">        if (codigo.isEmpty() || !StringUtils.isAlphanumeric(codigo) || codigo.length() &gt; e.largoCodigo()) {</span>
+<span class="fc" id="L99">            throw new IllegalArgumentException(&quot;El código debe ser alfanumérico, sin espacios ni guiones, y de &quot;</span>
+<span class="fc" id="L100">                    + e.largoCodigo() + &quot; caracteres como máximo.&quot;);</span>
+        }
+<span class="fc" id="L102">        String nombre = StringUtils.normalizeSpace(datos.getNombre());</span>
+<span class="pc bpc" id="L103" title="1 of 4 branches missed.">        if (StringUtils.isBlank(nombre) || nombre.length() &gt; LARGO_NOMBRE) {</span>
+<span class="fc" id="L104">            throw new IllegalArgumentException(&quot;El nombre es obligatorio y tiene &quot; + LARGO_NOMBRE + &quot; caracteres como máximo.&quot;);</span>
+        }
+<span class="fc bfc" id="L106" title="All 4 branches covered.">        if (e.tiene(&quot;grupo_id&quot;) &amp;&amp; datos.getGrupoId() == null) {</span>
+<span class="fc" id="L107">            throw new IllegalArgumentException(&quot;Elegí el grupo litológico al que pertenece.&quot;);</span>
+        }
+<span class="fc" id="L109">        validarColor(e, datos);</span>
+
+<span class="fc" id="L111">        CatalogoGeologiaDTO limpio = new CatalogoGeologiaDTO();</span>
+<span class="fc" id="L112">        limpio.setTipo(tipo);</span>
+<span class="fc" id="L113">        limpio.setCodigo(codigo);</span>
+<span class="fc" id="L114">        limpio.setNombre(nombre);</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">        limpio.setGrupoId(e.tiene(&quot;grupo_id&quot;) ? datos.getGrupoId() : null);</span>
+<span class="fc" id="L116">        limpio.setColorR(datos.getColorR());</span>
+<span class="fc" id="L117">        limpio.setColorG(datos.getColorG());</span>
+<span class="fc" id="L118">        limpio.setColorB(datos.getColorB());</span>
+<span class="fc" id="L119">        return limpio;</span>
+    }
+
+    private static void validarColor(Estructura e, CatalogoGeologiaDTO d) {
+<span class="fc" id="L123">        List&lt;Short&gt; canales = Stream.of(d.getColorR(), d.getColorG(), d.getColorB()).toList();</span>
+<span class="fc bfc" id="L124" title="All 2 branches covered.">        long presentes = canales.stream().filter(c -&gt; c != null).count();</span>
+<span class="fc bfc" id="L125" title="All 2 branches covered.">        if (presentes == 0) {</span>
+<span class="fc" id="L126">            return;</span>
+        }
+<span class="fc bfc" id="L128" title="All 2 branches covered.">        if (!e.tiene(&quot;color_r&quot;)) {</span>
+<span class="fc" id="L129">            throw new IllegalArgumentException(&quot;Este catálogo no lleva color.&quot;);</span>
+        }
+<span class="pc bpc" id="L131" title="1 of 8 branches missed.">        if (presentes != 3 || canales.stream().anyMatch(c -&gt; c &lt; 0 || c &gt; 255)) {</span>
+<span class="fc" id="L132">            throw new IllegalArgumentException(&quot;El color lleva los tres canales (R, G, B), cada uno entre 0 y 255.&quot;);</span>
+        }
+<span class="fc" id="L134">    }</span>
+
+    private Estructura estructura(String tipo) {
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">        Estructura e = tipo == null ? null : catalogoRepository.estructura().get(tipo);</span>
+<span class="fc bfc" id="L138" title="All 2 branches covered.">        if (e == null) {</span>
+<span class="fc" id="L139">            throw new IllegalArgumentException(&quot;Catálogo desconocido: &quot; + StringUtils.abbreviate(tipo, 40));</span>
+        }
+<span class="fc" id="L141">        return e;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

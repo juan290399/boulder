@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ImportacionController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.controllers</a> &gt; <span class="el_source">ImportacionController.java</span></div><h1>ImportacionController.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.controllers;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.boulder.boulder.dto.importacion.PlantillaDTO;
+import com.boulder.boulder.dto.importacion.ResultadoImportacionDTO;
+import com.boulder.boulder.services.ImportacionService;
+import com.boulder.boulder.services.importacion.ImportacionAbortadaException;
+
+/**
+ * Carga masiva de las plantillas de Excel.
+ *
+ * &lt;p&gt;
+ * Dos verbos y nada más: uno lista las plantillas que el sistema sabe leer y
+ * el otro recibe un archivo. La diferencia entre probar y cargar es un
+ * parámetro, {@code aplicar}, que por omisión vale falso.
+ * &lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@RestController
+@RequestMapping(&quot;/api/importacion&quot;)
+<span class="fc" id="L39">public class ImportacionController {</span>
+
+    @Autowired
+    private ImportacionService importacionService;
+
+    /** Las plantillas disponibles, para que la pantalla arme el desplegable. */
+    @GetMapping(&quot;/plantillas&quot;)
+    public ResponseEntity&lt;List&lt;PlantillaDTO&gt;&gt; plantillas() {
+<span class="fc" id="L47">        return ResponseEntity.ok(importacionService.plantillas());</span>
+    }
+
+    /**
+     * Recibe un libro y devuelve el informe de lo que se cargó y lo que no.
+     *
+     * @param aplicar {@code false} —el valor por omisión— simula: valida todo y
+     *                no escribe nada
+     */
+    @PostMapping(&quot;/{plantilla}&quot;)
+    public ResponseEntity&lt;ResultadoImportacionDTO&gt; importar(
+            @PathVariable(&quot;plantilla&quot;) String plantilla,
+            @RequestPart(&quot;archivo&quot;) MultipartFile archivo,
+            @RequestParam(name = &quot;aplicar&quot;, defaultValue = &quot;false&quot;) boolean aplicar) {
+<span class="nc" id="L61">        return ResponseEntity.ok(importacionService.importar(plantilla, archivo, aplicar));</span>
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity&lt;Map&lt;String, String&gt;&gt; argumentoInvalido(IllegalArgumentException e) {
+<span class="nc" id="L66">        return ResponseEntity.badRequest().body(Map.of(&quot;mensaje&quot;, e.getMessage()));</span>
+    }
+
+    /**
+     * La base rechazó un renglón que la validación dejó pasar. No se cargó
+     * nada; el mensaje dice en qué fila fue.
+     */
+    @ExceptionHandler(ImportacionAbortadaException.class)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; abortada(ImportacionAbortadaException e) {
+<span class="nc" id="L75">        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(</span>
+<span class="nc" id="L76">                &quot;mensaje&quot;, e.getMessage(),</span>
+<span class="nc" id="L77">                &quot;hoja&quot;, e.getHoja(),</span>
+<span class="nc" id="L78">                &quot;fila&quot;, e.getFila(),</span>
+<span class="nc" id="L79">                &quot;cargado&quot;, false));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

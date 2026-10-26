@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SecurityConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.config</a> &gt; <span class="el_source">SecurityConfig.java</span></div><h1>SecurityConfig.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.config;
+
+import java.time.Duration;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
+
+import com.google.common.base.Ticker;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+
+import jakarta.servlet.DispatcherType;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+
+import lombok.RequiredArgsConstructor;
+
+@Configuration
+@EnableMethodSecurity
+@RequiredArgsConstructor
+public class SecurityConfig {
+
+    private final JwtUtils jwtUtils;
+    private final AuthenticationConfiguration authenticationConfiguration;
+
+    /**
+     * Orígenes del frontend autorizados. Por defecto, el servidor de desarrollo
+     * de Angular; en un despliegue se fija con la propiedad o la variable
+     * BOULDER_CORS_ORIGENES, separados por coma.
+     */
+    @Value(&quot;${boulder.cors.origenes:http://localhost:4200}&quot;)
+    private List&lt;String&gt; origenesCors;
+
+    @Bean
+    public AuthenticationManager authenticationManager() throws Exception {
+<span class="fc" id="L47">        return authenticationConfiguration.getAuthenticationManager();</span>
+    }
+
+    /**
+     * Contraseñas con BCrypt, sin obligar a resetear las que ya existen.
+     *
+     * &lt;p&gt;
+     * El codificador delegante guarda cada hash con su algoritmo por delante
+     * ({@code {bcrypt}$2a$10$...}), que es lo que permite cambiar de algoritmo
+     * en el futuro sin romper las cuentas viejas. Las contraseñas cargadas antes
+     * de este cambio están en texto plano y sin prefijo; para ellas se usa
+     * {@code NoOpPasswordEncoder} solo al comparar, nunca al guardar.
+     * &lt;/p&gt;
+     *
+     * &lt;p&gt;
+     * La migración ocurre sola: {@link MyUserDetailsService} implementa
+     * {@code UserDetailsPasswordService}, así que cuando alguien entra con una
+     * contraseña vieja Spring la vuelve a codificar con BCrypt y la guarda. No
+     * hay script de migración ni ventana de mantenimiento.
+     * &lt;/p&gt;
+     */
+    @Bean
+    @SuppressWarnings(&quot;deprecation&quot;)
+    public PasswordEncoder passwordEncoder() {
+        DelegatingPasswordEncoder codificador =
+<span class="fc" id="L72">                (DelegatingPasswordEncoder) PasswordEncoderFactories.createDelegatingPasswordEncoder();</span>
+<span class="fc" id="L73">        codificador.setDefaultPasswordEncoderForMatches(NoOpPasswordEncoder.getInstance());</span>
+<span class="fc" id="L74">        return codificador;</span>
+    }
+
+    /**
+     * Cinco fallos seguidos bloquean la cuenta quince minutos desde el último
+     * intento. Ver {@link LimiteIntentosLogin}.
+     */
+    @Bean
+    public LimiteIntentosLogin limiteIntentosLogin() {
+<span class="fc" id="L83">        return new LimiteIntentosLogin(5, Duration.ofMinutes(15), Ticker.systemTicker());</span>
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        
+<span class="fc" id="L89">        AuthenticationManager authManager = authenticationManager();</span>
+
+<span class="fc" id="L91">        JwtAuthenticationFilter jwtAuthFilter = new JwtAuthenticationFilter(authManager, jwtUtils, limiteIntentosLogin());</span>
+<span class="fc" id="L92">        jwtAuthFilter.setFilterProcessesUrl(&quot;/api/auth/login&quot;);</span>
+
+<span class="fc" id="L94">        JwtAuthorizationFilter jwtAuthorizationFilter = new JwtAuthorizationFilter(jwtUtils);</span>
+
+<span class="fc" id="L96">        http</span>
+<span class="fc" id="L97">            .csrf(csrf -&gt; csrf.disable())</span>
+<span class="fc" id="L98">            .cors(cors -&gt; cors.configurationSource(request -&gt; {</span>
+<span class="fc" id="L99">                CorsConfiguration config = new CorsConfiguration();</span>
+<span class="fc" id="L100">                config.setAllowedOrigins(origenesCors);</span>
+<span class="fc" id="L101">                config.setAllowedMethods(List.of(&quot;GET&quot;, &quot;POST&quot;, &quot;PUT&quot;, &quot;DELETE&quot;, &quot;PATCH&quot;, &quot;OPTIONS&quot;));</span>
+<span class="fc" id="L102">                config.setAllowedHeaders(List.of(&quot;*&quot;));</span>
+<span class="fc" id="L103">                config.setAllowCredentials(true);</span>
+<span class="fc" id="L104">                return config;</span>
+            }))
+<span class="fc" id="L106">            .sessionManagement(session -&gt;</span>
+<span class="fc" id="L107">                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)</span>
+            )
+<span class="fc" id="L109">            .authorizeHttpRequests(auth -&gt; auth</span>
+                // El preflight va primero: sin token no puede satisfacer hasRole(),
+                // y si cae ahí el navegador aborta la petición real con un error CORS
+                // que no dice nada sobre la causa.
+<span class="fc" id="L113">                .requestMatchers(HttpMethod.OPTIONS, &quot;/**&quot;).permitAll()</span>
+
+                // El flujo de /api/eventos (SSE) se autoriza al abrirse. Cuando
+                // termina, el contenedor vuelve a despachar la petición en modo
+                // ASYNC y ahí ya no hay token que revisar: sin esta regla, cada
+                // cierre de conexión deja un AccessDenied en el registro.
+<span class="fc" id="L119">                .dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.ERROR).permitAll()</span>
+
+                // Login (atendido por JwtAuthenticationFilter) y auto-registro.
+<span class="fc" id="L122">                .requestMatchers(&quot;/api/auth/**&quot;).permitAll()</span>
+
+                // El catálogo de personal se lee desde los partes de perforación
+                // y de logueo para poblar sus desplegables, así que la lectura
+                // queda abierta a cualquier sesión. Va ANTES de la regla general
+                // porque la primera coincidencia es la que manda. Las escrituras
+                // caen en la regla de abajo y además llevan @PreAuthorize.
+<span class="fc" id="L129">                .requestMatchers(HttpMethod.GET, &quot;/api/base/empleados&quot;).authenticated()</span>
+<span class="fc" id="L130">                .requestMatchers(HttpMethod.GET, &quot;/api/base/empleados/**&quot;).authenticated()</span>
+
+                // Administración de cuentas, roles y datos maestros del esquema
+                // `base`. Con `authenticated()` a secas cualquier VISITANTE con
+                // token válido podía listar usuarios y desactivar cuentas: el
+                // guard del frontend no protege nada, la puerta real es esta.
+<span class="fc" id="L136">                .requestMatchers(&quot;/api/base/**&quot;).hasRole(&quot;ADMIN&quot;)</span>
+
+                // Antes estaba en permitAll(): cualquiera en la red podía leer y
+                // borrar partes sin token. Se cerró el 28/09/2026 tras comprobar
+                // que los dos clientes —Angular por su interceptor y GeoLog por
+                // InterceptorAutenticacion— mandan el token en toda petición.
+                // Queda pendiente afinar por rol (hoy basta estar autenticado).
+<span class="fc" id="L143">                .requestMatchers(&quot;/api/operacional/**&quot;).authenticated()</span>
+
+<span class="fc" id="L145">                .anyRequest().authenticated()</span>
+            )
+            
+<span class="fc" id="L148">            .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)</span>
+            
+<span class="fc" id="L150">            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);</span>
+ 
+<span class="fc" id="L152">        return http.build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

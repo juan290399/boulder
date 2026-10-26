@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AvanceOperativoControllerBase.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.controllers</a> &gt; <span class="el_source">AvanceOperativoControllerBase.java</span></div><h1>AvanceOperativoControllerBase.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.controllers;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.boulder.boulder.dto.AvanceOperativoDTO;
+import com.boulder.boulder.services.AvanceOperativoService;
+
+import jakarta.validation.Valid;
+
+/**
+ * Superficie REST común de los partes de avance operativo (UC16 a UC20).
+ *
+ * &lt;p&gt;
+ * Los siete partes exponen exactamente los mismos cinco verbos sobre rutas
+ * distintas. Declararlos aquí una vez garantiza que todos filtren igual, que
+ * todos devuelvan los mismos códigos y que un cambio de contrato no deje a uno
+ * de ellos atrás.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;
+ * El {@code @RequestBody} está tipado con la variable {@code D}. Spring la
+ * resuelve contra la clase concreta del controlador, así que cada subclase
+ * deserializa su propio DTO sin necesidad de redeclarar el método. La clase no
+ * lleva {@code @RestController} ni {@code @RequestMapping} a propósito: si los
+ * llevara, Spring intentaría registrarla como endpoint por sí misma.
+ * &lt;/p&gt;
+ *
+ * @param &lt;D&gt; DTO concreto del parte
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+<span class="fc" id="L49">public abstract class AvanceOperativoControllerBase&lt;D extends AvanceOperativoDTO&gt; {</span>
+
+<span class="fc" id="L51">    private static final Logger log = LoggerFactory.getLogger(AvanceOperativoControllerBase.class);</span>
+
+    /** Servicio del parte concreto. */
+    protected abstract AvanceOperativoService&lt;D&gt; servicio();
+
+    /** Nombre legible del parte; solo se usa en los logs. */
+    protected abstract String nombreParte();
+
+    /**
+     * Lista los partes, con filtros opcionales y excluyentes por orden de
+     * precedencia: sondaje, rango de fechas, fecha suelta.
+     */
+    @GetMapping
+    public ResponseEntity&lt;List&lt;D&gt;&gt; listar(
+            @RequestParam(value = &quot;sondajeId&quot;, required = false) UUID sondajeId,
+            @RequestParam(value = &quot;fecha&quot;, required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
+            @RequestParam(value = &quot;desde&quot;, required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            @RequestParam(value = &quot;hasta&quot;, required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
+
+<span class="pc bpc" id="L73" title="1 of 2 branches missed.">        if (sondajeId != null) {</span>
+<span class="nc" id="L74">            log.info(&quot;HTTP GET - Partes de {} por sondaje: {}&quot;, nombreParte(), sondajeId);</span>
+<span class="nc" id="L75">            return ResponseEntity.ok(servicio().listarPorSondaje(sondajeId));</span>
+        }
+<span class="pc bpc" id="L77" title="3 of 4 branches missed.">        if (desde != null &amp;&amp; hasta != null) {</span>
+<span class="nc" id="L78">            log.info(&quot;HTTP GET - Partes de {} entre {} y {}&quot;, nombreParte(), desde, hasta);</span>
+<span class="nc" id="L79">            return ResponseEntity.ok(servicio().listarPorRango(desde, hasta));</span>
+        }
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">        if (fecha != null) {</span>
+<span class="nc" id="L82">            log.info(&quot;HTTP GET - Partes de {} por fecha: {}&quot;, nombreParte(), fecha);</span>
+<span class="nc" id="L83">            return ResponseEntity.ok(servicio().listarPorFecha(fecha));</span>
+        }
+<span class="fc" id="L85">        log.info(&quot;HTTP GET - Listado de partes de {}&quot;, nombreParte());</span>
+<span class="fc" id="L86">        return ResponseEntity.ok(servicio().listarTodos());</span>
+    }
+
+    @GetMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;D&gt; obtenerPorId(@PathVariable UUID id) {
+<span class="nc" id="L91">        log.info(&quot;HTTP GET - Parte de {} ID: {}&quot;, nombreParte(), id);</span>
+<span class="nc" id="L92">        return ResponseEntity.ok(servicio().obtenerPorId(id));</span>
+    }
+
+    @PostMapping
+    public ResponseEntity&lt;D&gt; guardar(@Valid @RequestBody D dto) {
+<span class="nc" id="L97">        log.info(&quot;HTTP POST - Nuevo parte de {}&quot;, nombreParte());</span>
+<span class="nc" id="L98">        return new ResponseEntity&lt;&gt;(servicio().guardar(dto), HttpStatus.CREATED);</span>
+    }
+
+    @PutMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;D&gt; actualizar(@PathVariable UUID id, @Valid @RequestBody D dto) {
+<span class="nc" id="L103">        log.info(&quot;HTTP PUT - Parte de {} ID: {}&quot;, nombreParte(), id);</span>
+<span class="nc" id="L104">        return ResponseEntity.ok(servicio().actualizar(id, dto));</span>
+    }
+
+    @DeleteMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;Void&gt; eliminar(@PathVariable UUID id) {
+<span class="nc" id="L109">        log.warn(&quot;HTTP DELETE - Parte de {} ID: {}&quot;, nombreParte(), id);</span>
+<span class="nc" id="L110">        servicio().eliminar(id);</span>
+<span class="nc" id="L111">        return ResponseEntity.noContent().build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

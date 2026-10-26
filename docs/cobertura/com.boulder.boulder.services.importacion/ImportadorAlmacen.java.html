@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ImportadorAlmacen.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.services.importacion</a> &gt; <span class="el_source">ImportadorAlmacen.java</span></div><h1>ImportadorAlmacen.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.services.importacion;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.UUID;
+
+import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.boulder.boulder.dto.importacion.ResultadoImportacionDTO;
+import com.boulder.boulder.entities.AvanceDensidad;
+import com.boulder.boulder.entities.AvanceFotografia;
+import com.boulder.boulder.entities.AvanceMuestreo;
+import com.boulder.boulder.entities.AvanceOperativo;
+import com.boulder.boulder.entities.CorteDensidad;
+import com.boulder.boulder.entities.CorteMuestra;
+import com.boulder.boulder.entities.RecepcionCaja;
+import com.boulder.boulder.entities.Sondaje;
+import com.boulder.boulder.repositories.AvanceDensidadRepository;
+import com.boulder.boulder.repositories.AvanceFotografiaRepository;
+import com.boulder.boulder.repositories.AvanceMuestreoRepository;
+import com.boulder.boulder.repositories.CorteDensidadRepository;
+import com.boulder.boulder.repositories.CorteMuestraRepository;
+import com.boulder.boulder.repositories.RecepcionCajaRepository;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
+/**
+ * Carga el reporte diario de almacén de testigos: las seis etapas que ocurren
+ * entre que la caja llega del sondaje y la muestra sale al laboratorio
+ * (UC17 a UC20).
+ *
+ * &lt;p&gt;
+ * Van en un solo libro con seis hojas porque así se reporta: el turno de
+ * almacén cierra un parte único donde recepción, fotografía, corte, densidad,
+ * estufa y muestreo son columnas de la misma planilla. Partirlo en seis
+ * archivos obligaría a subir seis veces lo que se llena de una sentada.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;
+ * La hoja de estufa admite el código {@code VARIOS}: un lote de secado mezcla
+ * muestras de varios sondajes y no cuelga de ninguno. Es la única que lo
+ * admite, y por eso el sondaje entra en la clave natural como código y no
+ * solo como identificador.
+ * &lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@Component
+<span class="fc" id="L54">public class ImportadorAlmacen extends ImportadorBase {</span>
+
+    @Autowired
+    private RecepcionCajaRepository recepciones;
+    @Autowired
+    private AvanceFotografiaRepository fotografias;
+    @Autowired
+    private CorteMuestraRepository cortes;
+    @Autowired
+    private CorteDensidadRepository cortesDensidad;
+    @Autowired
+    private AvanceDensidadRepository estufas;
+    @Autowired
+    private AvanceMuestreoRepository muestreos;
+
+    @PersistenceContext
+    private EntityManager em;
+
+    @Override
+    public String clave() {
+<span class="fc" id="L74">        return &quot;almacen&quot;;</span>
+    }
+
+    @Override
+    public String archivoPlantilla() {
+<span class="fc" id="L79">        return &quot;PLANTILLA_reporte_almacen.xlsx&quot;;</span>
+    }
+
+    @Override
+    public String descripcion() {
+<span class="fc" id="L84">        return &quot;Reporte de almacén: recepción de cajas, fotografía, corte, densidad, estufa y muestreo.&quot;;</span>
+    }
+
+    @Override
+    protected void procesar(Workbook libro, Catalogos catalogos, boolean aplicar,
+            ResultadoImportacionDTO resultado) {
+<span class="fc" id="L90">        recepcionCajas(libro, catalogos, aplicar, resultado);</span>
+<span class="fc" id="L91">        fotografia(libro, catalogos, aplicar, resultado);</span>
+<span class="fc" id="L92">        corteMuestras(libro, catalogos, aplicar, resultado);</span>
+<span class="fc" id="L93">        corteDensidad(libro, catalogos, aplicar, resultado);</span>
+<span class="fc" id="L94">        estufaDensidad(libro, catalogos, aplicar, resultado);</span>
+<span class="fc" id="L95">        muestreo(libro, catalogos, aplicar, resultado);</span>
+<span class="fc" id="L96">    }</span>
+
+    /** Cabecera común a las seis hojas: sondaje, fecha y turno. */
+    private UUID cabecera(Fila f, AvanceOperativo e) {
+<span class="fc" id="L100">        UUID sondajeId = f.sondajeOVarios(&quot;sondaje_codigo&quot;);</span>
+<span class="fc" id="L101">        e.setSondajeCodigo(f.texto(&quot;sondaje_codigo&quot;, 30));</span>
+<span class="fc" id="L102">        e.setFecha(f.fechaReq(&quot;fecha&quot;));</span>
+<span class="fc" id="L103">        e.setTurno(f.opcion(&quot;turno&quot;, false, &quot;dia&quot;, &quot;noche&quot;));</span>
+<span class="fc" id="L104">        e.setObservaciones(f.texto(&quot;observaciones&quot;));</span>
+<span class="fc" id="L105">        e.setEstado(&quot;registrado&quot;);</span>
+<span class="fc" id="L106">        f.referencia(f.texto(&quot;sondaje_codigo&quot;) + &quot; &quot; + f.texto(&quot;fecha&quot;));</span>
+<span class="fc" id="L107">        return sondajeId;</span>
+    }
+
+    private void vincular(AvanceOperativo e, UUID sondajeId) {
+<span class="fc bfc" id="L111" title="All 2 branches covered.">        if (sondajeId != null) {</span>
+<span class="fc" id="L112">            e.setSondaje(em.getReference(Sondaje.class, sondajeId));</span>
+        }
+<span class="fc" id="L114">    }</span>
+
+    private void validarTramo(Fila f, BigDecimal desde, BigDecimal hasta) {
+<span class="pc bpc" id="L117" title="2 of 6 branches missed.">        if (desde != null &amp;&amp; hasta != null &amp;&amp; hasta.compareTo(desde) &lt; 0) {</span>
+<span class="nc" id="L118">            f.error(&quot;hasta no puede ser menor que desde&quot;);</span>
+        }
+<span class="fc" id="L120">    }</span>
+
+    private void recepcionCajas(Workbook libro, Catalogos cat, boolean aplicar, ResultadoImportacionDTO r) {
+<span class="fc" id="L123">        String sql = &quot;SELECT &quot; + sqlIdOCodigo() + &quot; || '|' || &quot; + sqlTexto(&quot;fecha&quot;) + &quot; || '|' || &quot;</span>
+<span class="fc" id="L124">                + sqlTexto(&quot;turno&quot;) + &quot; || '|' || &quot; + sqlTexto(&quot;box_desde&quot;) + &quot; || '|' || &quot;</span>
+<span class="fc" id="L125">                + sqlNum(&quot;marcado_desde&quot;) + &quot; FROM operacional.log_recepcion_caja&quot;;</span>
+
+<span class="fc" id="L127">        hoja(libro, &quot;RECEPCION_CAJAS&quot;, &quot;operacional.log_recepcion_caja&quot;, sql, cat, aplicar, r, f -&gt; {</span>
+<span class="fc" id="L128">            RecepcionCaja e = new RecepcionCaja();</span>
+<span class="fc" id="L129">            UUID sondajeId = cabecera(f, e);</span>
+<span class="fc" id="L130">            e.setResponsable(f.texto(&quot;responsable&quot;, 80));</span>
+<span class="fc" id="L131">            e.setBoxDesde(f.entero(&quot;box_desde&quot;));</span>
+<span class="fc" id="L132">            e.setBoxHasta(f.entero(&quot;box_hasta&quot;));</span>
+<span class="fc" id="L133">            e.setTotalCajas(f.entero(&quot;total_cajas&quot;));</span>
+<span class="fc" id="L134">            e.setMarcadoDesde(f.decimal(&quot;marcado_desde&quot;));</span>
+<span class="fc" id="L135">            e.setMarcadoHasta(f.decimal(&quot;marcado_hasta&quot;));</span>
+<span class="fc" id="L136">            e.setTotalMetraje(f.decimal(&quot;total_metraje&quot;));</span>
+
+<span class="fc" id="L138">            validarTramo(f, e.getMarcadoDesde(), e.getMarcadoHasta());</span>
+<span class="pc bpc" id="L139" title="3 of 6 branches missed.">            if (e.getBoxDesde() != null &amp;&amp; e.getBoxHasta() != null &amp;&amp; e.getBoxHasta() &lt; e.getBoxDesde()) {</span>
+<span class="nc" id="L140">                f.error(&quot;box_hasta no puede ser menor que box_desde&quot;);</span>
+            }
+<span class="pc bpc" id="L142" title="2 of 4 branches missed.">            if (e.getTotalCajas() != null &amp;&amp; e.getTotalCajas() &lt; 0) {</span>
+<span class="nc" id="L143">                f.error(&quot;total_cajas no puede ser negativo&quot;);</span>
+            }
+<span class="pc bpc" id="L145" title="1 of 2 branches missed.">            if (f.hayErrores()) {</span>
+<span class="nc" id="L146">                return null;</span>
+            }
+<span class="fc" id="L148">            vincular(e, sondajeId);</span>
+<span class="fc" id="L149">            return new Registro(</span>
+<span class="fc" id="L150">                    clave(idOCodigo(sondajeId, e.getSondajeCodigo()), e.getFecha(), e.getTurno(),</span>
+<span class="fc" id="L151">                            e.getBoxDesde(), e.getMarcadoDesde()),</span>
+<span class="nc" id="L152">                    () -&gt; recepciones.saveAndFlush(e));</span>
+        });
+<span class="fc" id="L154">    }</span>
+
+    private void fotografia(Workbook libro, Catalogos cat, boolean aplicar, ResultadoImportacionDTO r) {
+<span class="fc" id="L157">        String sql = &quot;SELECT &quot; + sqlIdOCodigo() + &quot; || '|' || &quot; + sqlTexto(&quot;fecha&quot;) + &quot; || '|' || &quot;</span>
+<span class="fc" id="L158">                + sqlTexto(&quot;turno&quot;) + &quot; || '|' || &quot; + sqlTexto(&quot;box_desde&quot;) + &quot; || '|' || &quot;</span>
+<span class="fc" id="L159">                + sqlNum(&quot;marcado_desde&quot;) + &quot; FROM operacional.fot_avance&quot;;</span>
+
+<span class="fc" id="L161">        hoja(libro, &quot;FOTOGRAFIA&quot;, &quot;operacional.fot_avance&quot;, sql, cat, aplicar, r, f -&gt; {</span>
+<span class="fc" id="L162">            AvanceFotografia e = new AvanceFotografia();</span>
+<span class="fc" id="L163">            UUID sondajeId = cabecera(f, e);</span>
+<span class="fc" id="L164">            e.setResponsable(f.texto(&quot;responsable&quot;, 80));</span>
+<span class="fc" id="L165">            e.setBoxDesde(f.entero(&quot;box_desde&quot;));</span>
+<span class="fc" id="L166">            e.setBoxHasta(f.entero(&quot;box_hasta&quot;));</span>
+<span class="fc" id="L167">            e.setTotalCajas(f.entero(&quot;total_cajas&quot;));</span>
+<span class="fc" id="L168">            e.setMarcadoDesde(f.decimal(&quot;marcado_desde&quot;));</span>
+<span class="fc" id="L169">            e.setMarcadoHasta(f.decimal(&quot;marcado_hasta&quot;));</span>
+<span class="fc" id="L170">            e.setTotalMetraje(f.decimal(&quot;total_metraje&quot;));</span>
+<span class="fc" id="L171">            e.setSecoHumedo(f.opcion(&quot;seco_humedo&quot;, false, &quot;seco&quot;, &quot;humedo&quot;));</span>
+<span class="fc" id="L172">            e.setNroFotos(f.entero(&quot;nro_fotos&quot;));</span>
+<span class="fc" id="L173">            e.setRutaArchivos(f.texto(&quot;ruta_archivos&quot;));</span>
+
+<span class="fc" id="L175">            validarTramo(f, e.getMarcadoDesde(), e.getMarcadoHasta());</span>
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">            if (f.hayErrores()) {</span>
+<span class="nc" id="L177">                return null;</span>
+            }
+<span class="fc" id="L179">            vincular(e, sondajeId);</span>
+<span class="fc" id="L180">            return new Registro(</span>
+<span class="fc" id="L181">                    clave(idOCodigo(sondajeId, e.getSondajeCodigo()), e.getFecha(), e.getTurno(),</span>
+<span class="fc" id="L182">                            e.getBoxDesde(), e.getMarcadoDesde()),</span>
+<span class="nc" id="L183">                    () -&gt; fotografias.saveAndFlush(e));</span>
+        });
+<span class="fc" id="L185">    }</span>
+
+    private void corteMuestras(Workbook libro, Catalogos cat, boolean aplicar, ResultadoImportacionDTO r) {
+<span class="fc" id="L188">        String sql = &quot;SELECT &quot; + sqlIdOCodigo() + &quot; || '|' || &quot; + sqlTexto(&quot;fecha&quot;) + &quot; || '|' || &quot;</span>
+<span class="fc" id="L189">                + sqlTexto(&quot;turno&quot;) + &quot; || '|' || &quot; + sqlNum(&quot;desde&quot;) + &quot; FROM operacional.crt_muestra&quot;;</span>
+
+<span class="fc" id="L191">        hoja(libro, &quot;CORTE_MUESTRAS&quot;, &quot;operacional.crt_muestra&quot;, sql, cat, aplicar, r, f -&gt; {</span>
+<span class="fc" id="L192">            CorteMuestra e = new CorteMuestra();</span>
+<span class="fc" id="L193">            UUID sondajeId = cabecera(f, e);</span>
+<span class="fc" id="L194">            e.setResponsable(f.texto(&quot;responsable&quot;, 80));</span>
+<span class="fc" id="L195">            e.setDesde(f.decimalReq(&quot;desde&quot;));</span>
+<span class="fc" id="L196">            e.setHasta(f.decimalReq(&quot;hasta&quot;));</span>
+<span class="fc" id="L197">            e.setTipoLinea(f.texto(&quot;tipo_linea&quot;, 10));</span>
+<span class="fc" id="L198">            e.setMetrajeEstimado(f.decimal(&quot;metraje_estimado&quot;));</span>
+<span class="fc" id="L199">            e.setNroMuestras(f.entero(&quot;nro_muestras&quot;));</span>
+
+<span class="fc" id="L201">            validarTramo(f, e.getDesde(), e.getHasta());</span>
+<span class="pc bpc" id="L202" title="1 of 2 branches missed.">            if (f.hayErrores()) {</span>
+<span class="nc" id="L203">                return null;</span>
+            }
+<span class="fc" id="L205">            vincular(e, sondajeId);</span>
+<span class="fc" id="L206">            return new Registro(</span>
+<span class="fc" id="L207">                    clave(idOCodigo(sondajeId, e.getSondajeCodigo()), e.getFecha(), e.getTurno(), e.getDesde()),</span>
+<span class="nc" id="L208">                    () -&gt; cortes.saveAndFlush(e));</span>
+        });
+<span class="fc" id="L210">    }</span>
+
+    private void corteDensidad(Workbook libro, Catalogos cat, boolean aplicar, ResultadoImportacionDTO r) {
+<span class="fc" id="L213">        String sql = &quot;SELECT &quot; + sqlIdOCodigo() + &quot; || '|' || &quot; + sqlTexto(&quot;fecha&quot;) + &quot; || '|' || &quot;</span>
+<span class="fc" id="L214">                + sqlTexto(&quot;turno&quot;) + &quot; || '|' || &quot; + sqlNum(&quot;desde&quot;) + &quot; FROM operacional.crt_densidad&quot;;</span>
+
+<span class="fc" id="L216">        hoja(libro, &quot;CORTE_DENSIDAD&quot;, &quot;operacional.crt_densidad&quot;, sql, cat, aplicar, r, f -&gt; {</span>
+<span class="fc" id="L217">            CorteDensidad e = new CorteDensidad();</span>
+<span class="fc" id="L218">            UUID sondajeId = cabecera(f, e);</span>
+<span class="fc" id="L219">            e.setResponsable(f.texto(&quot;responsable&quot;, 80));</span>
+<span class="fc" id="L220">            e.setDesde(f.decimalReq(&quot;desde&quot;));</span>
+<span class="fc" id="L221">            e.setHasta(f.decimalReq(&quot;hasta&quot;));</span>
+<span class="fc" id="L222">            e.setTotalMuestras(f.entero(&quot;total_muestras&quot;));</span>
+<span class="fc" id="L223">            e.setTotalMetraje(f.decimal(&quot;total_metraje&quot;));</span>
+<span class="fc" id="L224">            e.setTipoLinea(f.texto(&quot;tipo_linea&quot;, 10));</span>
+
+<span class="fc" id="L226">            validarTramo(f, e.getDesde(), e.getHasta());</span>
+<span class="pc bpc" id="L227" title="1 of 2 branches missed.">            if (e.getTotalMuestras() == null) {</span>
+<span class="nc" id="L228">                f.error(&quot;total_muestras: obligatorio&quot;);</span>
+<span class="pc bpc" id="L229" title="1 of 2 branches missed.">            } else if (e.getTotalMuestras() &lt; 0) {</span>
+<span class="nc" id="L230">                f.error(&quot;total_muestras no puede ser negativo&quot;);</span>
+            }
+<span class="pc bpc" id="L232" title="1 of 2 branches missed.">            if (f.hayErrores()) {</span>
+<span class="nc" id="L233">                return null;</span>
+            }
+<span class="fc" id="L235">            vincular(e, sondajeId);</span>
+<span class="fc" id="L236">            return new Registro(</span>
+<span class="fc" id="L237">                    clave(idOCodigo(sondajeId, e.getSondajeCodigo()), e.getFecha(), e.getTurno(), e.getDesde()),</span>
+<span class="nc" id="L238">                    () -&gt; cortesDensidad.saveAndFlush(e));</span>
+        });
+<span class="fc" id="L240">    }</span>
+
+    private void estufaDensidad(Workbook libro, Catalogos cat, boolean aplicar, ResultadoImportacionDTO r) {
+<span class="fc" id="L243">        String sql = &quot;SELECT &quot; + sqlIdOCodigo() + &quot; || '|' || &quot; + sqlTexto(&quot;fecha&quot;) + &quot; || '|' || &quot;</span>
+<span class="fc" id="L244">                + sqlTexto(&quot;turno&quot;) + &quot; || '|' || &quot; + sqlTexto(&quot;etapa&quot;) + &quot; FROM operacional.dns_avance&quot;;</span>
+
+<span class="fc" id="L246">        hoja(libro, &quot;ESTUFA_DENSIDAD&quot;, &quot;operacional.dns_avance&quot;, sql, cat, aplicar, r, f -&gt; {</span>
+<span class="fc" id="L247">            AvanceDensidad e = new AvanceDensidad();</span>
+<span class="fc" id="L248">            UUID sondajeId = cabecera(f, e);</span>
+<span class="fc" id="L249">            e.setResponsable(f.texto(&quot;responsable&quot;, 80));</span>
+<span class="fc" id="L250">            e.setEtapa(f.opcion(&quot;etapa&quot;, true, &quot;corte&quot;, &quot;secado_1&quot;, &quot;secado_2&quot;, &quot;pesado&quot;, &quot;calculo&quot;));</span>
+<span class="fc" id="L251">            e.setNroMuestras(f.entero(&quot;nro_muestras&quot;));</span>
+<span class="fc" id="L252">            e.setTemperaturaC(f.decimal(&quot;temperatura_c&quot;));</span>
+<span class="fc" id="L253">            e.setTipoLinea(f.texto(&quot;tipo_linea&quot;, 10));</span>
+<span class="fc" id="L254">            e.setDesde(f.decimal(&quot;desde&quot;));</span>
+<span class="fc" id="L255">            e.setHasta(f.decimal(&quot;hasta&quot;));</span>
+
+<span class="fc" id="L257">            validarTramo(f, e.getDesde(), e.getHasta());</span>
+<span class="pc bpc" id="L258" title="1 of 2 branches missed.">            if (e.getNroMuestras() == null) {</span>
+<span class="nc" id="L259">                f.error(&quot;nro_muestras: obligatorio&quot;);</span>
+<span class="pc bpc" id="L260" title="1 of 2 branches missed.">            } else if (e.getNroMuestras() &lt; 0) {</span>
+<span class="nc" id="L261">                f.error(&quot;nro_muestras no puede ser negativo&quot;);</span>
+            }
+<span class="pc bpc" id="L263" title="1 of 2 branches missed.">            if (f.hayErrores()) {</span>
+<span class="nc" id="L264">                return null;</span>
+            }
+<span class="fc" id="L266">            vincular(e, sondajeId);</span>
+<span class="fc" id="L267">            return new Registro(</span>
+<span class="fc" id="L268">                    clave(idOCodigo(sondajeId, e.getSondajeCodigo()), e.getFecha(), e.getTurno(), e.getEtapa()),</span>
+<span class="nc" id="L269">                    () -&gt; estufas.saveAndFlush(e));</span>
+        });
+<span class="fc" id="L271">    }</span>
+
+    private void muestreo(Workbook libro, Catalogos cat, boolean aplicar, ResultadoImportacionDTO r) {
+<span class="fc" id="L274">        String sql = &quot;SELECT &quot; + sqlIdOCodigo() + &quot; || '|' || &quot; + sqlTexto(&quot;fecha&quot;) + &quot; || '|' || &quot;</span>
+<span class="fc" id="L275">                + sqlTexto(&quot;turno&quot;) + &quot; || '|' || &quot; + sqlTexto(&quot;estado_muestreo&quot;) + &quot; || '|' || &quot;</span>
+<span class="fc" id="L276">                + sqlNum(&quot;desde&quot;) + &quot; FROM operacional.mst_avance&quot;;</span>
+
+<span class="fc" id="L278">        hoja(libro, &quot;MUESTREO&quot;, &quot;operacional.mst_avance&quot;, sql, cat, aplicar, r, f -&gt; {</span>
+<span class="fc" id="L279">            AvanceMuestreo e = new AvanceMuestreo();</span>
+<span class="fc" id="L280">            UUID sondajeId = cabecera(f, e);</span>
+<span class="fc" id="L281">            e.setResponsable(f.texto(&quot;responsable&quot;, 80));</span>
+<span class="fc" id="L282">            e.setEstadoMuestreo(f.opcion(&quot;estado_muestreo&quot;, true, &quot;en_proceso&quot;, &quot;finalizado&quot;));</span>
+<span class="fc" id="L283">            e.setDesde(f.decimal(&quot;desde&quot;));</span>
+<span class="fc" id="L284">            e.setHasta(f.decimal(&quot;hasta&quot;));</span>
+<span class="fc" id="L285">            e.setAvance(f.decimal(&quot;avance&quot;));</span>
+<span class="fc" id="L286">            e.setNroMuestras(f.entero(&quot;nro_muestras&quot;));</span>
+<span class="fc" id="L287">            e.setNroMuestrasEmbolsadas(f.entero(&quot;nro_muestras_embolsadas&quot;));</span>
+<span class="fc" id="L288">            e.setNroCostales(f.entero(&quot;nro_costales&quot;));</span>
+<span class="fc" id="L289">            e.setNroLotes(f.entero(&quot;nro_lotes&quot;));</span>
+
+<span class="fc" id="L291">            validarTramo(f, e.getDesde(), e.getHasta());</span>
+<span class="pc bpc" id="L292" title="1 of 2 branches missed.">            if (f.hayErrores()) {</span>
+<span class="nc" id="L293">                return null;</span>
+            }
+<span class="fc" id="L295">            vincular(e, sondajeId);</span>
+<span class="fc" id="L296">            return new Registro(</span>
+<span class="fc" id="L297">                    clave(idOCodigo(sondajeId, e.getSondajeCodigo()), e.getFecha(), e.getTurno(),</span>
+<span class="fc" id="L298">                            e.getEstadoMuestreo(), e.getDesde()),</span>
+<span class="nc" id="L299">                    () -&gt; muestreos.saveAndFlush(e));</span>
+        });
+<span class="fc" id="L301">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

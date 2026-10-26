@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CuentaController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.controllers</a> &gt; <span class="el_source">CuentaController.java</span></div><h1>CuentaController.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.controllers;
+
+import java.security.Principal;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.boulder.boulder.dto.UsuarioDTO;
+import com.boulder.boulder.dto.cuenta.CambioContrasenaDTO;
+import com.boulder.boulder.services.CambioContrasenaService;
+import com.boulder.boulder.services.UsuarioService;
+
+import jakarta.validation.Valid;
+
+/**
+ * La cuenta del usuario que inició sesión (pantalla P14, «Mi cuenta»).
+ *
+ * &lt;p&gt;Todas las operaciones toman el usuario del token ({@link Principal}), nunca
+ * de la URL ni del cuerpo: cualquier usuario autenticado puede ver y cambiar
+ * solo lo suyo, sin necesidad del rol ADMIN.&lt;/p&gt;
+ */
+@RestController
+@RequestMapping(&quot;/api/cuenta&quot;)
+public class CuentaController {
+
+    private final UsuarioService usuarios;
+    private final CambioContrasenaService cambioContrasena;
+
+<span class="fc" id="L33">    public CuentaController(UsuarioService usuarios, CambioContrasenaService cambioContrasena) {</span>
+<span class="fc" id="L34">        this.usuarios = usuarios;</span>
+<span class="fc" id="L35">        this.cambioContrasena = cambioContrasena;</span>
+<span class="fc" id="L36">    }</span>
+
+    /** Datos de la cuenta propia. La contraseña no viaja: el DTO la marca solo de escritura. */
+    @GetMapping
+    public UsuarioDTO miCuenta(Principal principal) {
+<span class="nc" id="L41">        return usuarios.obtenerPorUsuario(principal.getName());</span>
+    }
+
+    /**
+     * Cambia la contraseña propia (RF02).
+     *
+     * @return 204 si se cambió; 400 con el motivo si la actual no coincide o la nueva no cumple las reglas
+     */
+    @PutMapping(&quot;/contrasena&quot;)
+    public ResponseEntity&lt;Void&gt; cambiarContrasena(Principal principal, @Valid @RequestBody CambioContrasenaDTO dto) {
+<span class="fc" id="L51">        cambioContrasena.cambiar(principal.getName(), dto.actual(), dto.nueva());</span>
+<span class="fc" id="L52">        return ResponseEntity.noContent().build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LimiteIntentosLogin.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.config</a> &gt; <span class="el_source">LimiteIntentosLogin.java</span></div><h1>LimiteIntentosLogin.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.config;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.time.Duration;
+import java.util.Locale;
+
+import com.google.common.base.Ticker;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
+/**
+ * Limita los intentos fallidos de inicio de sesión por usuario, contra ataques
+ * de fuerza bruta sobre las contraseñas (OWASP A07: fallas de identificación y
+ * autenticación).
+ *
+ * &lt;p&gt;Los fallos se cuentan en una caché de Guava cuyas entradas vencen un tiempo
+ * después de su última escritura: cada fallo nuevo reinicia el plazo, así que el
+ * bloqueo dura {@code bloqueo} desde el último intento. Un acceso correcto borra
+ * el contador. La caché tiene tamaño máximo, para que un atacante que pruebe
+ * miles de usuarios inventados no agote la memoria.&lt;/p&gt;
+ *
+ * &lt;p&gt;El estado vive en memoria: si se reinicia el servidor, los contadores se
+ * pierden. Para un solo servidor de campamento es suficiente.&lt;/p&gt;
+ */
+public class LimiteIntentosLogin {
+
+    private static final long MAX_USUARIOS_SEGUIDOS = 10_000;
+
+    private final int maxIntentos;
+    private final Cache&lt;String, Integer&gt; fallos;
+
+    /**
+     * @param maxIntentos fallos seguidos que bloquean la cuenta; al menos 1
+     * @param bloqueo     cuánto dura el bloqueo desde el último fallo; positivo
+     * @param reloj       fuente de tiempo; {@link Ticker#systemTicker()} en producción
+     */
+<span class="fc" id="L39">    public LimiteIntentosLogin(int maxIntentos, Duration bloqueo, Ticker reloj) {</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        checkArgument(maxIntentos &gt;= 1, &quot;maxIntentos debe ser al menos 1: %s&quot;, maxIntentos);</span>
+<span class="fc" id="L41">        checkNotNull(bloqueo, &quot;bloqueo&quot;);</span>
+<span class="pc bpc" id="L42" title="1 of 4 branches missed.">        checkArgument(!bloqueo.isNegative() &amp;&amp; !bloqueo.isZero(), &quot;el bloqueo debe ser positivo: %s&quot;, bloqueo);</span>
+<span class="fc" id="L43">        this.maxIntentos = maxIntentos;</span>
+<span class="fc" id="L44">        this.fallos = CacheBuilder.newBuilder()</span>
+<span class="fc" id="L45">                .expireAfterWrite(bloqueo)</span>
+<span class="fc" id="L46">                .maximumSize(MAX_USUARIOS_SEGUIDOS)</span>
+<span class="fc" id="L47">                .ticker(checkNotNull(reloj, &quot;reloj&quot;))</span>
+<span class="fc" id="L48">                .build();</span>
+<span class="fc" id="L49">    }</span>
+
+    /**
+     * @param usuario nombre de usuario tal como lo escribió la persona
+     * @return {@code true} si la cuenta alcanzó el máximo de fallos y el plazo no venció
+     */
+    public boolean bloqueado(String usuario) {
+<span class="fc" id="L56">        Integer n = fallos.getIfPresent(clave(usuario));</span>
+<span class="fc bfc" id="L57" title="All 4 branches covered.">        return n != null &amp;&amp; n &gt;= maxIntentos;</span>
+    }
+
+    /** Suma un fallo y reinicia el plazo de bloqueo. */
+    public void registrarFallo(String usuario) {
+<span class="fc" id="L62">        fallos.asMap().merge(clave(usuario), 1, Integer::sum);</span>
+<span class="fc" id="L63">    }</span>
+
+    /** Un acceso correcto deja la cuenta sin fallos. */
+    public void registrarExito(String usuario) {
+<span class="fc" id="L67">        fallos.invalidate(clave(usuario));</span>
+<span class="fc" id="L68">    }</span>
+
+    private static String clave(String usuario) {
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">        return usuario == null ? &quot;&quot; : usuario.strip().toLowerCase(Locale.ROOT);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

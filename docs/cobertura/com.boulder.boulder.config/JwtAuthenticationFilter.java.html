@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JwtAuthenticationFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.config</a> &gt; <span class="el_source">JwtAuthenticationFilter.java</span></div><h1>JwtAuthenticationFilter.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.config;
+
+import java.io.IOException;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.boulder.boulder.entities.Usuario;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+/**
+ * Atiende {@code POST /api/auth/login}: valida usuario y contraseña y responde con
+ * un token JWT.
+ *
+ * &lt;p&gt;Antes de autenticar consulta el {@link LimiteIntentosLogin}: una cuenta con
+ * demasiados fallos recientes recibe 429 sin que se llegue a comparar la
+ * contraseña. Cada intento queda en la bitácora de seguridad, nunca con la
+ * contraseña.&lt;/p&gt;
+ */
+public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+
+    /** Bitácora de seguridad; Logback la envía a su propio archivo. */
+<span class="fc" id="L36">    private static final Logger AUDITORIA = LoggerFactory.getLogger(&quot;com.boulder.boulder.seguridad&quot;);</span>
+
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtils jwtUtils;
+    private final LimiteIntentosLogin limite;
+<span class="fc" id="L41">    private final ObjectMapper json = new ObjectMapper();</span>
+
+    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, JwtUtils jwtUtils,
+<span class="fc" id="L44">                                   LimiteIntentosLogin limite) {</span>
+<span class="fc" id="L45">        this.authenticationManager = authenticationManager;</span>
+<span class="fc" id="L46">        this.jwtUtils = jwtUtils;</span>
+<span class="fc" id="L47">        this.limite = limite;</span>
+<span class="fc" id="L48">    }</span>
+
+    @Override
+    public Authentication attemptAuthentication(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) throws AuthenticationException {
+        Usuario credenciales;
+        try {
+<span class="fc" id="L57">            credenciales = json.readValue(request.getInputStream(), Usuario.class);</span>
+<span class="nc" id="L58">        } catch (IOException e) {</span>
+<span class="nc" id="L59">            throw new RuntimeException(&quot;Error en la lectura del flujo de credenciales&quot;, e);</span>
+<span class="fc" id="L60">        }</span>
+<span class="fc" id="L61">        String usuario = credenciales.getUsuario();</span>
+
+<span class="fc bfc" id="L63" title="All 2 branches covered.">        if (limite.bloqueado(usuario)) {</span>
+<span class="fc" id="L64">            AUDITORIA.warn(&quot;login bloqueado usuario={} ip={}&quot;, seguro(usuario), request.getRemoteAddr());</span>
+<span class="fc" id="L65">            throw new CuentaBloqueadaException();</span>
+        }
+        try {
+<span class="pc" id="L68">            return authenticationManager.authenticate(</span>
+<span class="fc" id="L69">                    new UsernamePasswordAuthenticationToken(usuario, credenciales.getContrasenia()));</span>
+<span class="fc" id="L70">        } catch (AuthenticationException e) {</span>
+<span class="fc" id="L71">            limite.registrarFallo(usuario);</span>
+<span class="fc" id="L72">            AUDITORIA.warn(&quot;login fallido usuario={} ip={} motivo={}&quot;,</span>
+<span class="fc" id="L73">                    seguro(usuario), request.getRemoteAddr(), e.getClass().getSimpleName());</span>
+<span class="fc" id="L74">            throw e;</span>
+        }
+    }
+
+    @Override
+    protected void successfulAuthentication(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain chain,
+            Authentication authResult
+    ) throws IOException, ServletException {
+<span class="nc" id="L85">        limite.registrarExito(authResult.getName());</span>
+<span class="nc" id="L86">        AUDITORIA.info(&quot;login correcto usuario={} ip={}&quot;, seguro(authResult.getName()), request.getRemoteAddr());</span>
+
+<span class="nc" id="L88">        response.setContentType(&quot;application/json&quot;);</span>
+<span class="nc" id="L89">        response.setCharacterEncoding(&quot;UTF-8&quot;);</span>
+<span class="nc" id="L90">        response.getWriter().write(json.writeValueAsString(Map.of(&quot;token&quot;, jwtUtils.generateToken(authResult))));</span>
+<span class="nc" id="L91">    }</span>
+
+    @Override
+    protected void unsuccessfulAuthentication(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            AuthenticationException failed
+    ) throws IOException, ServletException {
+<span class="fc bfc" id="L99" title="All 2 branches covered.">        if (!(failed instanceof CuentaBloqueadaException)) {</span>
+<span class="fc" id="L100">            super.unsuccessfulAuthentication(request, response, failed);</span>
+<span class="fc" id="L101">            return;</span>
+        }
+<span class="fc" id="L103">        response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());</span>
+<span class="fc" id="L104">        response.setContentType(&quot;application/json&quot;);</span>
+<span class="fc" id="L105">        response.setCharacterEncoding(&quot;UTF-8&quot;);</span>
+<span class="fc" id="L106">        response.getWriter().write(json.writeValueAsString(Map.of(&quot;mensaje&quot;,</span>
+                &quot;Demasiados intentos fallidos. La cuenta queda bloqueada 15 minutos.&quot;)));
+<span class="fc" id="L108">    }</span>
+
+    /**
+     * El usuario lo escribe quien intenta entrar: se le quitan los saltos de línea
+     * para que no pueda fabricar líneas falsas en la bitácora (CWE-117) y se
+     * recorta para que no la llene.
+     */
+    static String seguro(String usuario) {
+<span class="fc" id="L116">        return StringUtils.abbreviate(StringUtils.replaceChars(String.valueOf(usuario), &quot;\r\n\t&quot;, &quot;___&quot;), 64);</span>
+    }
+
+    /** La cuenta superó el límite de intentos fallidos. */
+    static class CuentaBloqueadaException extends AuthenticationException {
+        CuentaBloqueadaException() {
+<span class="fc" id="L122">            super(&quot;Demasiados intentos fallidos&quot;);</span>
+<span class="fc" id="L123">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

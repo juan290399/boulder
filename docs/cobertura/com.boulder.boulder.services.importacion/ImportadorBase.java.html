@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ImportadorBase.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.services.importacion</a> &gt; <span class="el_source">ImportadorBase.java</span></div><h1>ImportadorBase.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.services.importacion;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import com.boulder.boulder.dto.importacion.ErrorFilaDTO;
+import com.boulder.boulder.dto.importacion.ResultadoHojaDTO;
+import com.boulder.boulder.dto.importacion.ResultadoImportacionDTO;
+
+/**
+ * Maquinaria común a todos los importadores: recorrer una hoja, ubicar las
+ * columnas por su nombre, descartar los renglones en blanco, contar lo que
+ * entró y anotar lo que no.
+ *
+ * &lt;p&gt;
+ * El renglón se escribe una sola vez aunque la plantilla se suba diez veces.
+ * Eso lo resuelve la clave natural: el conjunto de columnas que identifica al
+ * hecho —sondaje, fecha, turno y tramo, según la tabla— y no un identificador
+ * que el usuario no tiene. Sin esto el primer reintento dejaría la base al
+ * doble, que es exactamente el problema que esta plataforma viene a resolver.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;
+ * La clave se compara contra dos conjuntos: lo que ya está en la base, leído de
+ * una sola consulta al empezar la hoja, y lo que ya apareció en este mismo
+ * archivo. El segundo importa tanto como el primero: una plantilla que repite
+ * el mismo parte dos veces es un error del que la llenó, y conviene que se
+ * entere antes de cargar.
+ * &lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+<span class="fc" id="L49">public abstract class ImportadorBase implements ImportadorPlantilla {</span>
+
+<span class="fc" id="L51">    private static final Logger log = LoggerFactory.getLogger(ImportadorBase.class);</span>
+
+    @Autowired
+    protected JdbcTemplate jdbc;
+
+    /** Lo que el manejador devuelve por cada renglón que interpretó bien. */
+<span class="fc" id="L57">    protected record Registro(String clave, Runnable grabar) {</span>
+    }
+
+    /**
+     * Interpreta un renglón. Devuelve {@code null} —o deja errores anotados en
+     * la fila— cuando el renglón no se puede cargar.
+     */
+    @FunctionalInterface
+    protected interface ManejadorFila {
+        Registro procesar(Fila fila);
+    }
+
+    @Override
+    public ResultadoImportacionDTO importar(Workbook libro, Catalogos catalogos, boolean aplicar) {
+<span class="fc" id="L71">        ResultadoImportacionDTO resultado = new ResultadoImportacionDTO();</span>
+<span class="fc" id="L72">        resultado.setPlantilla(clave());</span>
+<span class="fc" id="L73">        resultado.setAplicado(aplicar);</span>
+<span class="fc" id="L74">        procesar(libro, catalogos, aplicar, resultado);</span>
+<span class="fc" id="L75">        resultado.totalizar();</span>
+<span class="fc" id="L76">        return resultado;</span>
+    }
+
+    /** Cada plantilla declara acá sus hojas. */
+    protected abstract void procesar(Workbook libro, Catalogos catalogos, boolean aplicar,
+            ResultadoImportacionDTO resultado);
+
+    /**
+     * Recorre una hoja de principio a fin.
+     *
+     * @param sqlClaves consulta que devuelve una columna de texto con las claves
+     *                  naturales que ya están en la base, armadas igual que las
+     *                  que produce el manejador
+     */
+    protected void hoja(Workbook libro, String nombre, String destino, String sqlClaves,
+            Catalogos catalogos, boolean aplicar, ResultadoImportacionDTO resultado,
+            ManejadorFila manejador) {
+
+<span class="fc" id="L94">        ResultadoHojaDTO r = new ResultadoHojaDTO();</span>
+<span class="fc" id="L95">        r.setHoja(nombre);</span>
+<span class="fc" id="L96">        r.setDestino(destino);</span>
+<span class="fc" id="L97">        resultado.getHojas().add(r);</span>
+
+<span class="fc" id="L99">        Sheet hoja = libro.getSheet(nombre);</span>
+<span class="pc bpc" id="L100" title="1 of 2 branches missed.">        if (hoja == null) {</span>
+<span class="nc" id="L101">            r.setAdvertencia(&quot;El libro no trae la hoja &quot; + nombre + &quot;. No se cargó nada de ella.&quot;);</span>
+<span class="nc" id="L102">            return;</span>
+        }
+
+<span class="fc" id="L105">        Map&lt;String, Integer&gt; columnas = cabecera(hoja);</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">        if (columnas.isEmpty()) {</span>
+<span class="nc" id="L107">            r.setAdvertencia(&quot;La hoja &quot; + nombre + &quot; no tiene fila de cabecera.&quot;);</span>
+<span class="nc" id="L108">            return;</span>
+        }
+
+<span class="fc" id="L111">        Set&lt;String&gt; enLaBase = new HashSet&lt;&gt;(jdbc.queryForList(sqlClaves, String.class));</span>
+<span class="fc" id="L112">        Set&lt;String&gt; enElArchivo = new HashSet&lt;&gt;();</span>
+
+<span class="fc bfc" id="L114" title="All 2 branches covered.">        for (int i = 1; i &lt;= hoja.getLastRowNum(); i++) {</span>
+<span class="fc" id="L115">            Row cruda = hoja.getRow(i);</span>
+<span class="pc bpc" id="L116" title="1 of 2 branches missed.">            if (cruda == null) {</span>
+<span class="nc" id="L117">                continue;</span>
+            }
+<span class="fc" id="L119">            Fila fila = new Fila(cruda, columnas, catalogos);</span>
+<span class="fc bfc" id="L120" title="All 2 branches covered.">            if (fila.vacia()) {</span>
+<span class="fc" id="L121">                continue;</span>
+            }
+<span class="fc" id="L123">            r.setLeidas(r.getLeidas() + 1);</span>
+
+<span class="fc" id="L125">            Registro reg = interpretar(fila, manejador);</span>
+
+<span class="pc bpc" id="L127" title="1 of 4 branches missed.">            if (fila.hayErrores() || reg == null) {</span>
+<span class="fc" id="L128">                r.setRechazadas(r.getRechazadas() + 1);</span>
+<span class="fc" id="L129">                r.getErrores().add(new ErrorFilaDTO(fila.numero(), fila.referencia(),</span>
+<span class="pc bpc" id="L130" title="1 of 2 branches missed.">                        fila.hayErrores() ? fila.motivos() : &quot;no se pudo interpretar el renglón&quot;));</span>
+<span class="fc" id="L131">                continue;</span>
+            }
+<span class="pc bpc" id="L133" title="1 of 2 branches missed.">            if (!enElArchivo.add(reg.clave())) {</span>
+<span class="nc" id="L134">                r.setOmitidas(r.getOmitidas() + 1);</span>
+<span class="nc" id="L135">                continue;</span>
+            }
+<span class="fc bfc" id="L137" title="All 2 branches covered.">            if (enLaBase.contains(reg.clave())) {</span>
+<span class="fc" id="L138">                r.setOmitidas(r.getOmitidas() + 1);</span>
+<span class="fc" id="L139">                continue;</span>
+            }
+<span class="fc bfc" id="L141" title="All 2 branches covered.">            if (aplicar) {</span>
+                try {
+<span class="fc" id="L143">                    reg.grabar().run();</span>
+<span class="nc" id="L144">                } catch (RuntimeException e) {</span>
+<span class="nc" id="L145">                    throw new ImportacionAbortadaException(nombre, fila.numero(), raiz(e), e);</span>
+<span class="fc" id="L146">                }</span>
+            }
+<span class="fc" id="L148">            r.setAceptadas(r.getAceptadas() + 1);</span>
+        }
+
+<span class="fc" id="L151">        log.info(&quot;Hoja {}: {} leídas, {} aceptadas, {} omitidas, {} rechazadas (aplicar={})&quot;,</span>
+<span class="fc" id="L152">                nombre, r.getLeidas(), r.getAceptadas(), r.getOmitidas(), r.getRechazadas(), aplicar);</span>
+<span class="fc" id="L153">    }</span>
+
+    /**
+     * Un fallo al interpretar el renglón no puede llevarse la importación
+     * entera: se anota contra esa fila y se sigue con la siguiente.
+     */
+    private Registro interpretar(Fila fila, ManejadorFila manejador) {
+        try {
+<span class="fc" id="L161">            return manejador.procesar(fila);</span>
+<span class="nc" id="L162">        } catch (ImportacionAbortadaException e) {</span>
+<span class="nc" id="L163">            throw e;</span>
+<span class="nc" id="L164">        } catch (RuntimeException e) {</span>
+<span class="nc" id="L165">            log.warn(&quot;Fila {} ilegible&quot;, fila.numero(), e);</span>
+<span class="nc" id="L166">            fila.error(&quot;no se pudo leer: &quot; + raiz(e));</span>
+<span class="nc" id="L167">            return null;</span>
+        }
+    }
+
+    /**
+     * Ubica las columnas por el texto de la cabecera. Leer por nombre y no por
+     * posición es lo que permite que la plantilla se le agregue una columna o
+     * se le reordenen las que no se usan sin romper la carga.
+     */
+    private Map&lt;String, Integer&gt; cabecera(Sheet hoja) {
+<span class="fc" id="L177">        Map&lt;String, Integer&gt; columnas = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L178">        Row fila = hoja.getRow(0);</span>
+<span class="pc bpc" id="L179" title="1 of 2 branches missed.">        if (fila == null) {</span>
+<span class="nc" id="L180">            return columnas;</span>
+        }
+<span class="fc bfc" id="L182" title="All 2 branches covered.">        for (int i = 0; i &lt; fila.getLastCellNum(); i++) {</span>
+<span class="fc" id="L183">            Cell celda = fila.getCell(i);</span>
+<span class="fc bfc" id="L184" title="All 2 branches covered.">            if (celda == null) {</span>
+<span class="fc" id="L185">                continue;</span>
+            }
+<span class="fc" id="L187">            String nombre = celda.toString().trim().toLowerCase();</span>
+<span class="pc bpc" id="L188" title="1 of 2 branches missed.">            if (!nombre.isEmpty()) {</span>
+<span class="fc" id="L189">                columnas.putIfAbsent(nombre, i);</span>
+            }
+        }
+<span class="fc" id="L192">        return columnas;</span>
+    }
+
+    /**
+     * Arma la clave natural. Los nulos entran como cadena vacía para que la
+     * ausencia de turno sea un valor más y no borre la separación entre partes.
+     */
+    protected static String clave(Object... partes) {
+<span class="fc" id="L200">        StringBuilder sb = new StringBuilder();</span>
+<span class="fc bfc" id="L201" title="All 2 branches covered.">        for (Object p : partes) {</span>
+<span class="fc bfc" id="L202" title="All 2 branches covered.">            if (sb.length() &gt; 0) {</span>
+<span class="fc" id="L203">                sb.append('|');</span>
+            }
+<span class="pc bpc" id="L205" title="1 of 2 branches missed.">            sb.append(p == null ? &quot;&quot; : texto(p));</span>
+        }
+<span class="fc" id="L207">        return sb.toString();</span>
+    }
+
+    private static String texto(Object p) {
+<span class="fc bfc" id="L211" title="All 2 branches covered.">        if (p instanceof BigDecimal d) {</span>
+<span class="fc" id="L212">            return num(d);</span>
+        }
+<span class="fc bfc" id="L214" title="All 2 branches covered.">        if (p instanceof Double d) {</span>
+<span class="fc" id="L215">            return num(BigDecimal.valueOf(d));</span>
+        }
+<span class="fc" id="L217">        return p.toString();</span>
+    }
+
+    /**
+     * Normaliza un número para la clave. Tiene que dar el mismo texto que la
+     * consulta que lee las claves ya cargadas: {@code 134}, {@code 134.0} y
+     * {@code 134.00} son la misma profundidad y deben producir la misma clave,
+     * o la segunda carga duplicaría todo.
+     */
+    protected static String num(BigDecimal v) {
+<span class="pc bpc" id="L227" title="1 of 2 branches missed.">        return v == null ? &quot;&quot; : v.setScale(2, RoundingMode.HALF_UP).toPlainString();</span>
+    }
+
+    /** Expresión SQL equivalente a {@link #num(BigDecimal)}. */
+    protected static String sqlNum(String columna) {
+<span class="fc" id="L232">        return &quot;coalesce(trim(to_char(&quot; + columna + &quot;, 'FM9999999990.00')), '')&quot;;</span>
+    }
+
+    /**
+     * Parte de la clave que identifica al sondaje. Los partes de estufa pueden
+     * no tener sondaje —un lote seca muestras de varios a la vez— y entonces lo
+     * que identifica al renglón es el código literal {@code VARIOS}.
+     */
+    protected static Object idOCodigo(UUID sondajeId, String codigo) {
+<span class="pc bpc" id="L241" title="1 of 4 branches missed.">        return sondajeId != null ? sondajeId : (codigo == null ? &quot;&quot; : codigo.toUpperCase());</span>
+    }
+
+    /** Expresión SQL equivalente a {@link #idOCodigo(UUID, String)}. */
+    protected static String sqlIdOCodigo() {
+<span class="fc" id="L246">        return &quot;coalesce(sondaje_id::text, upper(sondaje_codigo), '')&quot;;</span>
+    }
+
+    /** Expresión SQL para una columna de texto que puede venir nula. */
+    protected static String sqlTexto(String columna) {
+<span class="fc" id="L251">        return &quot;coalesce(&quot; + columna + &quot;::text, '')&quot;;</span>
+    }
+
+    private static String raiz(Throwable e) {
+<span class="nc" id="L255">        Throwable t = e;</span>
+<span class="nc bnc" id="L256" title="All 4 branches missed.">        while (t.getCause() != null &amp;&amp; t.getCause() != t) {</span>
+<span class="nc" id="L257">            t = t.getCause();</span>
+        }
+<span class="nc" id="L259">        String m = t.getMessage();</span>
+<span class="nc bnc" id="L260" title="All 2 branches missed.">        if (m == null) {</span>
+<span class="nc" id="L261">            return t.getClass().getSimpleName();</span>
+        }
+<span class="nc" id="L263">        m = m.replaceAll(&quot;\s+&quot;, &quot; &quot;).trim();</span>
+<span class="nc bnc" id="L264" title="All 2 branches missed.">        return m.length() &gt; 300 ? m.substring(0, 300) + &quot;…&quot; : m;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
