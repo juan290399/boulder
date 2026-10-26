@@ -226,6 +226,10 @@ public class FotoService {
         }
     }
 
+    static String nombreArchivoSeguro(String recibido) {
+        throw new UnsupportedOperationException("pendiente");
+    }
+
     private static String recortar(String s, int max) {
         return s == null ? null : (s.length() > max ? s.substring(0, max) : s);
     }
