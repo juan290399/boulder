@@ -11,11 +11,13 @@ import {
   GraficoTrayectoria,
   PuntoTrayectoria,
 } from '../../../components/grafico-trayectoria/grafico-trayectoria';
+import { MedicionDesvioForm } from './medicion-desvio/medicion-desvio';
 import {
   DesviacionMaquina,
   DesviacionPerforista,
   DesviacionSondaje,
   Sondaje,
+  SurveyMedicion,
   TrayectoriaSondaje,
 } from '../../../models/operacional';
 
@@ -47,7 +49,7 @@ interface FormSeguimiento {
 @Component({
   selector: 'app-desvio',
   standalone: true,
-  imports: [CommonModule, FormsModule, GraficoTrayectoria],
+  imports: [CommonModule, FormsModule, GraficoTrayectoria, MedicionDesvioForm],
   templateUrl: './desvio.html',
   styleUrl: './desvio.scss',
 })
@@ -70,6 +72,10 @@ export class Desvio implements OnInit {
   readonly cargandoTrayectoria = signal(false);
   readonly guardando = signal(false);
   readonly aviso = signal<string | null>(null);
+
+  /** Formulario de medición nueva abierto, y el aviso de la última registrada. */
+  readonly nuevaMedicion = signal(false);
+  readonly avisoAlta = signal<string | null>(null);
 
   /** Sondajes que tienen trayectoria medida, para la vista de curvas. */
   readonly sondajes = signal<Sondaje[]>([]);
@@ -141,6 +147,13 @@ export class Desvio implements OnInit {
           });
         break;
     }
+  }
+
+  medicionGuardada(m: SurveyMedicion): void {
+    this.nuevaMedicion.set(false);
+    const desvio = m.desvMetros != null ? ` · separación estimada ${m.desvMetros} m` : '';
+    this.avisoAlta.set(`Medición N.º ${m.nroMedicion} a ${m.profundidad} m registrada${desvio}.`);
+    this.cargar();
   }
 
   limpiarFiltro(): void {
