@@ -126,16 +126,16 @@
       @if (!r.aplicado && r.totalRechazadas > 0) {
         <div class="alert-inline alert-inline--info">
           <i class="bi bi-info-circle"></i>
-          Podés cargar igual: los {{ r.totalAceptadas }} renglones buenos entran y los
-          {{ r.totalRechazadas }} con problemas quedan afuera. Después corregís esas filas
-          en el Excel y volvés a subir el mismo archivo; lo ya cargado no se duplica.
+          Puedes cargar igual: los {{ r.totalAceptadas }} renglones buenos entran y los
+          {{ r.totalRechazadas }} con problemas quedan afuera. Después corriges esas filas
+          en el Excel y vuelves a subir el mismo archivo; lo ya cargado no se duplica.
         </div>
       }
       @if (r.aplicado && r.totalRechazadas > 0) {
         <div class="alert-inline">
           <i class="bi bi-exclamation-triangle"></i>
-          Quedaron {{ r.totalRechazadas }} renglones sin cargar. Corregilos en el Excel
-          y volvé a subir el archivo.
+          Quedaron {{ r.totalRechazadas }} renglones sin cargar. Corrígelos en el Excel
+          y vuelve a subir el archivo.
         </div>
       }
     </div>

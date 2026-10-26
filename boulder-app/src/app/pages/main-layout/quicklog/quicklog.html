@@ -7,7 +7,7 @@
   </div>
   <div class="page-head__actions">
     <span class="en-vivo" [class.en-vivo--on]="canal() === 'conectado'"
-          [title]="canal() === 'conectado' ? 'Los tramos que suban los tablets aparecen solos' : 'Sin conexión en vivo: recargá para ver lo nuevo'">
+          [title]="canal() === 'conectado' ? 'Los tramos que suban los tablets aparecen solos' : 'Sin conexión en vivo: recarga para ver lo nuevo'">
       <span class="en-vivo__punto"></span>
       {{ canal() === 'conectado' ? 'En vivo' : (canal() === 'reconectando' ? 'Reconectando…' : 'Sin conexión en vivo') }}
     </span>
@@ -32,7 +32,7 @@
         <label class="form-label" for="sel-sondaje">Sondaje</label>
         <select id="sel-sondaje" class="form-select form-select-sm"
                 [(ngModel)]="sondajeId" (change)="cargar()">
-          <option value="">— Elegí un sondaje —</option>
+          <option value="">— Elige un sondaje —</option>
           @for (s of sondajes(); track s.id) {
             <option [value]="s.id">{{ s.codigo }} · {{ s.nombre }}</option>
           }
@@ -76,7 +76,7 @@
   } @else if (!sondajeId) {
     <div class="empty-state">
       <i class="bi bi-journal-richtext"></i>
-      <p>Elegí un sondaje para ver su quicklog.</p>
+      <p>Elige un sondaje para ver su quicklog.</p>
     </div>
   } @else if (!tramos().length) {
     <div class="empty-state">

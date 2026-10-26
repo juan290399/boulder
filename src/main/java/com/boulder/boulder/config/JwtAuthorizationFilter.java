@@ -23,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
+    private final CuentasActivas cuentasActivas;
 
     @Override
     protected void doFilterInternal(
@@ -37,6 +38,13 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
             String username = jwtUtils.getUsernameFromToken(token);
             Claims claims = jwtUtils.getAllClaims(token);
+
+            // La firma prueba quién emitió el token, no que la cuenta siga
+            // viva: una cuenta desactivada o borrada queda sin autenticar.
+            if (!cuentasActivas.activa(username)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
 
             List<String> roles = claims.get("roles", List.class);
 

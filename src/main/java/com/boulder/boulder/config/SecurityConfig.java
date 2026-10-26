@@ -33,6 +33,7 @@ public class SecurityConfig {
 
     private final JwtUtils jwtUtils;
     private final AuthenticationConfiguration authenticationConfiguration;
+    private final CuentasActivas cuentasActivas;
 
     /**
      * Orígenes del frontend autorizados. Por defecto, el servidor de desarrollo
@@ -91,7 +92,7 @@ public class SecurityConfig {
         JwtAuthenticationFilter jwtAuthFilter = new JwtAuthenticationFilter(authManager, jwtUtils, limiteIntentosLogin());
         jwtAuthFilter.setFilterProcessesUrl("/api/auth/login");
 
-        JwtAuthorizationFilter jwtAuthorizationFilter = new JwtAuthorizationFilter(jwtUtils);
+        JwtAuthorizationFilter jwtAuthorizationFilter = new JwtAuthorizationFilter(jwtUtils, cuentasActivas);
 
         http
             .csrf(csrf -> csrf.disable())
