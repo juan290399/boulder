@@ -3,6 +3,8 @@ package com.boulder.boulder.dto;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Data;
 
 /**
@@ -30,7 +32,15 @@ public class UsuarioDTO {
     private String apellidos;
     private String correo;
     private String usuario;
+    /** Solo de entrada: nunca se serializa hacia el cliente. */
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String contrasenia;
     private Boolean estado;
     private List<String> roles;
+
+    /** Empleado del catálogo al que pertenece la cuenta; opcional. */
+    private UUID empleadoId;
+
+    /** Solo lectura, para no obligar al cliente a cruzar el catálogo. */
+    private String empleadoNombre;
 }

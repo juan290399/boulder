@@ -44,9 +44,9 @@ public class Rol implements Serializable{
     @Column(name = "numero_interno", insertable = false, updatable = false)
     private Integer numeroInterno;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false, unique = true, length = 50)
     private String codigo;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false, length = 100)
     private String nombre;
 }

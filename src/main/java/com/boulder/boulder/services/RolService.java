@@ -1,5 +1,9 @@
 package com.boulder.boulder.services;
 
+import java.util.List;
+
+import com.boulder.boulder.dto.RolDTO;
+
 /**
  * Define las operaciones de negocio relacionadas con la gestión de roles.
  *
@@ -14,4 +18,5 @@ package com.boulder.boulder.services;
  */
 public interface RolService {
 
+    List<RolDTO> listarTodos();
 }

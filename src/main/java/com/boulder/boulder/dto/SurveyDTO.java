@@ -30,4 +30,6 @@ public class SurveyDTO {
     private Double azimut;
     private Double inclinacion;
     private String metodoMedicion;
+    private Short medicionUtilizada;
+    private String qc;
 }

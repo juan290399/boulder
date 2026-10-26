@@ -38,5 +38,5 @@ public class MaquinaDTO {
     private LocalDate fechaLlegada;
     private LocalDate fechaInicio;
     private String estado;
-    private String notes;
+    private String notas;
 }

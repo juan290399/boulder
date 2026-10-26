@@ -28,7 +28,7 @@ import com.boulder.boulder.services.CollarService;
  * @since 1.0
  */
 @RestController
-@RequestMapping("/collar")
+@RequestMapping("/api/operacional/collares")
 @CrossOrigin(origins = "*")
 public class CollarController {
 
@@ -49,7 +49,7 @@ public class CollarController {
         return ResponseEntity.ok(collarService.obtenerPorId(id));
     }
 
-    @GetMapping("/{codigo}")
+    @GetMapping("/codigo/{codigo}")
     public ResponseEntity<CollarDTO> obtenerPorCodigo(@PathVariable String codigo) {
         log.info("HTTP GET - Obteniendo collar codigo: {}", codigo);
         return ResponseEntity.ok(collarService.obtenerPorCodigo(codigo));

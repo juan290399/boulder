@@ -29,7 +29,7 @@ import com.boulder.boulder.services.SurveyService;
  * @since 1.0
  */
 @RestController
-@RequestMapping("/survey")
+@RequestMapping("/api/operacional/surveys")
 @CrossOrigin(origins = "*")
 public class SurveyController {
 
