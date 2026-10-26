@@ -1,0 +1,64 @@
+<figure class="grafico">
+  <figcaption class="grafico__cabecera">
+    <span class="grafico__titulo">{{ titulo() }}</span>
+    <span class="grafico__leyenda">
+      <span class="grafico__clave">
+        <span class="grafico__muestra grafico__muestra--plan"></span>Planificado
+      </span>
+      <span class="grafico__clave">
+        <span class="grafico__muestra" [style.background]="color()"></span>Medido
+      </span>
+    </span>
+  </figcaption>
+
+  @if (trazo(); as t) {
+    @if (!t.hayDatos) {
+      <div class="empty-state">
+        <i class="bi bi-graph-up"></i>
+        <p>Este sondaje no tiene estaciones de survey.</p>
+      </div>
+    } @else {
+      <svg class="grafico__svg" [attr.viewBox]="'0 0 ' + t.ancho + ' ' + t.alto"
+           preserveAspectRatio="none" role="img"
+           [attr.aria-label]="titulo()">
+
+        <!-- rejilla horizontal -->
+        @for (m of t.marcasY; track m.pos) {
+          <line class="grafico__rejilla"
+                [attr.x1]="t.margenIzq" [attr.y1]="m.pos"
+                [attr.x2]="t.margenIzq + t.areaAncho" [attr.y2]="m.pos" />
+          <text class="grafico__marca" [attr.x]="t.margenIzq - 6" [attr.y]="m.pos + 3"
+                text-anchor="end">{{ m.etiqueta }}</text>
+        }
+
+        <!-- marcas de profundidad -->
+        @for (m of t.marcasX; track m.pos) {
+          <text class="grafico__marca" [attr.x]="m.pos"
+                [attr.y]="t.margenSup + t.areaAlto + 16" text-anchor="middle">{{ m.etiqueta }}</text>
+        }
+
+        <!-- el desvío: el área entre lo medido y el plan -->
+        @if (t.areaDesvio) {
+          <path class="grafico__area" [attr.d]="t.areaDesvio" [attr.fill]="color()" />
+        }
+
+        <!-- la recta planificada -->
+        @if (plan() !== null && plan() !== undefined) {
+          <line class="grafico__plan"
+                [attr.x1]="t.margenIzq" [attr.y1]="t.yPlan"
+                [attr.x2]="t.margenIzq + t.areaAncho" [attr.y2]="t.yPlan" />
+        }
+
+        <!-- la curva medida -->
+        <path class="grafico__linea" [attr.d]="t.lineaMedida" [attr.stroke]="color()" />
+
+        <!-- eje inferior -->
+        <line class="grafico__eje"
+              [attr.x1]="t.margenIzq" [attr.y1]="t.margenSup + t.areaAlto"
+              [attr.x2]="t.margenIzq + t.areaAncho" [attr.y2]="t.margenSup + t.areaAlto" />
+      </svg>
+
+      <span class="grafico__eje-x">Profundidad (m)</span>
+    }
+  }
+</figure>
