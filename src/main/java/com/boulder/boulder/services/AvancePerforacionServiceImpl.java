@@ -1,7 +1,11 @@
 package com.boulder.boulder.services;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -10,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.boulder.boulder.dominio.ParteTurno;
 import com.boulder.boulder.dto.AvancePerforacionDTO;
 import com.boulder.boulder.dto.AvancePersonalDTO;
 import com.boulder.boulder.entities.AvancePerforacion;
@@ -37,6 +42,8 @@ import jakarta.persistence.EntityNotFoundException;
 public class AvancePerforacionServiceImpl implements AvancePerforacionService {
 
     private static final Logger log = LoggerFactory.getLogger(AvancePerforacionServiceImpl.class);
+
+    private static final Set<String> TURNOS = Set.of("dia", "noche");
 
     private final AvancePerforacionRepository avanceRepository;
     private final SondajeRepository sondajeRepository;
@@ -88,6 +95,7 @@ public class AvancePerforacionServiceImpl implements AvancePerforacionService {
     public AvancePerforacionDTO guardar(AvancePerforacionDTO dto) {
         log.info("Registrando parte de avance. Sondaje: {}, Fecha: {}",
                 dto.getSondajeCodigo() != null ? dto.getSondajeCodigo() : dto.getSondajeId(), dto.getFecha());
+        validar(dto, null);
         AvancePerforacion avance = new AvancePerforacion();
         aplicarCabecera(dto, avance);
         reemplazarPersonal(dto, avance);
@@ -101,6 +109,7 @@ public class AvancePerforacionServiceImpl implements AvancePerforacionService {
     public AvancePerforacionDTO actualizar(UUID id, AvancePerforacionDTO dto) {
         log.info("Actualizando parte de avance ID: {}", id);
         AvancePerforacion avance = buscar(id);
+        validar(dto, id);
         aplicarCabecera(dto, avance);
         reemplazarPersonal(dto, avance);
         return convertToDto(avanceRepository.save(avance));
@@ -116,7 +125,77 @@ public class AvancePerforacionServiceImpl implements AvancePerforacionService {
     @Override
     @Transactional(readOnly = true)
     public AvancePerforacionDTO sugerencia(UUID sondajeId) {
-        return null;
+        Sondaje sondaje = sondajeRepository.findById(sondajeId)
+                .orElseThrow(() -> new EntityNotFoundException("Sondaje no encontrado con ID: " + sondajeId));
+
+        AvancePerforacionDTO dto = new AvancePerforacionDTO();
+        dto.setSondajeId(sondajeId);
+        dto.setSondajeCodigo(sondaje.getCodigo());
+        dto.setDesde(BigDecimal.ZERO);
+        Maquina maquina = sondaje.getMaquina();
+        Plataforma plataforma = sondaje.getPlataforma();
+
+        // El turno siguiente arranca donde el anterior dejó el pozo, casi siempre
+        // con la misma máquina y la misma cuadrilla: se precarga y se corrige lo
+        // que cambió, en vez de teclear todo de nuevo.
+        AvancePerforacion ultimo = avanceRepository.findFirstBySondajeIdOrderByHastaDescFechaDesc(sondajeId)
+                .orElse(null);
+        if (ultimo != null) {
+            dto.setDesde(ultimo.getHasta());
+            dto.setResponsable(ultimo.getResponsable());
+            dto.setLinea(ultimo.getLinea());
+            maquina = ultimo.getMaquina() != null ? ultimo.getMaquina() : maquina;
+            plataforma = ultimo.getPlataforma() != null ? ultimo.getPlataforma() : plataforma;
+            dto.setPersonal(ultimo.getPersonal().stream().map(p -> {
+                AvancePersonalDTO pdto = new AvancePersonalDTO();
+                pdto.setNombre(p.getNombre());
+                pdto.setCargo(p.getCargo());
+                pdto.setCodigoMaquina(p.getCodigoMaquina());
+                if (p.getPerforista() != null) {
+                    pdto.setPerforistaId(p.getPerforista().getId());
+                }
+                return pdto;
+            }).collect(Collectors.toList()));
+        }
+        if (maquina != null) {
+            dto.setMaquinaId(maquina.getId());
+            dto.setMaquinaCodigo(maquina.getCodigo());
+        }
+        if (plataforma != null) {
+            dto.setPlataformaId(plataforma.getId());
+            dto.setPlataformaCodigo(plataforma.getCodigo());
+        }
+        return dto;
+    }
+
+    /**
+     * Rechaza el parte antes de tocar nada: números que no cuadran, un turno que
+     * no existe o el mismo turno cargado dos veces (lo que pasa cuando el parte
+     * llega por WhatsApp y además alguien lo teclea).
+     *
+     * @param idActual el parte que se corrige, para no compararlo consigo mismo; {@code null} al crear
+     */
+    private void validar(AvancePerforacionDTO dto, UUID idActual) {
+        List<String> errores = new ArrayList<>(ParteTurno.errores(dto.getDesde(), dto.getHasta(), dto.getAvance(),
+                dto.getRetornoPct(), dto.getCasingDesde(), dto.getCasingHasta()));
+        if (dto.getTurno() != null && !TURNOS.contains(dto.getTurno())) {
+            errores.add("turno: tiene que ser dia o noche");
+        }
+        if (!errores.isEmpty()) {
+            throw new IllegalArgumentException(String.join("; ", errores));
+        }
+        if (dto.getSondajeId() == null) {
+            return;
+        }
+        boolean repetido = avanceRepository.findBySondajeIdAndFecha(dto.getSondajeId(), dto.getFecha()).stream()
+                .filter(a -> !Objects.equals(a.getId(), idActual))
+                .anyMatch(a -> Objects.equals(a.getTurno(), dto.getTurno())
+                        && a.getDesde().compareTo(dto.getDesde()) == 0);
+        if (repetido) {
+            throw new IllegalStateException("Ese turno ya está cargado: el sondaje tiene un parte del "
+                    + dto.getFecha() + (dto.getTurno() == null ? "" : ", turno " + dto.getTurno())
+                    + ", que arranca en " + dto.getDesde().toPlainString() + " m.");
+        }
     }
 
     private AvancePerforacion buscar(UUID id) {
@@ -156,6 +235,18 @@ public class AvancePerforacionServiceImpl implements AvancePerforacionService {
         avance.setPlataforma(dto.getPlataformaId() == null ? null
                 : plataformaRepository.findById(dto.getPlataformaId())
                         .orElseThrow(() -> new EntityNotFoundException("La Plataforma asignada no existe.")));
+
+        // Con la relación resuelta, el código de texto sale de la entidad: el
+        // formulario manda ids y los listados y el reporte leen el código.
+        if (avance.getSondaje() != null) {
+            avance.setSondajeCodigo(avance.getSondaje().getCodigo());
+        }
+        if (avance.getMaquina() != null) {
+            avance.setMaquinaCodigo(avance.getMaquina().getCodigo());
+        }
+        if (avance.getPlataforma() != null) {
+            avance.setPlataformaCodigo(avance.getPlataforma().getCodigo());
+        }
     }
 
     private void reemplazarPersonal(AvancePerforacionDTO dto, AvancePerforacion avance) {
