@@ -3,6 +3,7 @@ package com.boulder.boulder.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.boulder.boulder.dominio.Revision;
 import com.boulder.boulder.dto.CorteDensidadDTO;
 import com.boulder.boulder.entities.CorteDensidad;
 import com.boulder.boulder.repositories.AvanceOperativoRepository;
@@ -51,6 +52,11 @@ public class CorteDensidadServiceImpl
         entidad.setTotalMuestras(dto.getTotalMuestras());
         entidad.setTotalMetraje(dto.getTotalMetraje());
         entidad.setTipoLinea(dto.getTipoLinea());
+    }
+
+    @Override
+    protected void revisar(CorteDensidadDTO dto, Revision revision) {
+        revision.tramo("tramo", dto.getDesde(), dto.getHasta());
     }
 
     @Override

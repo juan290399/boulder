@@ -3,6 +3,7 @@ package com.boulder.boulder.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.boulder.boulder.dominio.Revision;
 import com.boulder.boulder.dto.CorteMuestraDTO;
 import com.boulder.boulder.entities.CorteMuestra;
 import com.boulder.boulder.repositories.AvanceOperativoRepository;
@@ -51,6 +52,11 @@ public class CorteMuestraServiceImpl
         entidad.setTipoLinea(dto.getTipoLinea());
         entidad.setMetrajeEstimado(dto.getMetrajeEstimado());
         entidad.setNroMuestras(dto.getNroMuestras());
+    }
+
+    @Override
+    protected void revisar(CorteMuestraDTO dto, Revision revision) {
+        revision.tramo("tramo", dto.getDesde(), dto.getHasta());
     }
 
     @Override

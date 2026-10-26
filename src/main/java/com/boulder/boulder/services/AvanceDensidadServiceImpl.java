@@ -3,6 +3,7 @@ package com.boulder.boulder.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.boulder.boulder.dominio.Revision;
 import com.boulder.boulder.dto.AvanceDensidadDTO;
 import com.boulder.boulder.entities.AvanceDensidad;
 import com.boulder.boulder.repositories.AvanceDensidadRepository;
@@ -52,6 +53,12 @@ public class AvanceDensidadServiceImpl
         entidad.setTipoLinea(dto.getTipoLinea());
         entidad.setDesde(dto.getDesde());
         entidad.setHasta(dto.getHasta());
+    }
+
+    @Override
+    protected void revisar(AvanceDensidadDTO dto, Revision revision) {
+        revision.opcion("etapa", dto.getEtapa(), "corte", "secado_1", "secado_2", "pesado", "calculo")
+                .tramo("tramo", dto.getDesde(), dto.getHasta());
     }
 
     @Override

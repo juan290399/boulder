@@ -3,6 +3,7 @@ package com.boulder.boulder.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.boulder.boulder.dominio.Revision;
 import com.boulder.boulder.dto.RecepcionCajaDTO;
 import com.boulder.boulder.entities.RecepcionCaja;
 import com.boulder.boulder.repositories.AvanceOperativoRepository;
@@ -52,6 +53,12 @@ public class RecepcionCajaServiceImpl
         entidad.setMarcadoDesde(dto.getMarcadoDesde());
         entidad.setMarcadoHasta(dto.getMarcadoHasta());
         entidad.setTotalMetraje(dto.getTotalMetraje());
+    }
+
+    @Override
+    protected void revisar(RecepcionCajaDTO dto, Revision revision) {
+        revision.cajas("cajas", dto.getBoxDesde(), dto.getBoxHasta())
+                .tramo("marcado", dto.getMarcadoDesde(), dto.getMarcadoHasta());
     }
 
     @Override
