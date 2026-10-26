@@ -22,4 +22,14 @@ export class AvancePerforacionService extends CrudService<AvancePerforacion> {
     }
     return this.http.get<AvancePerforacion[]>(this.resourceUrl, { params });
   }
+
+  /**
+   * Borrador del turno siguiente: arranca donde terminó el último parte, con su
+   * máquina, plataforma y dotación. No guarda nada.
+   */
+  sugerencia(sondajeId: string): Observable<AvancePerforacion> {
+    return this.http.get<AvancePerforacion>(`${this.resourceUrl}/sugerencia`, {
+      params: new HttpParams().set('sondajeId', sondajeId),
+    });
+  }
 }
