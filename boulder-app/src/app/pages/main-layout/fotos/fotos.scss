@@ -1,0 +1,126 @@
+/* Solo lo propio de la galería: el resto sale de styles.scss. */
+
+.subir-btn { cursor: pointer; }
+
+.nota {
+  margin: 0;
+  padding: 0 1.25rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--bo-ink-2);
+}
+
+.previa {
+  width: 72px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+}
+
+.rango {
+  white-space: nowrap;
+  input { width: 5.5rem; display: inline-block; }
+  span { margin: 0 0.3rem; color: var(--bo-ink-2); }
+}
+
+.error-fila { font-size: 0.75rem; color: var(--bo-danger); max-width: 16rem; }
+.tenue { color: var(--bo-ink-2); font-size: 0.78rem; }
+.mono { font-family: var(--bo-mono); font-size: 0.8rem; }
+
+/* Las fotos de cajas son apaisadas (la bandeja es larga y baja): la grilla
+   respeta esa forma en vez de recortarlas en cuadrados. */
+.galeria {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.foto {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  text-align: left;
+  border: 1px solid var(--bo-border);
+  border-radius: var(--bo-r-sm);
+  background: var(--bo-surface);
+  overflow: hidden;
+  cursor: zoom-in;
+  transition: box-shadow 0.15s, border-color 0.15s;
+
+  &:hover { border-color: var(--bo-border-strong); box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08); }
+}
+
+.foto__img {
+  position: relative;
+  aspect-ratio: 2 / 1;
+  background: #e5e7eb;
+  display: grid;
+  place-items: center;
+  color: #9ca3af;
+  font-size: 1.6rem;
+
+  img { width: 100%; height: 100%; object-fit: cover; display: block; }
+}
+
+.foto__cond {
+  position: absolute;
+  top: 0.4rem;
+  left: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #92400e;
+}
+
+.foto__cond--h { color: #155e75; }
+
+.foto__pie {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.8rem;
+}
+
+.visor {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background: rgba(15, 23, 42, 0.78);
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+}
+
+.visor__caja {
+  background: var(--bo-surface);
+  border-radius: var(--bo-r-sm);
+  max-width: min(1400px, 96vw);
+  max-height: 94vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.visor__barra {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--bo-border);
+  font-size: 0.9rem;
+}
+
+.visor__img { max-width: 100%; max-height: calc(94vh - 70px); object-fit: contain; display: block; margin: auto; }
+
+.en-vivo {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  font-size: 0.8rem; font-weight: 600; color: var(--bo-ink-2);
+  padding: 0.3rem 0.7rem; border-radius: 999px; background: #f3f4f6;
+}
+.en-vivo__punto { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: #9ca3af; }
+.en-vivo--on { color: #065f46; background: var(--bo-ok-soft); .en-vivo__punto { background: var(--bo-ok); } }
