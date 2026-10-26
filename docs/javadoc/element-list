@@ -1,0 +1,14 @@
+com.boulder.boulder
+com.boulder.boulder.config
+com.boulder.boulder.controllers
+com.boulder.boulder.dominio
+com.boulder.boulder.dto
+com.boulder.boulder.dto.cuenta
+com.boulder.boulder.dto.importacion
+com.boulder.boulder.entities
+com.boulder.boulder.eventos
+com.boulder.boulder.fotos
+com.boulder.boulder.reportes
+com.boulder.boulder.repositories
+com.boulder.boulder.services
+com.boulder.boulder.services.importacion

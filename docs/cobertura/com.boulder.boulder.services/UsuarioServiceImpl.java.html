@@ -1,0 +1,370 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UsuarioServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.services</a> &gt; <span class="el_source">UsuarioServiceImpl.java</span></div><h1>UsuarioServiceImpl.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.services;
+
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.boulder.boulder.config.CuentasActivas;
+import com.boulder.boulder.dto.RegistroDTO;
+import com.boulder.boulder.dto.UsuarioDTO;
+import com.boulder.boulder.entities.Empleado;
+import com.boulder.boulder.entities.Rol;
+import com.boulder.boulder.entities.Usuario;
+import com.boulder.boulder.entities.UsuarioRol;
+import com.boulder.boulder.repositories.EmpleadoRepository;
+import com.boulder.boulder.repositories.RolRepository;
+import com.boulder.boulder.repositories.UsuarioRepository;
+import com.boulder.boulder.repositories.UsuarioRolRepository;
+
+import jakarta.persistence.EntityNotFoundException;
+/**
+ * Implementación de los servicios de negocio para la gestión de usuarios.
+ *
+ * &lt;p&gt;
+ * Gestiona las operaciones relacionadas con el mantenimiento de usuarios y
+ * el control de acceso al sistema.
+ * &lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@Service
+<span class="fc" id="L45">public class UsuarioServiceImpl implements UsuarioService {</span>
+
+<span class="fc" id="L47">    private static final Logger log = LoggerFactory.getLogger(UsuarioServiceImpl.class);</span>
+
+    /** Código del rol administrador en {@code base.rol.codigo}. */
+    private static final String ROL_ADMIN = &quot;ADMIN&quot;;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private UsuarioRolRepository usuarioRolRepository;
+
+    @Autowired
+    private RolRepository rolRepository;
+
+    @Autowired
+    private EmpleadoRepository empleadoRepository;
+
+    /** La contraseña nunca se guarda tal como llega: siempre pasa por aquí. */
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    /** Al cambiar el estado de una cuenta, sus tokens dejan de valer en el acto. */
+    @Autowired
+    private CuentasActivas cuentasActivas;
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;UsuarioDTO&gt; listarTodos() {
+<span class="fc" id="L75">        log.debug(&quot;Consultando el listado maestro de usuarios registrados en el sistema&quot;);</span>
+<span class="fc" id="L76">        return usuarioRepository.findAll().stream()</span>
+<span class="fc" id="L77">                .map(this::convertToDto)</span>
+<span class="fc" id="L78">                .collect(Collectors.toList());</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UsuarioDTO obtenerPorId(UUID id) {
+<span class="nc" id="L84">        log.debug(&quot;Buscando usuario por ID único: {}&quot;, id);</span>
+<span class="nc" id="L85">        Usuario usuario = usuarioRepository.findById(id)</span>
+<span class="nc" id="L86">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Usuario no localizado con el ID especificado.&quot;));</span>
+<span class="nc" id="L87">        return convertToDto(usuario);</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UsuarioDTO obtenerPorUsuario(String username) {
+<span class="nc" id="L93">        log.debug(&quot;Buscando credenciales operacionales para el usuario: {}&quot;, username);</span>
+<span class="nc" id="L94">        Usuario usuario = usuarioRepository.findByUsuario(username)</span>
+<span class="nc" id="L95">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;No se encontró ningún usuario con el identificador: &quot; + username));</span>
+<span class="nc" id="L96">        return convertToDto(usuario);</span>
+    }
+
+    @Override
+    @Transactional
+    public UsuarioDTO guardar(UsuarioDTO dto) {
+<span class="nc" id="L102">        log.info(&quot;Iniciando registro de un nuevo usuario en la plataforma: {}&quot;, dto.getUsuario());</span>
+        try {
+<span class="nc bnc" id="L104" title="All 2 branches missed.">            if (usuarioRepository.existsByUsuario(dto.getUsuario())) {</span>
+<span class="nc" id="L105">                throw new IllegalArgumentException(&quot;El identificador de usuario '&quot; + dto.getUsuario() + &quot;' ya se encuentra registrado.&quot;);</span>
+            }
+<span class="nc bnc" id="L107" title="All 2 branches missed.">            if (usuarioRepository.existsByCorreo(dto.getCorreo())) {</span>
+<span class="nc" id="L108">                throw new IllegalArgumentException(&quot;El correo '&quot; + dto.getCorreo() + &quot;' ya se encuentra registrado.&quot;);</span>
+            }
+
+<span class="nc" id="L111">            Usuario usuario = new Usuario();</span>
+<span class="nc" id="L112">            usuario.setUsuario(dto.getUsuario());</span>
+<span class="nc" id="L113">            usuario.setNombres(dto.getNombres());</span>
+<span class="nc" id="L114">            usuario.setApellidos(dto.getApellidos());</span>
+<span class="nc" id="L115">            usuario.setCorreo(dto.getCorreo());</span>
+<span class="nc" id="L116">            usuario.setContrasenia(passwordEncoder.encode(dto.getContrasenia()));</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">            usuario.setEstado(dto.getEstado() != null ? dto.getEstado() : true);</span>
+<span class="nc" id="L118">            aplicarEmpleado(dto, usuario);</span>
+
+<span class="nc" id="L120">            Usuario guardado = usuarioRepository.save(usuario);</span>
+
+            // A diferencia del auto-registro, un alta hecha por un administrador
+            // puede nacer ya con roles y activa: es el camino previsto para dar
+            // de alta al personal que no se registra solo.
+<span class="nc bnc" id="L125" title="All 4 branches missed.">            if (dto.getRoles() != null &amp;&amp; !dto.getRoles().isEmpty()) {</span>
+<span class="nc" id="L126">                reemplazarRoles(guardado, dto.getRoles());</span>
+            }
+
+<span class="nc" id="L129">            log.info(&quot;Usuario '{}' registrado exitosamente&quot;, guardado.getUsuario());</span>
+<span class="nc" id="L130">            return convertToDto(guardado);</span>
+<span class="nc" id="L131">        } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L132">            log.warn(&quot;Validación fallida al guardar usuario: {}&quot;, e.getMessage());</span>
+<span class="nc" id="L133">            throw e;</span>
+<span class="nc" id="L134">        } catch (Exception e) {</span>
+<span class="nc" id="L135">            log.error(&quot;Fallo crítico al persistir el usuario: {}&quot;, dto.getUsuario(), e);</span>
+<span class="nc" id="L136">            throw e;</span>
+        }
+    }
+
+    @Override
+    @Transactional
+    public UsuarioDTO registrar(RegistroDTO dto) {
+<span class="nc" id="L143">        log.info(&quot;Auto-registro solicitado para el usuario: {}&quot;, dto.getUsuario());</span>
+
+<span class="nc bnc" id="L145" title="All 2 branches missed.">        if (usuarioRepository.existsByUsuario(dto.getUsuario())) {</span>
+<span class="nc" id="L146">            throw new IllegalArgumentException(</span>
+<span class="nc" id="L147">                    &quot;El identificador de usuario '&quot; + dto.getUsuario() + &quot;' ya se encuentra registrado.&quot;);</span>
+        }
+<span class="nc bnc" id="L149" title="All 2 branches missed.">        if (usuarioRepository.existsByCorreo(dto.getCorreo())) {</span>
+<span class="nc" id="L150">            throw new IllegalArgumentException(</span>
+<span class="nc" id="L151">                    &quot;El correo '&quot; + dto.getCorreo() + &quot;' ya se encuentra registrado.&quot;);</span>
+        }
+
+<span class="nc" id="L154">        Usuario usuario = new Usuario();</span>
+<span class="nc" id="L155">        usuario.setUsuario(dto.getUsuario());</span>
+<span class="nc" id="L156">        usuario.setNombres(dto.getNombres());</span>
+<span class="nc" id="L157">        usuario.setApellidos(dto.getApellidos());</span>
+<span class="nc" id="L158">        usuario.setCorreo(dto.getCorreo());</span>
+<span class="nc" id="L159">        usuario.setContrasenia(passwordEncoder.encode(dto.getContrasenia()));</span>
+
+        // La cuenta nace inactiva y sin roles: un JWT sin authorities pasaría el
+        // filtro `authenticated()`, así que la activación queda en manos de un
+        // administrador (PATCH /api/base/usuarios/{id}/estado).
+<span class="nc" id="L164">        usuario.setEstado(false);</span>
+
+<span class="nc" id="L166">        Usuario guardado = usuarioRepository.save(usuario);</span>
+<span class="nc" id="L167">        log.info(&quot;Usuario '{}' auto-registrado; pendiente de activación por un administrador&quot;,</span>
+<span class="nc" id="L168">                guardado.getUsuario());</span>
+<span class="nc" id="L169">        return convertToDto(guardado);</span>
+    }
+
+    @Override
+    @Transactional
+    public UsuarioDTO actualizar(UUID id, UsuarioDTO dto) {
+<span class="nc" id="L175">        log.info(&quot;Actualizando información de perfil para el usuario ID: {}&quot;, id);</span>
+        try {
+<span class="nc" id="L177">            Usuario usuario = usuarioRepository.findById(id)</span>
+<span class="nc" id="L178">                    .orElseThrow(() -&gt; new EntityNotFoundException(&quot;El usuario a modificar no existe en la base de datos.&quot;));</span>
+
+<span class="nc" id="L180">            usuario.setNombres(dto.getNombres());</span>
+<span class="nc" id="L181">            usuario.setApellidos(dto.getApellidos());</span>
+<span class="nc" id="L182">            usuario.setCorreo(dto.getCorreo());</span>
+
+<span class="nc bnc" id="L184" title="All 2 branches missed.">            if (dto.getEstado() != null) {</span>
+<span class="nc" id="L185">                verificarDesactivacionPropia(usuario, dto.getEstado());</span>
+<span class="nc" id="L186">                usuario.setEstado(dto.getEstado());</span>
+            }
+
+<span class="nc bnc" id="L189" title="All 4 branches missed.">            if (dto.getContrasenia() != null &amp;&amp; !dto.getContrasenia().trim().isEmpty()) {</span>
+<span class="nc" id="L190">                usuario.setContrasenia(passwordEncoder.encode(dto.getContrasenia()));</span>
+            }
+
+<span class="nc" id="L193">            aplicarEmpleado(dto, usuario);</span>
+
+<span class="nc" id="L195">            Usuario actualizado = usuarioRepository.saveAndFlush(usuario);</span>
+<span class="nc" id="L196">            cuentasActivas.olvidar(usuario.getUsuario());</span>
+
+            // `actualizar` deliberadamente NO toca los roles: se gestionan por
+            // PUT /api/base/usuarios/{id}/roles, para que un formulario de datos
+            // personales que no incluya el campo no los borre sin querer.
+<span class="nc" id="L201">            verificarQuedaAlgunAdmin();</span>
+
+<span class="nc" id="L203">            log.info(&quot;Perfil del usuario '{}' actualizado correctamente&quot;, actualizado.getUsuario());</span>
+<span class="nc" id="L204">            return convertToDto(actualizado);</span>
+<span class="nc" id="L205">        } catch (Exception e) {</span>
+<span class="nc" id="L206">            log.error(&quot;Error al modificar el registro del usuario con ID: {}&quot;, id, e);</span>
+<span class="nc" id="L207">            throw e;</span>
+        }
+    }
+
+    @Override
+    @Transactional
+    public void cambiarEstado(UUID id, boolean estado) {
+<span class="nc" id="L214">        log.warn(&quot;Cambiando estado de actividad para el usuario ID: {} a -&gt; {}&quot;, id, estado);</span>
+<span class="nc" id="L215">        Usuario usuario = usuarioRepository.findById(id)</span>
+<span class="nc" id="L216">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Registro de usuario no localizado para el cambio de estado.&quot;));</span>
+
+<span class="nc" id="L218">        verificarDesactivacionPropia(usuario, estado);</span>
+
+<span class="nc" id="L220">        usuario.setEstado(estado);</span>
+<span class="nc" id="L221">        usuarioRepository.saveAndFlush(usuario);</span>
+<span class="nc" id="L222">        cuentasActivas.olvidar(usuario.getUsuario());</span>
+
+<span class="nc" id="L224">        verificarQuedaAlgunAdmin();</span>
+
+<span class="nc" id="L226">        log.info(&quot;Estado del usuario '{}' modificado exitosamente&quot;, usuario.getUsuario());</span>
+<span class="nc" id="L227">    }</span>
+
+    @Override
+    @Transactional
+    public UsuarioDTO asignarRoles(UUID id, List&lt;String&gt; codigos) {
+<span class="nc" id="L232">        log.warn(&quot;Reemplazando el conjunto de roles del usuario ID: {} por -&gt; {}&quot;, id, codigos);</span>
+
+<span class="nc" id="L234">        Usuario usuario = usuarioRepository.findById(id)</span>
+<span class="nc" id="L235">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;El usuario a modificar no existe en la base de datos.&quot;));</span>
+
+<span class="nc bnc" id="L237" title="All 2 branches missed.">        List&lt;String&gt; solicitados = codigos != null ? codigos : List.of();</span>
+
+        // Quitarse a uno mismo el rol ADMIN deja la sesión en curso con un token
+        // que ya no vale para nada: la siguiente petición al panel responde 403 y
+        // la única salida es que otro administrador lo devuelva.
+<span class="nc bnc" id="L242" title="All 6 branches missed.">        if (esUsuarioActual(usuario) &amp;&amp; tieneRol(usuario, ROL_ADMIN) &amp;&amp; !contieneAdmin(solicitados)) {</span>
+<span class="nc" id="L243">            throw new IllegalStateException(</span>
+                    &quot;No puedes quitarte a ti mismo el rol ADMIN. Pídeselo a otro administrador.&quot;);
+        }
+
+<span class="nc" id="L247">        reemplazarRoles(usuario, solicitados);</span>
+
+<span class="nc" id="L249">        verificarQuedaAlgunAdmin();</span>
+
+<span class="nc" id="L251">        log.info(&quot;Roles del usuario '{}' actualizados a {}&quot;, usuario.getUsuario(), solicitados);</span>
+<span class="nc" id="L252">        return convertToDto(usuario);</span>
+    }
+
+    /**
+     * Borra las asignaciones actuales y escribe las indicadas.
+     *
+     * &lt;p&gt;
+     * El {@code flush} intermedio no es opcional: sin él las bajas y las altas se
+     * envían juntas al final de la transacción y la restricción
+     * {@code usuario_rol_uq} salta al reasignar un rol que el usuario ya tenía.
+     * &lt;/p&gt;
+     */
+    private void reemplazarRoles(Usuario usuario, List&lt;String&gt; codigos) {
+<span class="nc" id="L265">        usuarioRolRepository.deleteByUsuarioId(usuario.getId());</span>
+<span class="nc" id="L266">        usuarioRolRepository.flush();</span>
+
+        // LinkedHashSet: tolera códigos repetidos en la petición sin violar la
+        // restricción de unicidad, y conserva el orden para que el log se lea igual.
+<span class="nc" id="L270">        Set&lt;String&gt; unicos = new LinkedHashSet&lt;&gt;(codigos);</span>
+
+<span class="nc" id="L272">        List&lt;UsuarioRol&gt; nuevas = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L273" title="All 2 branches missed.">        for (String codigo : unicos) {</span>
+<span class="nc" id="L274">            Rol rol = rolRepository.findByCodigo(codigo)</span>
+<span class="nc" id="L275">                    .orElseThrow(() -&gt; new IllegalArgumentException(</span>
+                            &quot;El rol '&quot; + codigo + &quot;' no existe en el catálogo.&quot;));
+
+<span class="nc" id="L278">            UsuarioRol asignacion = new UsuarioRol();</span>
+<span class="nc" id="L279">            asignacion.setUsuario(usuario);</span>
+<span class="nc" id="L280">            asignacion.setRol(rol);</span>
+<span class="nc" id="L281">            nuevas.add(asignacion);</span>
+<span class="nc" id="L282">        }</span>
+
+<span class="nc" id="L284">        usuarioRolRepository.saveAllAndFlush(nuevas);</span>
+<span class="nc" id="L285">    }</span>
+
+    /**
+     * Invariante del sistema: siempre debe quedar al menos un administrador
+     * activo. Se comprueba después de aplicar el cambio y con la sesión ya
+     * volcada, de modo que al lanzar la excepción la transacción revierte.
+     */
+    private void verificarQuedaAlgunAdmin() {
+<span class="nc bnc" id="L293" title="All 2 branches missed.">        if (usuarioRolRepository.contarUsuariosActivosConRol(ROL_ADMIN) == 0) {</span>
+<span class="nc" id="L294">            throw new IllegalStateException(</span>
+                    &quot;La operación dejaría al sistema sin ningún administrador activo.&quot;);
+        }
+<span class="nc" id="L297">    }</span>
+
+    private void verificarDesactivacionPropia(Usuario usuario, boolean estadoNuevo) {
+<span class="nc bnc" id="L300" title="All 4 branches missed.">        if (!estadoNuevo &amp;&amp; esUsuarioActual(usuario)) {</span>
+<span class="nc" id="L301">            throw new IllegalStateException(&quot;No puedes desactivar tu propia cuenta.&quot;);</span>
+        }
+<span class="nc" id="L303">    }</span>
+
+    private boolean esUsuarioActual(Usuario usuario) {
+<span class="nc" id="L306">        Authentication auth = SecurityContextHolder.getContext().getAuthentication();</span>
+<span class="nc bnc" id="L307" title="All 4 branches missed.">        if (auth == null || auth.getName() == null) {</span>
+<span class="nc" id="L308">            return false;</span>
+        }
+<span class="nc" id="L310">        return auth.getName().equals(usuario.getUsuario());</span>
+    }
+
+    private boolean tieneRol(Usuario usuario, String codigo) {
+<span class="nc" id="L314">        return usuarioRolRepository.findByUsuarioId(usuario.getId()).stream()</span>
+<span class="nc" id="L315">                .anyMatch(ur -&gt; codigo.equals(ur.getRol().getCodigo()));</span>
+    }
+
+    /**
+     * Enlaza o desenlaza la cuenta con un empleado del catálogo.
+     *
+     * &lt;p&gt;
+     * La restricción UNIQUE de la columna impide que dos cuentas apunten al
+     * mismo empleado; el rechazo llega como violación de integridad (409).
+     * &lt;/p&gt;
+     */
+    private void aplicarEmpleado(UsuarioDTO dto, Usuario usuario) {
+<span class="nc bnc" id="L327" title="All 2 branches missed.">        if (dto.getEmpleadoId() == null) {</span>
+<span class="nc" id="L328">            usuario.setEmpleado(null);</span>
+<span class="nc" id="L329">            return;</span>
+        }
+<span class="nc" id="L331">        Empleado empleado = empleadoRepository.findById(dto.getEmpleadoId())</span>
+<span class="nc" id="L332">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;El empleado asignado no existe.&quot;));</span>
+<span class="nc" id="L333">        usuario.setEmpleado(empleado);</span>
+<span class="nc" id="L334">    }</span>
+
+    private boolean contieneAdmin(List&lt;String&gt; codigos) {
+<span class="nc" id="L337">        return codigos.stream().anyMatch(ROL_ADMIN::equals);</span>
+    }
+
+    private UsuarioDTO convertToDto(Usuario usuario) {
+<span class="fc" id="L341">        UsuarioDTO dto = new UsuarioDTO();</span>
+<span class="fc" id="L342">        dto.setId(usuario.getId());</span>
+<span class="fc" id="L343">        dto.setNumeroInterno(usuario.getNumeroInterno());</span>
+<span class="fc" id="L344">        dto.setUsuario(usuario.getUsuario());</span>
+<span class="fc" id="L345">        dto.setNombres(usuario.getNombres());</span>
+<span class="fc" id="L346">        dto.setApellidos(usuario.getApellidos());</span>
+<span class="fc" id="L347">        dto.setCorreo(usuario.getCorreo());</span>
+<span class="fc" id="L348">        dto.setEstado(usuario.getEstado());</span>
+
+<span class="pc bpc" id="L350" title="1 of 2 branches missed.">        if (usuario.getEmpleado() != null) {</span>
+<span class="nc" id="L351">            dto.setEmpleadoId(usuario.getEmpleado().getId());</span>
+<span class="nc" id="L352">            dto.setEmpleadoNombre((usuario.getEmpleado().getNombres() + &quot; &quot;</span>
+<span class="nc bnc" id="L353" title="All 2 branches missed.">                    + (usuario.getEmpleado().getApellidos() != null</span>
+<span class="nc" id="L354">                            ? usuario.getEmpleado().getApellidos() : &quot;&quot;)).trim());</span>
+        }
+
+<span class="pc bpc" id="L357" title="1 of 2 branches missed.">        if (usuario.getId() != null) {</span>
+<span class="fc" id="L358">            List&lt;UsuarioRol&gt; rolesUsuario = usuarioRolRepository.findByUsuarioId(usuario.getId());</span>
+
+<span class="fc" id="L360">            List&lt;String&gt; listaRoles = rolesUsuario.stream()</span>
+<span class="fc" id="L361">                    .map(ur -&gt; ur.getRol().getCodigo())</span>
+<span class="fc" id="L362">                    .collect(Collectors.toList());</span>
+
+<span class="fc" id="L364">            dto.setRoles(listaRoles);</span>
+        }
+
+<span class="fc" id="L367">        return dto;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

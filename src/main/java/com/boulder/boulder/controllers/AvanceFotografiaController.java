@@ -9,7 +9,7 @@ import com.boulder.boulder.services.AvanceOperativoService;
 import com.boulder.boulder.services.AvanceFotografiaService;
 
 /**
- * Controlador REST para registro fotografico (UC17).
+ * Controlador REST para registro fotografico (CU13).
  *
  * <p>Los verbos los aporta {@link AvanceOperativoControllerBase}.</p>
  *

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Foto.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.entities</a> &gt; <span class="el_source">Foto.java</span></div><h1>Foto.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.entities;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+/**
+ * Una foto de cajas de testigo.
+ *
+ * &lt;p&gt;
+ * Solo los metadatos: el archivo vive en el almacén de fotos y aquí queda su
+ * clave. El sondaje va como identificador suelto y no como relación JPA,
+ * porque la galería nunca necesita el sondaje entero y así la entidad se
+ * serializa sin arrastrar una carga perezosa.
+ * &lt;/p&gt;
+ */
+@Entity
+@Table(name = &quot;fot_foto&quot;, schema = &quot;operacional&quot;)
+@Getter
+@Setter
+<span class="nc" id="L29">public class Foto implements Serializable {</span>
+
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    private UUID id;
+
+    @Column(name = &quot;numero_interno&quot;, insertable = false, updatable = false)
+    private Integer numeroInterno;
+
+    @Column(name = &quot;sondaje_id&quot;, nullable = false)
+    private UUID sondajeId;
+
+    @Column(name = &quot;caja_desde&quot;)
+    private Integer cajaDesde;
+
+    @Column(name = &quot;caja_hasta&quot;)
+    private Integer cajaHasta;
+
+    @Column(precision = 9, scale = 2)
+    private BigDecimal desde;
+
+    @Column(precision = 9, scale = 2)
+    private BigDecimal hasta;
+
+    /** {@code seco} o {@code humedo}: se fotografía el testigo de las dos formas. */
+    @Column(length = 10)
+    private String condicion;
+
+    @Column(name = &quot;tomada_en&quot;)
+    private OffsetDateTime tomadaEn;
+
+    @Column(length = 80)
+    private String autor;
+
+    @Column(length = 64)
+    private String dispositivo;
+
+    @Column(name = &quot;archivo_original&quot;, length = 255)
+    private String archivoOriginal;
+
+    @Column(name = &quot;tipo_mime&quot;, length = 40, nullable = false)
+    private String tipoMime;
+
+    @Column(nullable = false)
+    private Long bytes;
+
+    private Integer ancho;
+
+    private Integer alto;
+
+    @Column(length = 64, nullable = false)
+    private String sha256;
+
+    @Column(name = &quot;clave_almacen&quot;, length = 255, nullable = false)
+    private String claveAlmacen;
+
+    @Column(columnDefinition = &quot;TEXT&quot;)
+    private String observaciones;
+
+    @Column(name = &quot;eliminado_en&quot;)
+    private OffsetDateTime eliminadoEn;
+
+    @Column(name = &quot;creado_en&quot;, insertable = false, updatable = false)
+    private OffsetDateTime creadoEn;
+
+    @Column(name = &quot;actualizado_en&quot;, insertable = false, updatable = false)
+    private OffsetDateTime actualizadoEn;
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

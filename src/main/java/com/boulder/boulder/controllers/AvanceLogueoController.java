@@ -9,7 +9,7 @@ import com.boulder.boulder.services.AvanceOperativoService;
 import com.boulder.boulder.services.AvanceLogueoService;
 
 /**
- * Controlador REST para avance de logueo (UC16).
+ * Controlador REST para avance de logueo (CU18).
  *
  * <p>Los verbos los aporta {@link AvanceOperativoControllerBase}.</p>
  *

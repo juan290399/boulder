@@ -29,7 +29,7 @@ interface Previa {
 }
 
 /**
- * Formulario de una medición de desvío (pantalla P07, RF07).
+ * Formulario de una medición de desvío (pantalla P07, RF08, CU10).
  *
  * Reemplaza el mensaje de WhatsApp con la lectura del survey: se escriben el
  * azimut y la inclinación medidos y el desvío se calcula contra el plan (el

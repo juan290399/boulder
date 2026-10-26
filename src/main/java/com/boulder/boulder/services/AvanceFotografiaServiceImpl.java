@@ -10,7 +10,7 @@ import com.boulder.boulder.repositories.AvanceFotografiaRepository;
 import com.boulder.boulder.repositories.AvanceOperativoRepository;
 
 /**
- * Implementacion de los servicios de registro fotografico (UC17).
+ * Implementacion de los servicios de registro fotografico (CU13).
  *
  * @author jvelazco
  * @version 1.0

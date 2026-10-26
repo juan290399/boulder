@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Parte diario de muestreo geoquímico (UC19).
+ * Parte diario de muestreo geoquímico (CU17).
  *
  * <p>
  * Cuenta el embolsado y el agrupamiento en costales y lotes, que es lo que

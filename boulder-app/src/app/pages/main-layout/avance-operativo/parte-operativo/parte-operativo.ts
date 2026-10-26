@@ -10,7 +10,7 @@ import { CampoParte, FORMULARIOS, FormularioParte } from './formularios';
 type Formulario = Record<string, unknown> & { fecha: string; turno?: string | null; observaciones?: string | null };
 
 /**
- * Formulario único de los siete partes de testigo (pantallas P05 a P07).
+ * Formulario único de los siete partes de testigo (pantallas P05 y P06, RF10 y RF11).
  *
  * Los campos salen de {@link FORMULARIOS}; este componente solo sabe pintar un
  * campo según su tipo, precargar el parte nuevo a partir del último y revisar

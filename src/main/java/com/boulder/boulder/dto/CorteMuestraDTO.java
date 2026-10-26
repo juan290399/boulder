@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * Objeto de transferencia para un parte de corte geoquímico (UC18).
+ * Objeto de transferencia para un parte de corte geoquímico (CU14).
  *
  * @author jvelazco
  * @version 1.0

@@ -19,7 +19,7 @@ type Formulario = Omit<AvancePerforacion, 'avance' | 'desde' | 'hasta'> & {
 };
 
 /**
- * Formulario del parte de perforación por turno (pantalla P04, RF05).
+ * Formulario del parte de perforación por turno (pantalla P04, RF07, CU09).
  *
  * Reemplaza el mensaje de WhatsApp de cierre de turno. Se abre precargado con
  * el borrador que arma el backend (desde = el fondo del último parte, con la

@@ -301,7 +301,7 @@ export interface TrayectoriaSondaje {
 }
 
 /* ---------------------------------------------------------------------------
- * Avances operativos (UC16 a UC20)
+ * Avances operativos (CU12 a CU18)
  *
  * Los siete partes del flujo posterior a la perforación comparten cabecera, y
  * el backend los expone con la misma forma. Se refleja esa herencia acá para
@@ -323,7 +323,7 @@ export interface AvanceOperativo {
   observaciones?: string | null;
 }
 
-/** Parte de avance de logueo (UC16). */
+/** Parte de avance de logueo (CU18). */
 export interface AvanceLogueo extends AvanceOperativo {
   tipoLogueo: string;
   desde: number;
@@ -333,7 +333,7 @@ export interface AvanceLogueo extends AvanceOperativo {
   pctCompletado?: number | null;
 }
 
-/** Recepción de cajas de campo (UC16). */
+/** Recepción de cajas de campo (CU12). */
 export interface RecepcionCaja extends AvanceOperativo {
   responsable?: string | null;
   boxDesde?: number | null;
@@ -344,7 +344,7 @@ export interface RecepcionCaja extends AvanceOperativo {
   totalMetraje?: number | null;
 }
 
-/** Registro fotográfico de cajas (UC17). */
+/** Registro fotográfico de cajas (CU13). */
 export interface AvanceFotografia extends AvanceOperativo {
   responsable?: string | null;
   boxDesde?: number | null;
@@ -358,7 +358,7 @@ export interface AvanceFotografia extends AvanceOperativo {
   rutaArchivos?: string | null;
 }
 
-/** Corte de testigo para muestreo geoquímico (UC18). */
+/** Corte de testigo para muestreo geoquímico (CU14). */
 export interface CorteMuestra extends AvanceOperativo {
   responsable?: string | null;
   desde: number;
@@ -368,7 +368,7 @@ export interface CorteMuestra extends AvanceOperativo {
   nroMuestras?: number | null;
 }
 
-/** Avance de muestreo geoquímico (UC19). */
+/** Avance de muestreo geoquímico (CU17). */
 export interface AvanceMuestreo extends AvanceOperativo {
   responsable?: string | null;
   estadoMuestreo: string;
@@ -381,7 +381,7 @@ export interface AvanceMuestreo extends AvanceOperativo {
   nroLotes?: number | null;
 }
 
-/** Corte de testigo para ensayo de densidad (UC20). */
+/** Corte de testigo para ensayo de densidad (CU15). */
 export interface CorteDensidad extends AvanceOperativo {
   responsable?: string | null;
   desde: number;
@@ -391,7 +391,7 @@ export interface CorteDensidad extends AvanceOperativo {
   tipoLinea?: string | null;
 }
 
-/** Procesamiento de densidad en estufa (UC20). */
+/** Procesamiento de densidad en estufa (CU16). */
 export interface AvanceDensidad extends AvanceOperativo {
   responsable?: string | null;
   etapa: string;

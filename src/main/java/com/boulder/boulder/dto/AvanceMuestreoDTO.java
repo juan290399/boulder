@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * Objeto de transferencia para un parte de muestreo geoquímico (UC19).
+ * Objeto de transferencia para un parte de muestreo geoquímico (CU17).
  *
  * @author jvelazco
  * @version 1.0

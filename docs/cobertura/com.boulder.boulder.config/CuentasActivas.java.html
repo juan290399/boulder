@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CuentasActivas.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.config</a> &gt; <span class="el_source">CuentasActivas.java</span></div><h1>CuentasActivas.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.config;
+
+import java.time.Duration;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.boulder.boulder.entities.Usuario;
+import com.boulder.boulder.repositories.UsuarioRepository;
+import com.google.common.base.Ticker;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+
+/**
+ * Responde si la cuenta de un token sigue existiendo y activa.
+ *
+ * &lt;p&gt;El JWT es autocontenido: firmado y vigente 24 horas, sirve aunque la cuenta
+ * se haya desactivado o borrado después de emitirlo. Sin esta comprobación,
+ * desactivar a un usuario (RF03) no le corta el acceso hasta que el token vence.
+ * La respuesta se guarda unos segundos en una caché de Guava para no consultar
+ * la base en cada petición, y se olvida al cambiar el estado de la cuenta.&lt;/p&gt;
+ */
+@Component
+public class CuentasActivas {
+
+    private final LoadingCache&lt;String, Boolean&gt; activas;
+
+    @Autowired
+    public CuentasActivas(UsuarioRepository usuarios) {
+<span class="fc" id="L31">        this(usuarios, Duration.ofSeconds(30), Ticker.systemTicker());</span>
+<span class="fc" id="L32">    }</span>
+
+<span class="fc" id="L34">    public CuentasActivas(UsuarioRepository usuarios, Duration recordar, Ticker reloj) {</span>
+<span class="fc" id="L35">        this.activas = CacheBuilder.newBuilder()</span>
+<span class="fc" id="L36">                .expireAfterWrite(recordar)</span>
+<span class="fc" id="L37">                .maximumSize(1_000)</span>
+<span class="fc" id="L38">                .ticker(reloj)</span>
+<span class="fc" id="L39">                .build(CacheLoader.from((String usuario) -&gt; usuarios.findByUsuario(usuario)</span>
+<span class="fc" id="L40">                        .map(Usuario::getEstado)</span>
+<span class="fc" id="L41">                        .map(Boolean.TRUE::equals)</span>
+<span class="fc" id="L42">                        .orElse(false)));</span>
+<span class="fc" id="L43">    }</span>
+
+    /** @return {@code true} si la cuenta existe y está activa */
+    public boolean activa(String usuario) {
+<span class="fc" id="L47">        return activas.getUnchecked(usuario);</span>
+    }
+
+    /** Descarta lo recordado de una cuenta, para que el próximo pedido la relea. */
+    public void olvidar(String usuario) {
+<span class="fc" id="L52">        activas.invalidate(usuario);</span>
+<span class="fc" id="L53">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

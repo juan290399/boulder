@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * Objeto de transferencia para un parte de recepción de cajas de campo (UC16).
+ * Objeto de transferencia para un parte de recepción de cajas de campo (CU12).
  *
  * @author jvelazco
  * @version 1.0

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReporteDiario.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.reportes</a> &gt; <span class="el_source">ReporteDiario.java</span></div><h1>ReporteDiario.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.reportes;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.List;
+
+import com.google.common.collect.ImmutableList;
+
+/**
+ * Reporte diario consolidado de la campaña (pantalla P11, RF15).
+ *
+ * &lt;p&gt;Reemplaza el consolidado que hoy se arma a mano copiando del parte de
+ * WhatsApp, del Excel de almacén y de los libros de logueo. Es inmutable: los
+ * totales se calculan una vez, al construirlo con {@link #de}.&lt;/p&gt;
+ *
+ * @param fecha          día del reporte
+ * @param sondajes       una fila por sondaje con actividad ese día, ordenadas por código
+ * @param ultimosDias    metros perforados en los siete días que terminan en {@code fecha}
+ * @param totalPerforado metros perforados en el día
+ * @param totalLogueado  metros con logueo geológico en el día
+ * @param totalCajas     cajas de testigo recibidas en el almacén
+ * @param totalMuestras  muestras registradas en el muestreo
+ */
+<span class="fc" id="L25">public record ReporteDiario(LocalDate fecha, List&lt;FilaSondaje&gt; sondajes, List&lt;PuntoSerie&gt; ultimosDias,</span>
+        BigDecimal totalPerforado, BigDecimal totalLogueado, int totalCajas, int totalMuestras) {
+
+    /** Actividad de un sondaje en el día. */
+<span class="fc" id="L29">    public record FilaSondaje(String codigo, BigDecimal perforado, BigDecimal logueado, int cajas, int muestras) {</span>
+    }
+
+    /** Metros perforados en un día. */
+<span class="fc" id="L33">    public record PuntoSerie(LocalDate fecha, BigDecimal metros) {</span>
+    }
+
+    /**
+     * Arma el reporte: ordena las filas por código y calcula los totales.
+     *
+     * @param fecha día del reporte
+     * @param filas actividad por sondaje, en cualquier orden
+     * @param serie metros perforados por día
+     * @return el reporte inmutable
+     */
+    public static ReporteDiario de(LocalDate fecha, List&lt;FilaSondaje&gt; filas, List&lt;PuntoSerie&gt; serie) {
+<span class="fc" id="L45">        List&lt;FilaSondaje&gt; ordenadas = filas.stream()</span>
+<span class="fc" id="L46">                .sorted(Comparator.comparing(FilaSondaje::codigo))</span>
+<span class="fc" id="L47">                .collect(ImmutableList.toImmutableList());</span>
+<span class="fc" id="L48">        return new ReporteDiario(fecha, ordenadas, ImmutableList.copyOf(serie),</span>
+<span class="fc" id="L49">                ordenadas.stream().map(FilaSondaje::perforado).reduce(BigDecimal.ZERO, BigDecimal::add),</span>
+<span class="fc" id="L50">                ordenadas.stream().map(FilaSondaje::logueado).reduce(BigDecimal.ZERO, BigDecimal::add),</span>
+<span class="fc" id="L51">                ordenadas.stream().mapToInt(FilaSondaje::cajas).sum(),</span>
+<span class="fc" id="L52">                ordenadas.stream().mapToInt(FilaSondaje::muestras).sum());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

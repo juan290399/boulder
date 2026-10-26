@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Parte de procesamiento de densidad en estufa (UC20).
+ * Parte de procesamiento de densidad en estufa (CU16).
  *
  * <p>
  * El ensayo pasa por cinco etapas encadenadas —corte, dos secados, pesado y

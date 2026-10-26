@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProyectoServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.services</a> &gt; <span class="el_source">ProyectoServiceImpl.java</span></div><h1>ProyectoServiceImpl.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.services;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.boulder.boulder.dto.ProyectoDTO;
+import com.boulder.boulder.entities.Empresa;
+import com.boulder.boulder.entities.Proyecto;
+import com.boulder.boulder.repositories.EmpresaRepository;
+import com.boulder.boulder.repositories.ProyectoRepository;
+
+import jakarta.persistence.EntityNotFoundException;
+
+/**
+ * Implementación de los servicios de negocio para la gestión de proyectos.
+ *
+ * &lt;p&gt;
+ * Gestiona las operaciones de consulta, registro y actualización de proyectos,
+ * asegurando la integridad referencial con la empresa mandante asociada.
+ * &lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@Service
+<span class="fc" id="L34">public class ProyectoServiceImpl implements ProyectoService {</span>
+
+<span class="fc" id="L36">    private static final Logger log = LoggerFactory.getLogger(ProyectoServiceImpl.class);</span>
+
+    @Autowired
+    private ProyectoRepository proyectoRepository;
+
+    @Autowired
+    private EmpresaRepository empresaRepository;
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;ProyectoDTO&gt; listarTodos() {
+<span class="fc" id="L47">        log.debug(&quot;Consultando el catálogo general de proyectos activos&quot;);</span>
+<span class="fc" id="L48">        return proyectoRepository.findAll().stream()</span>
+<span class="fc" id="L49">                .map(this::convertToDto)</span>
+<span class="fc" id="L50">                .collect(Collectors.toList());</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProyectoDTO obtenerPorId(UUID id) {
+<span class="nc" id="L56">        log.debug(&quot;Buscando proyecto por ID único: {}&quot;, id);</span>
+<span class="nc" id="L57">        Proyecto proyecto = proyectoRepository.findById(id)</span>
+<span class="nc" id="L58">                .orElseThrow(() -&gt; {</span>
+<span class="nc" id="L59">                    log.warn(&quot;Proyecto no encontrado con ID: {}&quot;, id);</span>
+<span class="nc" id="L60">                    return new EntityNotFoundException(&quot;Proyecto no localizado con el ID provisto.&quot;);</span>
+                });
+<span class="nc" id="L62">        return convertToDto(proyecto);</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProyectoDTO obtenerPorCodigo(String codigo) {
+<span class="nc" id="L68">        log.debug(&quot;Buscando proyecto por código: {}&quot;, codigo);</span>
+<span class="nc" id="L69">        Proyecto proyecto = proyectoRepository.findByCodigo(codigo)</span>
+<span class="nc" id="L70">                .orElseThrow(() -&gt; {</span>
+<span class="nc" id="L71">                    log.warn(&quot;Proyecto no encontrado con código: {}&quot;, codigo);</span>
+<span class="nc" id="L72">                    return new EntityNotFoundException(&quot;No se encontró ningún proyecto con el código: &quot; + codigo);</span>
+                });
+<span class="nc" id="L74">        return convertToDto(proyecto);</span>
+    }
+
+    @Override
+    @Transactional
+    public ProyectoDTO guardar(ProyectoDTO dto) {
+<span class="nc" id="L80">        log.info(&quot;Insertando nuevo proyecto en el sistema: {}, Código: {}&quot;, dto.getNombre(), dto.getCodigo());</span>
+        try {
+<span class="nc" id="L82">            Empresa empresa = empresaRepository.findById(dto.getEmpresaId())</span>
+<span class="nc" id="L83">                    .orElseThrow(() -&gt; new EntityNotFoundException(&quot;La Empresa asociada con ID &quot; + dto.getEmpresaId() + &quot; no existe.&quot;));</span>
+
+<span class="nc" id="L85">            Proyecto proyecto = new Proyecto();</span>
+<span class="nc" id="L86">            proyecto.setCodigo(dto.getCodigo());</span>
+<span class="nc" id="L87">            proyecto.setNombre(dto.getNombre());</span>
+<span class="nc" id="L88">            proyecto.setUbicacion(dto.getUbicacion());</span>
+<span class="nc" id="L89">            proyecto.setSrid(dto.getSrid());</span>
+<span class="nc" id="L90">            proyecto.setEmpresa(empresa);</span>
+
+<span class="nc" id="L92">            Proyecto guardado = proyectoRepository.save(proyecto);</span>
+<span class="nc" id="L93">            log.info(&quot;Proyecto registrado exitosamente con ID: {}, Código: {}&quot;, guardado.getId(), guardado.getCodigo());</span>
+<span class="nc" id="L94">            return convertToDto(guardado);</span>
+<span class="nc" id="L95">        } catch (Exception e) {</span>
+<span class="nc" id="L96">            log.error(&quot;Fallo al registrar proyecto: {}&quot;, dto.getNombre(), e);</span>
+<span class="nc" id="L97">            throw e;</span>
+        }
+    }
+
+    @Override
+    @Transactional
+    public ProyectoDTO actualizar(UUID id, ProyectoDTO dto) {
+<span class="nc" id="L104">        log.info(&quot;Actualizando metadatos del proyecto con ID: {}&quot;, id);</span>
+        try {
+<span class="nc" id="L106">            Proyecto proyecto = proyectoRepository.findById(id)</span>
+<span class="nc" id="L107">                    .orElseThrow(() -&gt; {</span>
+<span class="nc" id="L108">                        log.warn(&quot;Intento de actualizar proyecto inexistente con ID: {}&quot;, id);</span>
+<span class="nc" id="L109">                        return new EntityNotFoundException(&quot;Proyecto no existente.&quot;);</span>
+                    });
+
+            
+<span class="nc bnc" id="L113" title="All 4 branches missed.">            if (dto.getEmpresaId() != null &amp;&amp; !proyecto.getEmpresa().getId().equals(dto.getEmpresaId())) {</span>
+<span class="nc" id="L114">                Empresa nuevaEmpresa = empresaRepository.findById(dto.getEmpresaId())</span>
+<span class="nc" id="L115">                        .orElseThrow(() -&gt; new EntityNotFoundException(&quot;La nueva Empresa asociada no existe.&quot;));</span>
+<span class="nc" id="L116">                proyecto.setEmpresa(nuevaEmpresa);</span>
+            }
+
+<span class="nc" id="L119">            proyecto.setNombre(dto.getNombre());</span>
+<span class="nc" id="L120">            proyecto.setUbicacion(dto.getUbicacion());</span>
+<span class="nc" id="L121">            proyecto.setSrid(dto.getSrid());</span>
+
+<span class="nc" id="L123">            Proyecto actualizado = proyectoRepository.save(proyecto);</span>
+<span class="nc" id="L124">            log.info(&quot;Proyecto '{}' actualizado con éxito&quot;, actualizado.getCodigo());</span>
+<span class="nc" id="L125">            return convertToDto(actualizado);</span>
+<span class="nc" id="L126">        } catch (Exception e) {</span>
+<span class="nc" id="L127">            log.error(&quot;Error al modificar registros de proyecto ID: {}&quot;, id, e);</span>
+<span class="nc" id="L128">            throw e;</span>
+        }
+    }
+
+    private ProyectoDTO convertToDto(Proyecto proyecto) {
+<span class="fc" id="L133">        ProyectoDTO dto = new ProyectoDTO();</span>
+<span class="fc" id="L134">        dto.setId(proyecto.getId());</span>
+<span class="fc" id="L135">        dto.setNumeroInterno(proyecto.getNumeroInterno());</span>
+<span class="fc" id="L136">        dto.setCodigo(proyecto.getCodigo());</span>
+<span class="fc" id="L137">        dto.setNombre(proyecto.getNombre());</span>
+<span class="fc" id="L138">        dto.setUbicacion(proyecto.getUbicacion());</span>
+<span class="fc" id="L139">        dto.setSrid(proyecto.getSrid());</span>
+        
+<span class="pc bpc" id="L141" title="1 of 2 branches missed.">        if (proyecto.getEmpresa() != null) {</span>
+<span class="fc" id="L142">            dto.setEmpresaId(proyecto.getEmpresa().getId());</span>
+        }
+<span class="fc" id="L144">        return dto;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

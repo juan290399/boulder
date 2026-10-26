@@ -7,7 +7,7 @@ import java.util.UUID;
 import com.boulder.boulder.dto.AvancePerforacionDTO;
 
 /**
- * Operaciones de negocio para los partes diarios de avance de perforación (UC15).
+ * Operaciones de negocio para los partes diarios de avance de perforación (CU09).
  *
  * @author jvelazco
  * @version 1.0

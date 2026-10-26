@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EmpleadoServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.services</a> &gt; <span class="el_source">EmpleadoServiceImpl.java</span></div><h1>EmpleadoServiceImpl.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.services;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.boulder.boulder.dto.CargoDTO;
+import com.boulder.boulder.dto.EmpleadoDTO;
+import com.boulder.boulder.entities.Cargo;
+import com.boulder.boulder.entities.Empleado;
+import com.boulder.boulder.entities.Empresa;
+import com.boulder.boulder.repositories.CargoRepository;
+import com.boulder.boulder.repositories.EmpleadoRepository;
+import com.boulder.boulder.repositories.EmpresaRepository;
+
+import jakarta.persistence.EntityNotFoundException;
+
+/**
+ * Implementación de los servicios de negocio para el catálogo de personal.
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@Service
+<span class="fc" id="L32">public class EmpleadoServiceImpl implements EmpleadoService {</span>
+
+<span class="fc" id="L34">    private static final Logger log = LoggerFactory.getLogger(EmpleadoServiceImpl.class);</span>
+
+    @Autowired
+    private EmpleadoRepository empleadoRepository;
+
+    @Autowired
+    private CargoRepository cargoRepository;
+
+    @Autowired
+    private EmpresaRepository empresaRepository;
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;EmpleadoDTO&gt; listarTodos() {
+<span class="fc" id="L48">        log.debug(&quot;Consultando el catálogo completo de personal&quot;);</span>
+<span class="fc" id="L49">        return empleadoRepository.findAll().stream()</span>
+<span class="fc" id="L50">                .map(this::convertToDto)</span>
+<span class="fc" id="L51">                .collect(Collectors.toList());</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;EmpleadoDTO&gt; listarPorArea(String area) {
+<span class="nc" id="L57">        log.debug(&quot;Consultando personal activo del área: {}&quot;, area);</span>
+<span class="nc" id="L58">        return empleadoRepository.findByCargoAreaAndEstadoTrue(area).stream()</span>
+<span class="nc" id="L59">                .map(this::convertToDto)</span>
+<span class="nc" id="L60">                .collect(Collectors.toList());</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public EmpleadoDTO obtenerPorId(UUID id) {
+<span class="nc" id="L66">        log.debug(&quot;Buscando empleado por ID: {}&quot;, id);</span>
+<span class="nc" id="L67">        return convertToDto(buscar(id));</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public EmpleadoDTO obtenerPorCodigo(String codigo) {
+<span class="nc" id="L73">        log.debug(&quot;Buscando empleado por código: {}&quot;, codigo);</span>
+<span class="nc" id="L74">        Empleado empleado = empleadoRepository.findByCodigo(codigo)</span>
+<span class="nc" id="L75">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Empleado no encontrado con código: &quot; + codigo));</span>
+<span class="nc" id="L76">        return convertToDto(empleado);</span>
+    }
+
+    @Override
+    @Transactional
+    public EmpleadoDTO guardar(EmpleadoDTO dto) {
+<span class="nc" id="L82">        log.info(&quot;Registrando empleado. Código: {}&quot;, dto.getCodigo());</span>
+
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        if (empleadoRepository.existsByCodigo(dto.getCodigo())) {</span>
+<span class="nc" id="L85">            throw new IllegalArgumentException(</span>
+<span class="nc" id="L86">                    &quot;El código '&quot; + dto.getCodigo() + &quot;' ya está asignado a otro empleado.&quot;);</span>
+        }
+
+<span class="nc" id="L89">        Empleado empleado = new Empleado();</span>
+<span class="nc" id="L90">        aplicar(dto, empleado);</span>
+
+<span class="nc" id="L92">        Empleado guardado = empleadoRepository.save(empleado);</span>
+<span class="nc" id="L93">        log.info(&quot;Empleado creado. ID: {}, Código: {}&quot;, guardado.getId(), guardado.getCodigo());</span>
+<span class="nc" id="L94">        return convertToDto(guardado);</span>
+    }
+
+    @Override
+    @Transactional
+    public EmpleadoDTO actualizar(UUID id, EmpleadoDTO dto) {
+<span class="nc" id="L100">        log.info(&quot;Actualizando empleado ID: {}&quot;, id);</span>
+<span class="nc" id="L101">        Empleado empleado = buscar(id);</span>
+
+        // El código identifica al empleado en los partes; si cambia, tiene que
+        // seguir siendo único.
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        if (!empleado.getCodigo().equals(dto.getCodigo())</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">                &amp;&amp; empleadoRepository.existsByCodigo(dto.getCodigo())) {</span>
+<span class="nc" id="L107">            throw new IllegalArgumentException(</span>
+<span class="nc" id="L108">                    &quot;El código '&quot; + dto.getCodigo() + &quot;' ya está asignado a otro empleado.&quot;);</span>
+        }
+
+<span class="nc" id="L111">        aplicar(dto, empleado);</span>
+<span class="nc" id="L112">        return convertToDto(empleadoRepository.save(empleado));</span>
+    }
+
+    @Override
+    @Transactional
+    public void cambiarEstado(UUID id, boolean activo) {
+<span class="nc" id="L118">        log.warn(&quot;Cambiando estado del empleado ID: {} a -&gt; {}&quot;, id, activo);</span>
+<span class="nc" id="L119">        Empleado empleado = buscar(id);</span>
+<span class="nc" id="L120">        empleado.setEstado(activo);</span>
+<span class="nc" id="L121">        empleadoRepository.save(empleado);</span>
+<span class="nc" id="L122">    }</span>
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;CargoDTO&gt; listarCargos() {
+<span class="nc" id="L127">        log.debug(&quot;Consultando el catálogo de cargos&quot;);</span>
+<span class="nc" id="L128">        return cargoRepository.findAll().stream()</span>
+<span class="nc" id="L129">                .map(this::convertToDto)</span>
+<span class="nc" id="L130">                .collect(Collectors.toList());</span>
+    }
+
+    private Empleado buscar(UUID id) {
+<span class="nc" id="L134">        return empleadoRepository.findById(id)</span>
+<span class="nc" id="L135">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Empleado no encontrado con ID: &quot; + id));</span>
+    }
+
+    private void aplicar(EmpleadoDTO dto, Empleado empleado) {
+<span class="nc" id="L139">        empleado.setCodigo(dto.getCodigo());</span>
+<span class="nc" id="L140">        empleado.setNombres(dto.getNombres());</span>
+<span class="nc" id="L141">        empleado.setApellidos(dto.getApellidos());</span>
+<span class="nc" id="L142">        empleado.setDocumento(dto.getDocumento());</span>
+<span class="nc" id="L143">        empleado.setEmail(dto.getEmail());</span>
+<span class="nc" id="L144">        empleado.setTelefono(dto.getTelefono());</span>
+<span class="nc" id="L145">        empleado.setFechaIngreso(dto.getFechaIngreso());</span>
+<span class="nc" id="L146">        empleado.setFechaSalida(dto.getFechaSalida());</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">        empleado.setEstado(dto.getEstado() != null ? dto.getEstado() : Boolean.TRUE);</span>
+<span class="nc" id="L148">        empleado.setNotas(dto.getNotas());</span>
+
+<span class="nc bnc" id="L150" title="All 2 branches missed.">        if (dto.getCargoId() != null) {</span>
+<span class="nc" id="L151">            Cargo cargo = cargoRepository.findById(dto.getCargoId())</span>
+<span class="nc" id="L152">                    .orElseThrow(() -&gt; new EntityNotFoundException(&quot;El cargo asignado no existe.&quot;));</span>
+<span class="nc" id="L153">            empleado.setCargo(cargo);</span>
+<span class="nc" id="L154">        } else {</span>
+<span class="nc" id="L155">            empleado.setCargo(null);</span>
+        }
+
+<span class="nc bnc" id="L158" title="All 2 branches missed.">        if (dto.getEmpresaId() != null) {</span>
+<span class="nc" id="L159">            Empresa empresa = empresaRepository.findById(dto.getEmpresaId())</span>
+<span class="nc" id="L160">                    .orElseThrow(() -&gt; new EntityNotFoundException(&quot;La empresa asignada no existe.&quot;));</span>
+<span class="nc" id="L161">            empleado.setEmpresa(empresa);</span>
+<span class="nc" id="L162">        } else {</span>
+<span class="nc" id="L163">            empleado.setEmpresa(null);</span>
+        }
+<span class="nc" id="L165">    }</span>
+
+    private EmpleadoDTO convertToDto(Empleado empleado) {
+<span class="fc" id="L168">        EmpleadoDTO dto = new EmpleadoDTO();</span>
+<span class="fc" id="L169">        dto.setId(empleado.getId());</span>
+<span class="fc" id="L170">        dto.setNumeroInterno(empleado.getNumeroInterno());</span>
+<span class="fc" id="L171">        dto.setCodigo(empleado.getCodigo());</span>
+<span class="fc" id="L172">        dto.setNombres(empleado.getNombres());</span>
+<span class="fc" id="L173">        dto.setApellidos(empleado.getApellidos());</span>
+<span class="fc" id="L174">        dto.setDocumento(empleado.getDocumento());</span>
+<span class="fc" id="L175">        dto.setEmail(empleado.getEmail());</span>
+<span class="fc" id="L176">        dto.setTelefono(empleado.getTelefono());</span>
+<span class="fc" id="L177">        dto.setFechaIngreso(empleado.getFechaIngreso());</span>
+<span class="fc" id="L178">        dto.setFechaSalida(empleado.getFechaSalida());</span>
+<span class="fc" id="L179">        dto.setEstado(empleado.getEstado());</span>
+<span class="fc" id="L180">        dto.setNotas(empleado.getNotas());</span>
+
+<span class="pc bpc" id="L182" title="1 of 2 branches missed.">        if (empleado.getEmpresa() != null) {</span>
+<span class="nc" id="L183">            dto.setEmpresaId(empleado.getEmpresa().getId());</span>
+        }
+
+<span class="pc bpc" id="L186" title="1 of 2 branches missed.">        if (empleado.getCargo() != null) {</span>
+<span class="fc" id="L187">            dto.setCargoId(empleado.getCargo().getId());</span>
+<span class="fc" id="L188">            dto.setCargoNombre(empleado.getCargo().getNombre());</span>
+<span class="fc" id="L189">            dto.setCargoArea(empleado.getCargo().getArea());</span>
+        }
+
+<span class="fc" id="L192">        return dto;</span>
+    }
+
+    private CargoDTO convertToDto(Cargo cargo) {
+<span class="nc" id="L196">        CargoDTO dto = new CargoDTO();</span>
+<span class="nc" id="L197">        dto.setId(cargo.getId());</span>
+<span class="nc" id="L198">        dto.setNumeroInterno(cargo.getNumeroInterno());</span>
+<span class="nc" id="L199">        dto.setCodigo(cargo.getCodigo());</span>
+<span class="nc" id="L200">        dto.setNombre(cargo.getNombre());</span>
+<span class="nc" id="L201">        dto.setArea(cargo.getArea());</span>
+<span class="nc" id="L202">        dto.setEstado(cargo.getEstado());</span>
+<span class="nc" id="L203">        return dto;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

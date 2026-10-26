@@ -10,7 +10,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 import com.boulder.boulder.entities.AvanceOperativo;
 
 /**
- * Consultas comunes a todos los partes de avance operativo (UC16 a UC20).
+ * Consultas comunes a todos los partes de avance operativo (CU12 a CU18).
  *
  * <p>
  * Va anotado con {@code @NoRepositoryBean} para que Spring Data no intente

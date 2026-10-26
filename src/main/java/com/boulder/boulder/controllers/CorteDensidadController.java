@@ -9,7 +9,7 @@ import com.boulder.boulder.services.AvanceOperativoService;
 import com.boulder.boulder.services.CorteDensidadService;
 
 /**
- * Controlador REST para corte de densidad (UC20).
+ * Controlador REST para corte de densidad (CU15).
  *
  * <p>Los verbos los aporta {@link AvanceOperativoControllerBase}.</p>
  *

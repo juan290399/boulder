@@ -11,7 +11,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * Objeto de transferencia para un parte diario de avance de logueo (UC16).
+ * Objeto de transferencia para un parte diario de avance de logueo (CU18).
  *
  * @author jvelazco
  * @version 1.0

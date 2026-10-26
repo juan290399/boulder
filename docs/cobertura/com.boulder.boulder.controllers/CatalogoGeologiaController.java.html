@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CatalogoGeologiaController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.controllers</a> &gt; <span class="el_source">CatalogoGeologiaController.java</span></div><h1>CatalogoGeologiaController.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.controllers;
+
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.boulder.boulder.dto.CatalogoGeologiaDTO;
+import com.boulder.boulder.repositories.CatalogoGeologiaRepository.Estructura;
+import com.boulder.boulder.services.CatalogoGeologiaService;
+
+/**
+ * Controlador REST de los diccionarios del esquema {@code geologia}.
+ *
+ * &lt;p&gt;La lectura es un solo endpoint, y a propósito: la aplicación de campo los
+ * descarga enteros al sincronizar para poder loguear después sin cobertura. Son
+ * unas 350 filas; partirlas por catálogo serían veintiún viajes de red desde una
+ * plataforma de sondaje para traer lo mismo.&lt;/p&gt;
+ *
+ * &lt;p&gt;La escritura (pantalla P15, RF04) es solo para el rol ADMIN: un código mal
+ * dado de alta se ofrece a todos los geólogos en todos los tablets.&lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.1
+ * @since 1.0
+ */
+@RestController
+@RequestMapping(&quot;/api/geologia/catalogos&quot;)
+public class CatalogoGeologiaController {
+
+<span class="fc" id="L45">    private static final Logger log = LoggerFactory.getLogger(CatalogoGeologiaController.class);</span>
+
+    private final CatalogoGeologiaService catalogoService;
+
+<span class="fc" id="L49">    public CatalogoGeologiaController(CatalogoGeologiaService catalogoService) {</span>
+<span class="fc" id="L50">        this.catalogoService = catalogoService;</span>
+<span class="fc" id="L51">    }</span>
+
+    @GetMapping
+    public ResponseEntity&lt;List&lt;CatalogoGeologiaDTO&gt;&gt; listarTodos() {
+<span class="fc" id="L55">        log.info(&quot;HTTP GET - Descarga completa de catálogos geológicos&quot;);</span>
+<span class="fc" id="L56">        return ResponseEntity.ok(catalogoService.listarTodos());</span>
+    }
+
+    /** Columnas opcionales y largo del código de cada catálogo, para armar el formulario. */
+    @GetMapping(&quot;/estructura&quot;)
+    public Map&lt;String, Estructura&gt; estructura() {
+<span class="fc" id="L62">        return catalogoService.estructura();</span>
+    }
+
+    /**
+     * Agrega un código al catálogo indicado.
+     *
+     * @param tipo nombre del catálogo, p. ej. {@code lit_diccionario}
+     * @return 201 con la entrada creada; 400 si no cumple las reglas; 409 si el código ya existe
+     */
+    @PostMapping(&quot;/{tipo}&quot;)
+    @PreAuthorize(&quot;hasRole('ADMIN')&quot;)
+    public ResponseEntity&lt;CatalogoGeologiaDTO&gt; crear(@PathVariable String tipo, @RequestBody CatalogoGeologiaDTO datos) {
+<span class="fc" id="L74">        return new ResponseEntity&lt;&gt;(catalogoService.crear(tipo, datos), HttpStatus.CREATED);</span>
+    }
+
+    /** Corrige una entrada existente; 404 si no existe en ese catálogo. */
+    @PutMapping(&quot;/{tipo}/{id}&quot;)
+    @PreAuthorize(&quot;hasRole('ADMIN')&quot;)
+    public CatalogoGeologiaDTO actualizar(@PathVariable String tipo, @PathVariable UUID id,
+                                          @RequestBody CatalogoGeologiaDTO datos) {
+<span class="nc" id="L82">        return catalogoService.actualizar(tipo, id, datos);</span>
+    }
+
+    /** Activa o desactiva una entrada sin borrarla. */
+    @PatchMapping(&quot;/{tipo}/{id}/estado&quot;)
+    @PreAuthorize(&quot;hasRole('ADMIN')&quot;)
+    public ResponseEntity&lt;Void&gt; cambiarEstado(@PathVariable String tipo, @PathVariable UUID id,
+                                              @RequestParam boolean activo) {
+<span class="fc" id="L90">        catalogoService.cambiarEstado(tipo, id, activo);</span>
+<span class="fc" id="L91">        return ResponseEntity.noContent().build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

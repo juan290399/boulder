@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LogueoServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.services</a> &gt; <span class="el_source">LogueoServiceImpl.java</span></div><h1>LogueoServiceImpl.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.services;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.boulder.boulder.entities.Alteracion;
+import com.boulder.boulder.entities.Estructural;
+import com.boulder.boulder.entities.Litologia;
+import com.boulder.boulder.entities.Mineralizacion;
+import com.boulder.boulder.entities.Quicklog;
+import com.boulder.boulder.entities.RegistroLogueo;
+import com.boulder.boulder.eventos.CambioDatos;
+import com.boulder.boulder.repositories.AlteracionRepository;
+import com.boulder.boulder.repositories.EstructuralRepository;
+import com.boulder.boulder.repositories.LitologiaRepository;
+import com.boulder.boulder.repositories.MineralizacionRepository;
+import com.boulder.boulder.repositories.QuicklogRepository;
+
+/**
+ * Implementación de la sincronización del logueo geológico.
+ *
+ * &lt;p&gt;&lt;b&gt;Por qué aquí no hay DTO.&lt;/b&gt; El resto del proyecto convierte entidad a
+ * DTO para no dejar escapar proxies de Hibernate al JSON. Estas cinco entidades
+ * no tienen ni una relación —las claves foráneas a {@code geologia} son UUID
+ * sueltos, ver {@link Litologia}— así que ese riesgo no existe, y un DTO sería
+ * una copia literal de hasta cuarenta campos por plantilla, con su conversor y
+ * su ocasión de olvidarse de uno. Las columnas ya se llaman igual en los dos
+ * extremos; esa coincidencia es justamente lo que hace que sincronizar sea
+ * copiar y no traducir.&lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@Service
+<span class="fc" id="L49">public class LogueoServiceImpl implements LogueoService {</span>
+
+<span class="fc" id="L51">    private static final Logger log = LoggerFactory.getLogger(LogueoServiceImpl.class);</span>
+
+    @Autowired
+    private LitologiaRepository litologiaRepository;
+
+    @Autowired
+    private AlteracionRepository alteracionRepository;
+
+    @Autowired
+    private MineralizacionRepository mineralizacionRepository;
+
+    @Autowired
+    private EstructuralRepository estructuralRepository;
+
+    @Autowired
+    private QuicklogRepository quicklogRepository;
+
+    @Autowired
+    private ApplicationEventPublisher eventos;
+
+    @Autowired
+    private JdbcTemplate jdbc;
+
+    // ------------------------------------------------------------------
+    // Bajada
+    // ------------------------------------------------------------------
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;Litologia&gt; listarLitologia(UUID sondajeId, boolean incluirEliminados) {
+<span class="nc" id="L81">        return registrar(&quot;litología&quot;, sondajeId,</span>
+<span class="nc" id="L82">                vigentes(litologiaRepository.findBySondajeIdOrderByDesdeAsc(sondajeId), incluirEliminados));</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;Alteracion&gt; listarAlteracion(UUID sondajeId, boolean incluirEliminados) {
+<span class="nc" id="L88">        return registrar(&quot;alteración&quot;, sondajeId,</span>
+<span class="nc" id="L89">                vigentes(alteracionRepository.findBySondajeIdOrderByDesdeAsc(sondajeId), incluirEliminados));</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;Mineralizacion&gt; listarMineralizacion(UUID sondajeId, boolean incluirEliminados) {
+<span class="nc" id="L95">        return registrar(&quot;mineralización&quot;, sondajeId,</span>
+<span class="nc" id="L96">                vigentes(mineralizacionRepository.findBySondajeIdOrderByDesdeAsc(sondajeId), incluirEliminados));</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;Estructural&gt; listarEstructural(UUID sondajeId, boolean incluirEliminados) {
+<span class="nc" id="L102">        return registrar(&quot;estructural&quot;, sondajeId,</span>
+<span class="nc" id="L103">                vigentes(estructuralRepository.findBySondajeIdOrderByProfundidadAsc(sondajeId), incluirEliminados));</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;Quicklog&gt; listarQuicklog(UUID sondajeId, boolean incluirEliminados) {
+<span class="nc" id="L109">        return registrar(&quot;quicklog&quot;, sondajeId,</span>
+<span class="nc" id="L110">                vigentes(quicklogRepository.findBySondajeIdOrderByDesdeAsc(sondajeId), incluirEliminados));</span>
+    }
+
+    // ------------------------------------------------------------------
+    // Subida
+    // ------------------------------------------------------------------
+
+    @Override
+    @Transactional
+    public int guardarLitologia(List&lt;Litologia&gt; items, String dispositivo, String usuario, String versionApp) {
+<span class="nc" id="L120">        return guardar(dispositivo, usuario, versionApp, &quot;litología&quot;, items, litologiaRepository, Litologia::getId);</span>
+    }
+
+    @Override
+    @Transactional
+    public int guardarAlteracion(List&lt;Alteracion&gt; items, String dispositivo, String usuario, String versionApp) {
+<span class="nc" id="L126">        return guardar(dispositivo, usuario, versionApp, &quot;alteración&quot;, items, alteracionRepository, Alteracion::getId);</span>
+    }
+
+    @Override
+    @Transactional
+    public int guardarMineralizacion(List&lt;Mineralizacion&gt; items, String dispositivo, String usuario, String versionApp) {
+<span class="nc" id="L132">        return guardar(dispositivo, usuario, versionApp, &quot;mineralización&quot;, items, mineralizacionRepository, Mineralizacion::getId);</span>
+    }
+
+    @Override
+    @Transactional
+    public int guardarEstructural(List&lt;Estructural&gt; items, String dispositivo, String usuario, String versionApp) {
+<span class="nc" id="L138">        return guardar(dispositivo, usuario, versionApp, &quot;estructural&quot;, items, estructuralRepository, Estructural::getId);</span>
+    }
+
+    @Override
+    @Transactional
+    public int guardarQuicklog(List&lt;Quicklog&gt; items, String dispositivo, String usuario, String versionApp) {
+<span class="nc" id="L144">        return guardar(dispositivo, usuario, versionApp, &quot;quicklog&quot;, items, quicklogRepository, Quicklog::getId);</span>
+    }
+
+    // ------------------------------------------------------------------
+
+    private &lt;T&gt; List&lt;T&gt; registrar(String plantilla, UUID sondajeId, List&lt;T&gt; filas) {
+<span class="nc" id="L150">        log.debug(&quot;Entregando {} filas de {} del sondaje {}&quot;, filas.size(), plantilla, sondajeId);</span>
+<span class="nc" id="L151">        return filas;</span>
+    }
+
+    /**
+     * Guarda un lote entero o ninguno.
+     *
+     * &lt;p&gt;{@code saveAll} sobre entidades con el id ya puesto hace un UPSERT:
+     * Hibernate mira si la fila existe y actualiza o inserta. Es lo que permite
+     * que el tablet reintente una subida sin duplicar nada cuando la cobertura
+     * se corta a mitad.&lt;/p&gt;
+     *
+     * &lt;p&gt;Se rechaza el lote sin id en vez de generarlo aquí: un id puesto por el
+     * servidor no es el que el tablet tiene guardado, así que la fila se
+     * duplicaría en el siguiente intento y nadie se enteraría.&lt;/p&gt;
+     */
+    private &lt;T extends RegistroLogueo&gt; int guardar(String dispositivo, String usuario, String versionApp,
+                            String plantilla,
+                            List&lt;T&gt; items,
+                            JpaRepository&lt;T, UUID&gt; repositorio,
+                            Function&lt;T, UUID&gt; idDe) {
+
+<span class="nc bnc" id="L172" title="All 4 branches missed.">        if (items == null || items.isEmpty()) {</span>
+<span class="nc" id="L173">            log.debug(&quot;Subida de {} sin contenido; no hay nada que hacer&quot;, plantilla);</span>
+<span class="nc" id="L174">            return 0;</span>
+        }
+
+<span class="nc bnc" id="L177" title="All 2 branches missed.">        for (T item : items) {</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">            if (idDe.apply(item) == null) {</span>
+<span class="nc" id="L179">                log.warn(&quot;Subida de {} rechazada: llega una fila sin identificador&quot;, plantilla);</span>
+<span class="nc" id="L180">                throw new IllegalArgumentException(</span>
+                    &quot;Cada registro de &quot; + plantilla + &quot; debe traer su propio id; &quot;
+                  + &quot;lo genera el cliente para que la subida se pueda repetir sin duplicar.&quot;);
+            }
+<span class="nc" id="L184">        }</span>
+
+        // Primero las bajas y con flush. Hibernate ejecuta los INSERT antes que
+        // los UPDATE al vaciar la sesión, así que si el tablet borró un tramo y
+        // logueó otro en el mismo metro dentro de la misma subida, el nuevo
+        // chocaría con la restricción de no solapamiento mientras el viejo
+        // todavía figura como vigente.
+<span class="nc bnc" id="L191" title="All 2 branches missed.">        List&lt;T&gt; bajas = items.stream().filter(i -&gt; i.getEliminadoEn() != null).toList();</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">        List&lt;T&gt; vigentes = items.stream().filter(i -&gt; i.getEliminadoEn() == null).toList();</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">        if (!bajas.isEmpty()) {</span>
+<span class="nc" id="L194">            repositorio.saveAllAndFlush(bajas);</span>
+        }
+<span class="nc" id="L196">        repositorio.saveAll(vigentes);</span>
+<span class="nc" id="L197">        log.info(&quot;Guardadas {} filas de {} ({} bajas)&quot;, items.size(), plantilla, bajas.size());</span>
+
+<span class="nc" id="L199">        Set&lt;UUID&gt; sondajes = items.stream().map(RegistroLogueo::getSondajeId)</span>
+<span class="nc" id="L200">                .filter(Objects::nonNull).collect(Collectors.toSet());</span>
+<span class="nc" id="L201">        eventos.publishEvent(CambioDatos.de(recursoDe(plantilla), sondajes,</span>
+<span class="nc bnc" id="L202" title="All 2 branches missed.">                dispositivo != null ? &quot;tablet&quot; : &quot;web&quot;, items.size()));</span>
+<span class="nc" id="L203">        registrarDispositivo(dispositivo, usuario, versionApp, items.size());</span>
+<span class="nc" id="L204">        return items.size();</span>
+    }
+
+    /**
+     * Quita las filas borradas, salvo que las pida el tablet.
+     *
+     * &lt;p&gt;El tablet sí las necesita: es como se entera de que otro dispositivo
+     * borró un tramo que él todavía tiene. La web no: para ella, borrado es
+     * borrado.&lt;/p&gt;
+     */
+    private &lt;T extends RegistroLogueo&gt; List&lt;T&gt; vigentes(List&lt;T&gt; filas, boolean incluirEliminados) {
+<span class="nc bnc" id="L215" title="All 2 branches missed.">        return incluirEliminados ? filas</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">                : filas.stream().filter(f -&gt; f.getEliminadoEn() == null).toList();</span>
+    }
+
+    /** Nombre del recurso en los avisos: sin tildes, como las rutas del API. */
+    private static String recursoDe(String plantilla) {
+<span class="nc bnc" id="L221" title="All 4 branches missed.">        return switch (plantilla) {</span>
+<span class="nc" id="L222">            case &quot;litología&quot; -&gt; &quot;litologia&quot;;</span>
+<span class="nc" id="L223">            case &quot;alteración&quot; -&gt; &quot;alteracion&quot;;</span>
+<span class="nc" id="L224">            case &quot;mineralización&quot; -&gt; &quot;mineralizacion&quot;;</span>
+<span class="nc" id="L225">            default -&gt; plantilla;</span>
+        };
+    }
+
+    /**
+     * Deja constancia de la subida de un tablet. Un fallo aquí no puede tumbar
+     * la subida del logueo, que es lo que importa: se registra y se sigue.
+     */
+    private void registrarDispositivo(String dispositivo, String usuario, String versionApp, int filas) {
+<span class="nc bnc" id="L234" title="All 4 branches missed.">        if (dispositivo == null || dispositivo.isBlank()) {</span>
+<span class="nc" id="L235">            return;</span>
+        }
+        try {
+<span class="nc" id="L238">            jdbc.update(&quot;&quot;&quot;</span>
+                    INSERT INTO logueo.dispositivo_sync
+                        (dispositivo, usuario, version_app, ultimo_contacto, ultima_subida, filas_subidas)
+                    VALUES (?, ?, ?, now(), now(), ?)
+                    ON CONFLICT (dispositivo) DO UPDATE SET
+                        usuario = EXCLUDED.usuario,
+                        version_app = COALESCE(EXCLUDED.version_app, logueo.dispositivo_sync.version_app),
+                        ultimo_contacto = now(),
+                        ultima_subida = now(),
+                        filas_subidas = logueo.dispositivo_sync.filas_subidas + EXCLUDED.filas_subidas
+<span class="nc" id="L248">                    &quot;&quot;&quot;, recortar(dispositivo, 64), recortar(usuario, 80), recortar(versionApp, 20), filas);</span>
+<span class="nc" id="L249">        } catch (RuntimeException e) {</span>
+<span class="nc" id="L250">            log.warn(&quot;No se pudo registrar la sincronización del dispositivo {}&quot;, dispositivo, e);</span>
+<span class="nc" id="L251">        }</span>
+<span class="nc" id="L252">    }</span>
+
+    private static String recortar(String s, int max) {
+<span class="nc bnc" id="L255" title="All 4 branches missed.">        return s == null ? null : (s.length() &gt; max ? s.substring(0, max) : s);</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;java.util.Map&lt;String, Object&gt;&gt; dispositivos() {
+<span class="fc" id="L261">        return jdbc.queryForList(&quot;&quot;&quot;</span>
+                SELECT dispositivo, usuario, version_app AS &quot;versionApp&quot;,
+                       ultimo_contacto AS &quot;ultimoContacto&quot;, ultima_subida AS &quot;ultimaSubida&quot;,
+                       filas_subidas AS &quot;filasSubidas&quot;
+                  FROM logueo.dispositivo_sync
+                 ORDER BY ultimo_contacto DESC
+                &quot;&quot;&quot;);
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

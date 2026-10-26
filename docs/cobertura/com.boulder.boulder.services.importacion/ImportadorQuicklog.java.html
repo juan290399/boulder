@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ImportadorQuicklog.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.services.importacion</a> &gt; <span class="el_source">ImportadorQuicklog.java</span></div><h1>ImportadorQuicklog.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.services.importacion;
+
+import java.math.BigDecimal;
+import java.util.UUID;
+
+import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.stereotype.Component;
+
+import com.boulder.boulder.dto.importacion.ResultadoImportacionDTO;
+import com.boulder.boulder.entities.Quicklog;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
+/**
+ * Carga el quicklog: la descripción rápida del testigo tramo por tramo.
+ *
+ * &lt;p&gt;
+ * Es la plantilla con más columnas y la más exigente con los catálogos. Cada
+ * sigla —litología, alteración, mineral, estilo, zona— tiene que resolver
+ * contra su diccionario de {@code geologia}; no se admite el código suelto. Un
+ * quicklog con litologías escritas a mano no se puede cruzar con nada, y
+ * cruzarlo es todo lo que se le pide.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;
+ * Las tres familias de columnas van contra diccionarios distintos y conviene
+ * no confundirlas: {@code alt_tipo_*} es el mineral de alteración del catálogo
+ * general, {@code alt_aso_*} es el mineral asociado —que tiene su propia lista,
+ * más corta— y {@code min_estilo_*} no es un estilo de alteración sino la
+ * distribución de la mineralización.
+ * &lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@Component
+<span class="fc" id="L39">public class ImportadorQuicklog extends ImportadorBase {</span>
+
+    @PersistenceContext
+    private EntityManager em;
+
+    @Override
+    public String clave() {
+<span class="fc" id="L46">        return &quot;quicklog&quot;;</span>
+    }
+
+    @Override
+    public String archivoPlantilla() {
+<span class="fc" id="L51">        return &quot;PLANTILLA_quicklog.xlsx&quot;;</span>
+    }
+
+    @Override
+    public String descripcion() {
+<span class="fc" id="L56">        return &quot;Quicklog: litología, alteración y mineralización por tramo de testigo.&quot;;</span>
+    }
+
+    @Override
+    protected void procesar(Workbook libro, Catalogos catalogos, boolean aplicar,
+            ResultadoImportacionDTO resultado) {
+
+<span class="fc" id="L63">        String sqlClaves = &quot;SELECT sondaje_id::text || '|' || &quot; + sqlNum(&quot;desde&quot;)</span>
+                + &quot; FROM logueo.iquicklog WHERE eliminado_en IS NULL&quot;;
+
+<span class="fc" id="L66">        hoja(libro, &quot;DATOS&quot;, &quot;logueo.iquicklog&quot;, sqlClaves, catalogos, aplicar, resultado, f -&gt; {</span>
+
+<span class="fc" id="L68">            UUID sondajeId = f.sondajeReq(&quot;sondaje_codigo&quot;);</span>
+<span class="fc" id="L69">            BigDecimal desde = f.decimalReq(&quot;desde&quot;);</span>
+<span class="fc" id="L70">            BigDecimal hasta = f.decimalReq(&quot;hasta&quot;);</span>
+<span class="fc" id="L71">            BigDecimal longitud = f.decimalReq(&quot;longitud&quot;);</span>
+
+<span class="fc" id="L73">            f.referencia(f.texto(&quot;sondaje_codigo&quot;) + &quot; &quot; + f.texto(&quot;desde&quot;) + &quot;-&quot; + f.texto(&quot;hasta&quot;) + &quot; m&quot;);</span>
+
+<span class="pc bpc" id="L75" title="3 of 6 branches missed.">            if (desde != null &amp;&amp; hasta != null &amp;&amp; hasta.compareTo(desde) &lt;= 0) {</span>
+<span class="nc" id="L76">                f.error(&quot;hasta tiene que ser mayor que desde&quot;);</span>
+            }
+<span class="pc bpc" id="L78" title="3 of 6 branches missed.">            if (desde != null &amp;&amp; hasta != null &amp;&amp; longitud != null</span>
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">                    &amp;&amp; hasta.subtract(desde).compareTo(longitud) != 0) {</span>
+<span class="nc" id="L80">                f.error(&quot;longitud (&quot; + longitud.toPlainString() + &quot;) no coincide con hasta menos desde (&quot;</span>
+<span class="nc" id="L81">                        + hasta.subtract(desde).toPlainString() + &quot;)&quot;);</span>
+            }
+
+<span class="fc" id="L84">            Quicklog e = new Quicklog();</span>
+<span class="fc" id="L85">            e.setDesde(desde);</span>
+<span class="fc" id="L86">            e.setHasta(hasta);</span>
+<span class="fc" id="L87">            e.setLongitud(longitud);</span>
+<span class="fc" id="L88">            e.setFecha(f.fecha(&quot;fecha&quot;));</span>
+<span class="fc" id="L89">            e.setGeologo(f.texto(&quot;geologo&quot;, 100));</span>
+<span class="fc" id="L90">            e.setComentarios(f.texto(&quot;comentarios&quot;));</span>
+
+<span class="fc" id="L92">            e.setLitoId(f.geologia(&quot;lito&quot;, &quot;lit_diccionario&quot;, true));</span>
+
+<span class="fc" id="L94">            e.setAltTipo1Id(f.geologia(&quot;alt_tipo_1&quot;, &quot;alt_diccionario&quot;, false));</span>
+<span class="fc" id="L95">            e.setAltTipo2Id(f.geologia(&quot;alt_tipo_2&quot;, &quot;alt_diccionario&quot;, false));</span>
+<span class="fc" id="L96">            e.setAltIntensidad1Id(f.geologia(&quot;alt_intensidad_1&quot;, &quot;alt_intensidad&quot;, false));</span>
+<span class="fc" id="L97">            e.setAltIntensidad2Id(f.geologia(&quot;alt_intensidad_2&quot;, &quot;alt_intensidad&quot;, false));</span>
+<span class="fc" id="L98">            e.setAltAso1Id(f.geologia(&quot;alt_aso_1&quot;, &quot;alt_mineral&quot;, false));</span>
+<span class="fc" id="L99">            e.setAltAso2Id(f.geologia(&quot;alt_aso_2&quot;, &quot;alt_mineral&quot;, false));</span>
+<span class="fc" id="L100">            e.setAltAso3Id(f.geologia(&quot;alt_aso_3&quot;, &quot;alt_mineral&quot;, false));</span>
+
+<span class="fc" id="L102">            e.setMinTipo1Id(f.geologia(&quot;min_tipo_1&quot;, &quot;min_diccionario&quot;, false));</span>
+<span class="fc" id="L103">            e.setMinTipo2Id(f.geologia(&quot;min_tipo_2&quot;, &quot;min_diccionario&quot;, false));</span>
+<span class="fc" id="L104">            e.setMinTipo3Id(f.geologia(&quot;min_tipo_3&quot;, &quot;min_diccionario&quot;, false));</span>
+<span class="fc" id="L105">            e.setMinEstilo1Id(f.geologia(&quot;min_estilo_1&quot;, &quot;min_distribucion&quot;, false));</span>
+<span class="fc" id="L106">            e.setMinEstilo2Id(f.geologia(&quot;min_estilo_2&quot;, &quot;min_distribucion&quot;, false));</span>
+<span class="fc" id="L107">            e.setMinEstilo3Id(f.geologia(&quot;min_estilo_3&quot;, &quot;min_distribucion&quot;, false));</span>
+<span class="fc" id="L108">            e.setMinZonaId(f.geologia(&quot;min_zona&quot;, &quot;min_zona&quot;, false));</span>
+
+<span class="fc" id="L110">            e.setPcPy(porcentaje(f, &quot;pc_py&quot;));</span>
+<span class="fc" id="L111">            e.setPcCu(porcentaje(f, &quot;pc_cu&quot;));</span>
+<span class="fc" id="L112">            e.setPcMo(porcentaje(f, &quot;pc_mo&quot;));</span>
+
+<span class="fc bfc" id="L114" title="All 2 branches covered.">            if (f.hayErrores()) {</span>
+<span class="fc" id="L115">                return null;</span>
+            }
+<span class="fc" id="L117">            e.setSondajeId(sondajeId);</span>
+            // La tabla tiene DEFAULT gen_random_uuid(), pero Hibernate manda la
+            // columna igual y el default nunca llega a aplicarse.
+<span class="fc" id="L120">            e.setId(UUID.randomUUID());</span>
+
+<span class="fc" id="L122">            return new Registro(clave(sondajeId, desde), () -&gt; {</span>
+<span class="fc" id="L123">                em.persist(e);</span>
+<span class="fc" id="L124">                em.flush();</span>
+<span class="fc" id="L125">            });</span>
+        });
+<span class="fc" id="L127">    }</span>
+
+    private BigDecimal porcentaje(Fila f, String columna) {
+<span class="fc" id="L130">        BigDecimal v = f.decimal(columna);</span>
+<span class="pc bpc" id="L131" title="3 of 6 branches missed.">        if (v != null &amp;&amp; (v.signum() &lt; 0 || v.compareTo(BigDecimal.valueOf(100)) &gt; 0)) {</span>
+<span class="nc" id="L132">            f.error(columna + &quot;: tiene que estar entre 0 y 100&quot;);</span>
+<span class="nc" id="L133">            return null;</span>
+        }
+<span class="fc" id="L135">        return v;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * Objeto de transferencia para un parte de estufa / densidad (UC20).
+ * Objeto de transferencia para un parte de estufa / densidad (CU16).
  *
  * @author jvelazco
  * @version 1.0

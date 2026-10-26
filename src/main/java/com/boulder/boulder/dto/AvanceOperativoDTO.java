@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * Cabecera común de los partes de avance operativo (UC16 a UC20).
+ * Cabecera común de los partes de avance operativo (CU12 a CU18).
  *
  * <p>
  * Reúne los campos que comparten los siete partes del flujo posterior a la

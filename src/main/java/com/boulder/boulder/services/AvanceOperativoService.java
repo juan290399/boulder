@@ -7,7 +7,7 @@ import java.util.UUID;
 import com.boulder.boulder.dto.AvanceOperativoDTO;
 
 /**
- * Contrato común de los servicios de partes de avance operativo (UC16 a UC20).
+ * Contrato común de los servicios de partes de avance operativo (CU12 a CU18).
  *
  * <p>
  * Los siete partes se manipulan igual —alta, edición, baja y consulta por

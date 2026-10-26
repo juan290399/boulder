@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AvanceOperativoServiceBase.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.services</a> &gt; <span class="el_source">AvanceOperativoServiceBase.java</span></div><h1>AvanceOperativoServiceBase.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.services;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.boulder.boulder.dominio.Revision;
+import com.boulder.boulder.dto.AvanceOperativoDTO;
+import com.boulder.boulder.entities.AvanceOperativo;
+import com.boulder.boulder.eventos.CambioDatos;
+import com.boulder.boulder.repositories.AvanceOperativoRepository;
+import com.boulder.boulder.repositories.SondajeRepository;
+
+import jakarta.persistence.EntityNotFoundException;
+
+/**
+ * Lógica compartida por los siete servicios de partes de avance operativo.
+ *
+ * &lt;p&gt;
+ * Todo lo que es idéntico entre CU12 y CU18 —el CRUD, la resolución del
+ * sondaje, el volcado de la cabecera y el estado por defecto— vive aquí. Cada
+ * servicio concreto solo aporta cuatro piezas: su repositorio, cómo fabricar
+ * una entidad y un DTO vacíos, y el mapeo de los campos que le son propios.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;
+ * La alternativa era repetir unas ciento cincuenta líneas siete veces. Con eso
+ * cualquier corrección de la cabecera —por ejemplo, admitir el código suelto
+ * cuando no hay relación— habría que aplicarla en siete sitios, y basta
+ * olvidarse de uno para que un parte se comporte distinto de sus hermanos sin
+ * que nada lo delate.
+ * &lt;/p&gt;
+ *
+ * @param &lt;E&gt; entidad concreta del parte
+ * @param &lt;D&gt; DTO concreto del parte
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+<span class="fc" id="L49">public abstract class AvanceOperativoServiceBase&lt;E extends AvanceOperativo, D extends AvanceOperativoDTO&gt;</span>
+        implements AvanceOperativoService&lt;D&gt; {
+
+<span class="fc" id="L52">    private static final Logger log = LoggerFactory.getLogger(AvanceOperativoServiceBase.class);</span>
+
+    @Autowired
+    private SondajeRepository sondajeRepository;
+
+    @Autowired
+    private ApplicationEventPublisher eventos;
+
+    // ---------------------------------------------------------------- ganchos
+
+    /** Repositorio del parte concreto. */
+    protected abstract AvanceOperativoRepository&lt;E&gt; repositorio();
+
+    /** Instancia vacía de la entidad, para las altas. */
+    protected abstract E nuevaEntidad();
+
+    /** Instancia vacía del DTO, para las lecturas. */
+    protected abstract D nuevoDto();
+
+    /** Nombre legible del parte; solo se usa en logs y mensajes de error. */
+    protected abstract String nombreParte();
+
+    /** Copia del DTO a la entidad los campos propios del parte. */
+    protected abstract void aplicarDetalle(D dto, E entidad);
+
+    /** Copia de la entidad al DTO los campos propios del parte. */
+    protected abstract void volcarDetalle(E entidad, D dto);
+
+    /**
+     * Comprobaciones propias del parte (tramos, cajas, listas cerradas). Por
+     * defecto ninguna; la cabecera común ya se revisa en la base.
+     */
+    protected void revisar(D dto, Revision revision) {
+<span class="nc" id="L85">    }</span>
+
+    // ------------------------------------------------------------------ CRUD
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;D&gt; listarTodos() {
+<span class="fc" id="L92">        log.debug(&quot;Consultando el listado de partes de {}&quot;, nombreParte());</span>
+<span class="fc" id="L93">        return repositorio().findAll().stream().map(this::convertToDto).collect(Collectors.toList());</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public D obtenerPorId(UUID id) {
+<span class="nc" id="L99">        log.debug(&quot;Buscando parte de {} ID: {}&quot;, nombreParte(), id);</span>
+<span class="nc" id="L100">        return convertToDto(buscar(id));</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;D&gt; listarPorSondaje(UUID sondajeId) {
+<span class="nc" id="L106">        log.debug(&quot;Consultando partes de {} del sondaje ID: {}&quot;, nombreParte(), sondajeId);</span>
+<span class="nc" id="L107">        return repositorio().findBySondajeIdOrderByFechaAscNumeroInternoAsc(sondajeId).stream()</span>
+<span class="nc" id="L108">                .map(this::convertToDto).collect(Collectors.toList());</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;D&gt; listarPorFecha(LocalDate fecha) {
+<span class="nc" id="L114">        log.debug(&quot;Consultando partes de {} de la fecha: {}&quot;, nombreParte(), fecha);</span>
+<span class="nc" id="L115">        return repositorio().findByFechaOrderByNumeroInternoAsc(fecha).stream()</span>
+<span class="nc" id="L116">                .map(this::convertToDto).collect(Collectors.toList());</span>
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List&lt;D&gt; listarPorRango(LocalDate desde, LocalDate hasta) {
+<span class="nc" id="L122">        log.debug(&quot;Consultando partes de {} entre {} y {}&quot;, nombreParte(), desde, hasta);</span>
+<span class="nc" id="L123">        return repositorio().findByFechaBetweenOrderByFechaAscNumeroInternoAsc(desde, hasta).stream()</span>
+<span class="nc" id="L124">                .map(this::convertToDto).collect(Collectors.toList());</span>
+    }
+
+    @Override
+    @Transactional
+    public D guardar(D dto) {
+<span class="fc" id="L130">        log.info(&quot;Registrando parte de {}. Sondaje: {}, Fecha: {}&quot;, nombreParte(),</span>
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">                dto.getSondajeCodigo() != null ? dto.getSondajeCodigo() : dto.getSondajeId(), dto.getFecha());</span>
+<span class="fc" id="L132">        validar(dto);</span>
+<span class="fc" id="L133">        E entidad = nuevaEntidad();</span>
+<span class="fc" id="L134">        aplicarCabecera(dto, entidad);</span>
+<span class="fc" id="L135">        aplicarDetalle(dto, entidad);</span>
+<span class="fc" id="L136">        E guardado = repositorio().save(entidad);</span>
+        // El INSERT se manda ya para que vuelva el número interno de la secuencia.
+<span class="fc" id="L138">        repositorio().flush();</span>
+<span class="fc" id="L139">        log.info(&quot;Parte de {} registrado. ID: {}&quot;, nombreParte(), guardado.getId());</span>
+<span class="fc" id="L140">        avisar(guardado);</span>
+<span class="fc" id="L141">        return convertToDto(guardado);</span>
+    }
+
+    @Override
+    @Transactional
+    public D actualizar(UUID id, D dto) {
+<span class="nc" id="L147">        log.info(&quot;Actualizando parte de {} ID: {}&quot;, nombreParte(), id);</span>
+<span class="nc" id="L148">        validar(dto);</span>
+<span class="nc" id="L149">        E entidad = buscar(id);</span>
+<span class="nc" id="L150">        aplicarCabecera(dto, entidad);</span>
+<span class="nc" id="L151">        aplicarDetalle(dto, entidad);</span>
+<span class="nc" id="L152">        E guardado = repositorio().save(entidad);</span>
+<span class="nc" id="L153">        avisar(guardado);</span>
+<span class="nc" id="L154">        return convertToDto(guardado);</span>
+    }
+
+    @Override
+    @Transactional
+    public void eliminar(UUID id) {
+<span class="nc" id="L160">        log.warn(&quot;Eliminando parte de {} ID: {}&quot;, nombreParte(), id);</span>
+<span class="nc" id="L161">        E entidad = buscar(id);</span>
+<span class="nc" id="L162">        repositorio().delete(entidad);</span>
+<span class="nc" id="L163">        avisar(entidad);</span>
+<span class="nc" id="L164">    }</span>
+
+    // ------------------------------------------------------------- auxiliares
+
+    /**
+     * Rechaza el parte con todos sus motivos juntos antes de tocar la base. Sin
+     * esto, un error de tecleo llega a PostgreSQL y vuelve como una violación de
+     * CHECK que no dice qué campo falla, o directamente se guarda.
+     */
+    private void validar(D dto) {
+<span class="fc" id="L174">        Revision revision = new Revision().opcion(&quot;turno&quot;, dto.getTurno(), &quot;dia&quot;, &quot;noche&quot;);</span>
+<span class="fc" id="L175">        revisar(dto, revision);</span>
+<span class="fc bfc" id="L176" title="All 2 branches covered.">        if (!revision.valida()) {</span>
+<span class="fc" id="L177">            throw new IllegalArgumentException(String.join(&quot;; &quot;, revision.errores()));</span>
+        }
+<span class="fc" id="L179">    }</span>
+
+    /** Avisa a las pantallas abiertas que cambió el frente de este sondaje. */
+    private void avisar(E entidad) {
+<span class="pc bpc" id="L183" title="1 of 2 branches missed.">        Set&lt;java.util.UUID&gt; sondajes = entidad.getSondaje() != null</span>
+<span class="pc" id="L184">                ? Set.of(entidad.getSondaje().getId()) : Set.of();</span>
+<span class="fc" id="L185">        eventos.publishEvent(CambioDatos.de(&quot;avance&quot;, sondajes, &quot;web&quot;, 1));</span>
+<span class="fc" id="L186">    }</span>
+
+    private E buscar(UUID id) {
+<span class="nc" id="L189">        return repositorio().findById(id).orElseThrow(</span>
+<span class="nc" id="L190">                () -&gt; new EntityNotFoundException(&quot;Parte de &quot; + nombreParte() + &quot; no encontrado con ID: &quot; + id));</span>
+    }
+
+    /**
+     * Vuelca la cabecera del DTO sobre la entidad y resuelve el sondaje.
+     *
+     * &lt;p&gt;
+     * Exigir uno de los dos identificadores no es una comodidad: es el mismo
+     * {@code CHECK} que impone la tabla. Si se deja pasar un parte sin ninguno,
+     * el error llega desde PostgreSQL como una violación de restricción, sin
+     * decir qué campo falta.
+     * &lt;/p&gt;
+     */
+    private void aplicarCabecera(D dto, E entidad) {
+<span class="pc bpc" id="L204" title="5 of 6 branches missed.">        if (dto.getSondajeId() == null &amp;&amp; (dto.getSondajeCodigo() == null || dto.getSondajeCodigo().isBlank())) {</span>
+<span class="nc" id="L205">            throw new IllegalArgumentException(&quot;Debe indicar el sondaje por ID o por código.&quot;);</span>
+        }
+
+<span class="fc" id="L208">        entidad.setSondajeCodigo(dto.getSondajeCodigo());</span>
+<span class="fc" id="L209">        entidad.setFecha(dto.getFecha());</span>
+<span class="fc" id="L210">        entidad.setTurno(dto.getTurno());</span>
+<span class="pc bpc" id="L211" title="1 of 2 branches missed.">        entidad.setEstado(dto.getEstado() != null ? dto.getEstado() : &quot;registrado&quot;);</span>
+<span class="fc" id="L212">        entidad.setObservaciones(dto.getObservaciones());</span>
+
+<span class="pc bpc" id="L214" title="1 of 2 branches missed.">        entidad.setSondaje(dto.getSondajeId() == null ? null</span>
+<span class="fc" id="L215">                : sondajeRepository.findById(dto.getSondajeId())</span>
+<span class="pc" id="L216">                        .orElseThrow(() -&gt; new EntityNotFoundException(&quot;El Sondaje asignado no existe.&quot;)));</span>
+
+        // El formulario manda solo el id; el código de texto se completa con el
+        // del sondaje. El que viene tecleado (carga de Excel) se respeta.
+<span class="pc bpc" id="L220" title="4 of 6 branches missed.">        if (entidad.getSondaje() != null &amp;&amp; (entidad.getSondajeCodigo() == null || entidad.getSondajeCodigo().isBlank())) {</span>
+<span class="fc" id="L221">            entidad.setSondajeCodigo(entidad.getSondaje().getCodigo());</span>
+        }
+<span class="fc" id="L223">    }</span>
+
+    /**
+     * Construye el DTO completo a partir de la entidad.
+     *
+     * &lt;p&gt;
+     * Además del código tal como se tecleó, se expone el código canónico del
+     * sondaje relacionado. Las dos cosas no coinciden: en la base conviven
+     * {@code DDH-35}, {@code Sondaje 036} y {@code VERO S 38_26} para sondajes
+     * cuyo código real es {@code DDH-VERO-S-0NN-26}. La pantalla necesita el
+     * canónico para agrupar sin que el usuario pierda de vista lo que se
+     * escribió en el parte de papel.
+     * &lt;/p&gt;
+     */
+    private D convertToDto(E entidad) {
+<span class="fc" id="L238">        D dto = nuevoDto();</span>
+<span class="fc" id="L239">        dto.setId(entidad.getId());</span>
+<span class="fc" id="L240">        dto.setNumeroInterno(entidad.getNumeroInterno());</span>
+<span class="fc" id="L241">        dto.setSondajeCodigo(entidad.getSondajeCodigo());</span>
+<span class="fc" id="L242">        dto.setFecha(entidad.getFecha());</span>
+<span class="fc" id="L243">        dto.setTurno(entidad.getTurno());</span>
+<span class="fc" id="L244">        dto.setEstado(entidad.getEstado());</span>
+<span class="fc" id="L245">        dto.setObservaciones(entidad.getObservaciones());</span>
+
+<span class="fc bfc" id="L247" title="All 2 branches covered.">        if (entidad.getSondaje() != null) {</span>
+<span class="fc" id="L248">            dto.setSondajeId(entidad.getSondaje().getId());</span>
+<span class="fc" id="L249">            dto.setSondajeCodigoReal(entidad.getSondaje().getCodigo());</span>
+        }
+
+<span class="fc" id="L252">        volcarDetalle(entidad, dto);</span>
+<span class="fc" id="L253">        return dto;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

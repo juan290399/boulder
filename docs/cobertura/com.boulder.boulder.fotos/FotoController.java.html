@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FotoController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.fotos</a> &gt; <span class="el_source">FotoController.java</span></div><h1>FotoController.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.fotos;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.security.Principal;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.CacheControl;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.boulder.boulder.entities.Foto;
+
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+
+/**
+ * Fotos de cajas de testigo.
+ *
+ * &lt;p&gt;
+ * La subida es un {@code PUT} con el id en la ruta, igual que el logueo: el
+ * cliente pone el id, y repetir la petición deja el mismo resultado. Sirve
+ * tanto para el tablet como para la carga desde el navegador.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;
+ * Las imágenes se sirven por este mismo controlador y con token, no como
+ * archivos estáticos: una foto de testigo es información de la empresa.
+ * Como el id es un UUID y el contenido no cambia, se deja cachear una semana.
+ * &lt;/p&gt;
+ */
+@RestController
+@RequestMapping(&quot;/api/fotos&quot;)
+@RequiredArgsConstructor
+public class FotoController {
+
+    private final FotoService servicio;
+
+    @GetMapping
+    public List&lt;Foto&gt; listar(@RequestParam UUID sondajeId) {
+<span class="nc" id="L58">        return servicio.listar(sondajeId);</span>
+    }
+
+    @PutMapping(path = &quot;/{id}&quot;, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Foto subir(@PathVariable UUID id,
+            @RequestPart(&quot;archivo&quot;) MultipartFile archivo,
+            @RequestParam UUID sondajeId,
+            @RequestParam(required = false) Integer cajaDesde,
+            @RequestParam(required = false) Integer cajaHasta,
+            @RequestParam(required = false) BigDecimal desde,
+            @RequestParam(required = false) BigDecimal hasta,
+            @RequestParam(required = false) String condicion,
+            @RequestParam(required = false) OffsetDateTime tomadaEn,
+            @RequestParam(required = false) String observaciones,
+            @RequestHeader(value = &quot;X-Dispositivo&quot;, required = false) String dispositivo,
+            Principal principal) throws IOException {
+
+<span class="nc bnc" id="L75" title="All 4 branches missed.">        if (archivo == null || archivo.isEmpty()) {</span>
+<span class="nc" id="L76">            throw new IllegalArgumentException(&quot;No llegó ningún archivo.&quot;);</span>
+        }
+<span class="nc" id="L78">        FotoService.Metadatos m = new FotoService.Metadatos(sondajeId, cajaDesde, cajaHasta, desde, hasta,</span>
+<span class="nc bnc" id="L79" title="All 4 branches missed.">                condicion == null || condicion.isBlank() ? null : condicion, tomadaEn, observaciones);</span>
+<span class="nc" id="L80">        return servicio.subir(id, m, archivo.getBytes(), archivo.getOriginalFilename(),</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">                principal != null ? principal.getName() : null, dispositivo);</span>
+    }
+
+    @GetMapping(&quot;/{id}/contenido&quot;)
+    public ResponseEntity&lt;InputStreamResource&gt; contenido(@PathVariable UUID id) throws IOException {
+<span class="nc" id="L86">        return imagen(id, false);</span>
+    }
+
+    @GetMapping(&quot;/{id}/miniatura&quot;)
+    public ResponseEntity&lt;InputStreamResource&gt; miniatura(@PathVariable UUID id) throws IOException {
+<span class="nc" id="L91">        return imagen(id, true);</span>
+    }
+
+    @DeleteMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;Void&gt; eliminar(@PathVariable UUID id) {
+<span class="nc" id="L96">        servicio.eliminar(id);</span>
+<span class="nc" id="L97">        return ResponseEntity.noContent().build();</span>
+    }
+
+    private ResponseEntity&lt;InputStreamResource&gt; imagen(UUID id, boolean miniatura) throws IOException {
+<span class="nc" id="L101">        Foto f = servicio.obtener(id);</span>
+<span class="nc" id="L102">        InputStream in = servicio.contenido(f, miniatura);</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        MediaType tipo = miniatura ? MediaType.IMAGE_JPEG : MediaType.parseMediaType(f.getTipoMime());</span>
+<span class="nc" id="L104">        return ResponseEntity.ok()</span>
+<span class="nc" id="L105">                .contentType(tipo)</span>
+<span class="nc" id="L106">                .cacheControl(CacheControl.maxAge(7, TimeUnit.DAYS).cachePrivate())</span>
+<span class="nc" id="L107">                .body(new InputStreamResource(in));</span>
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity&lt;Map&lt;String, String&gt;&gt; invalido(IllegalArgumentException e) {
+<span class="nc" id="L112">        return ResponseEntity.badRequest().body(Map.of(&quot;mensaje&quot;, e.getMessage()));</span>
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity&lt;Map&lt;String, String&gt;&gt; noEncontrada(EntityNotFoundException e) {
+<span class="nc" id="L117">        return ResponseEntity.status(404).body(Map.of(&quot;mensaje&quot;, e.getMessage()));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

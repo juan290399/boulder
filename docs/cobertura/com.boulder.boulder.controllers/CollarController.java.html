@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CollarController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.controllers</a> &gt; <span class="el_source">CollarController.java</span></div><h1>CollarController.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.controllers;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.boulder.boulder.dto.CollarDTO;
+import com.boulder.boulder.services.CollarService;
+
+/**
+ * Controlador REST para el control de puntos Collar (Bocas de pozo validadas).
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@RestController
+@RequestMapping(&quot;/api/operacional/collares&quot;)
+<span class="fc" id="L31">public class CollarController {</span>
+
+<span class="fc" id="L33">    private static final Logger log = LoggerFactory.getLogger(CollarController.class);</span>
+
+    @Autowired
+    private CollarService collarService;
+
+    @GetMapping
+    public ResponseEntity&lt;List&lt;CollarDTO&gt;&gt; listarTodos() {
+<span class="fc" id="L40">        log.info(&quot;HTTP GET - Solicitud de listado maestro de collares&quot;);</span>
+<span class="fc" id="L41">        return ResponseEntity.ok(collarService.listarTodos());</span>
+    }
+
+    @GetMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;CollarDTO&gt; obtenerPorId(@PathVariable UUID id) {
+<span class="nc" id="L46">        log.info(&quot;HTTP GET - Obteniendo collar ID: {}&quot;, id);</span>
+<span class="nc" id="L47">        return ResponseEntity.ok(collarService.obtenerPorId(id));</span>
+    }
+
+    @GetMapping(&quot;/codigo/{codigo}&quot;)
+    public ResponseEntity&lt;CollarDTO&gt; obtenerPorCodigo(@PathVariable String codigo) {
+<span class="nc" id="L52">        log.info(&quot;HTTP GET - Obteniendo collar codigo: {}&quot;, codigo);</span>
+<span class="nc" id="L53">        return ResponseEntity.ok(collarService.obtenerPorCodigo(codigo));</span>
+    }
+
+    @PostMapping
+    public ResponseEntity&lt;CollarDTO&gt; guardar(@RequestBody CollarDTO dto) {
+<span class="nc" id="L58">        log.info(&quot;HTTP POST - Registrando punto de collar código: {}&quot;, dto.getCodigo());</span>
+<span class="nc" id="L59">        CollarDTO guardado = collarService.guardar(dto);</span>
+<span class="nc" id="L60">        return new ResponseEntity&lt;&gt;(guardado, HttpStatus.CREATED);</span>
+    }
+
+    @PutMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;CollarDTO&gt; actualizar(@PathVariable UUID id, @RequestBody CollarDTO dto) {
+<span class="nc" id="L65">        log.info(&quot;HTTP PUT - Solicitud de edición topográfica para el Collar ID: {}&quot;, id);</span>
+<span class="nc" id="L66">        return ResponseEntity.ok(collarService.actualizar(id, dto));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Parte diario de avance de logueo (UC16).
+ * Parte diario de avance de logueo (CU18).
  *
  * <p>
  * Registra el tramo de testigo descrito por el geólogo en un turno, separado

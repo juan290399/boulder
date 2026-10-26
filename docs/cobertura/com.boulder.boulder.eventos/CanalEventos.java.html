@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CanalEventos.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.eventos</a> &gt; <span class="el_source">CanalEventos.java</span></div><h1>CanalEventos.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.eventos;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+/**
+ * Reparte los avisos de cambio a los navegadores conectados (Server-Sent Events).
+ *
+ * &lt;p&gt;
+ * &lt;b&gt;Por qué SSE y no WebSocket.&lt;/b&gt; El aviso va en un solo sentido, del
+ * servidor al navegador. SSE es HTTP normal, pasa por cualquier proxy y Spring
+ * MVC lo trae con {@link SseEmitter}, sin broker STOMP ni WebFlux.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;
+ * &lt;b&gt;Por qué después del commit.&lt;/b&gt; Si se avisara antes, la pantalla podría
+ * pedir los datos cuando todavía no son visibles —o cuando la transacción
+ * termina deshaciéndose— y quedarse con la versión vieja sin enterarse.
+ * {@code fallbackExecution} cubre los cambios hechos fuera de una transacción.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;
+ * Los suscriptores viven en memoria. Alcanza para un solo servidor; si algún
+ * día hay más de uno, el reparto tiene que pasar por la base
+ * ({@code LISTEN/NOTIFY}) para que un cambio en uno llegue a los navegadores
+ * conectados al otro.
+ * &lt;/p&gt;
+ */
+@Component
+<span class="fc" id="L40">public class CanalEventos {</span>
+
+<span class="fc" id="L42">    private static final Logger log = LoggerFactory.getLogger(CanalEventos.class);</span>
+
+    /** Sin límite propio: se corta cuando el navegador se va o la red cae. */
+    private static final long SIN_TIMEOUT = 0L;
+
+<span class="fc" id="L47">    private final List&lt;SseEmitter&gt; suscriptores = new CopyOnWriteArrayList&lt;&gt;();</span>
+
+    public SseEmitter suscribir(String usuario) {
+<span class="nc" id="L50">        SseEmitter emisor = new SseEmitter(SIN_TIMEOUT);</span>
+<span class="nc" id="L51">        suscriptores.add(emisor);</span>
+<span class="nc" id="L52">        emisor.onCompletion(() -&gt; suscriptores.remove(emisor));</span>
+<span class="nc" id="L53">        emisor.onTimeout(() -&gt; suscriptores.remove(emisor));</span>
+<span class="nc" id="L54">        emisor.onError(e -&gt; suscriptores.remove(emisor));</span>
+<span class="nc" id="L55">        enviar(emisor, &quot;conectado&quot;, &quot;{\&quot;usuario\&quot;:\&quot;&quot; + usuario + &quot;\&quot;}&quot;);</span>
+<span class="nc" id="L56">        log.info(&quot;SSE: {} conectado ({} en línea)&quot;, usuario, suscriptores.size());</span>
+<span class="nc" id="L57">        return emisor;</span>
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+    public void alConfirmarse(CambioDatos cambio) {
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        if (suscriptores.isEmpty()) {</span>
+<span class="nc" id="L63">            return;</span>
+        }
+<span class="nc" id="L65">        log.debug(&quot;SSE: {} en {} sondaje(s), a {} suscriptor(es)&quot;,</span>
+<span class="nc" id="L66">                cambio.recurso(), cambio.sondajes().size(), suscriptores.size());</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        for (SseEmitter emisor : suscriptores) {</span>
+<span class="nc" id="L68">            enviar(emisor, &quot;cambio&quot;, cambio);</span>
+<span class="nc" id="L69">        }</span>
+<span class="nc" id="L70">    }</span>
+
+    /**
+     * Latido cada 25 s. Sin tráfico, algunos proxies y el propio navegador dan
+     * la conexión por muerta; además es como se detecta y limpia a quien se fue
+     * sin avisar.
+     */
+    @Scheduled(fixedRate = 25_000)
+    public void latido() {
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">        for (SseEmitter emisor : suscriptores) {</span>
+            try {
+<span class="nc" id="L81">                emisor.send(SseEmitter.event().comment(&quot;latido&quot;));</span>
+<span class="nc" id="L82">            } catch (IOException | IllegalStateException e) {</span>
+<span class="nc" id="L83">                suscriptores.remove(emisor);</span>
+<span class="nc" id="L84">            }</span>
+<span class="nc" id="L85">        }</span>
+<span class="fc" id="L86">    }</span>
+
+    public int conectados() {
+<span class="nc" id="L89">        return suscriptores.size();</span>
+    }
+
+    private void enviar(SseEmitter emisor, String nombre, Object datos) {
+        try {
+<span class="nc" id="L94">            emisor.send(SseEmitter.event().name(nombre).data(datos, MediaType.APPLICATION_JSON));</span>
+<span class="nc" id="L95">        } catch (IOException | IllegalStateException e) {</span>
+            // El navegador ya se fue; no es un error del servidor.
+<span class="nc" id="L97">            suscriptores.remove(emisor);</span>
+<span class="nc" id="L98">        }</span>
+<span class="nc" id="L99">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

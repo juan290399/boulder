@@ -9,7 +9,7 @@ import com.boulder.boulder.services.AvanceOperativoService;
 import com.boulder.boulder.services.AvanceDensidadService;
 
 /**
- * Controlador REST para estufa de densidad (UC20).
+ * Controlador REST para estufa de densidad (CU16).
  *
  * <p>Los verbos los aporta {@link AvanceOperativoControllerBase}.</p>
  *

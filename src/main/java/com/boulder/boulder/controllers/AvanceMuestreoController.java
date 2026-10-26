@@ -9,7 +9,7 @@ import com.boulder.boulder.services.AvanceOperativoService;
 import com.boulder.boulder.services.AvanceMuestreoService;
 
 /**
- * Controlador REST para muestreo geoquimico (UC19).
+ * Controlador REST para muestreo geoquimico (CU17).
  *
  * <p>Los verbos los aporta {@link AvanceOperativoControllerBase}.</p>
  *
