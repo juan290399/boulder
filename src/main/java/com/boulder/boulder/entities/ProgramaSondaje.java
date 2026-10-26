@@ -3,6 +3,9 @@ package com.boulder.boulder.entities;
 import java.io.Serializable;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -51,11 +54,16 @@ public class ProgramaSondaje implements Serializable {
     @JoinColumn(name = "plataforma_id", nullable = false)
     private Plataforma plataforma;
 
-    @Column(nullable = false, unique = true, length = 50)
+    // Columna char(15) en la base: CHAR, no VARCHAR (ver Proyecto.codigo).
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(nullable = false, unique = true, length = 15)
     private String codigo;
 
     @Column(nullable = false, length = 100)
     private String nombre;
+
+    @Column(name = "codigo_original", nullable = false, length = 20)
+    private String codigoOriginal;
 
     @Column(nullable = false)
     private Double este;

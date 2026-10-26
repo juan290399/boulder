@@ -3,6 +3,9 @@ package com.boulder.boulder.entities;
 import java.io.Serializable;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -41,10 +44,14 @@ public class Proyecto implements Serializable {
     @Column(name = "numero_interno", insertable = false, updatable = false)
     private Integer numeroInterno;
 
-    @Column(nullable = false, unique = true, length = 50)
+    // La columna real es char(3) (bpchar), no varchar, y operacional.vw_programa_sondaje
+    // depende de ella: si el mapeo no calca el tipo, Hibernate emite un ALTER que
+    // PostgreSQL rechaza y el arranque muere.
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(nullable = false, unique = true, length = 3)
     private String codigo;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 50)
     private String nombre;
 
     @Column(columnDefinition = "TEXT")

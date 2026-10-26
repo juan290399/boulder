@@ -19,7 +19,7 @@ import com.boulder.boulder.dto.MaquinaDTO;
 import com.boulder.boulder.services.MaquinaService;
 
 @RestController
-@RequestMapping("/maquina")
+@RequestMapping("/api/operacional/maquinas")
 @CrossOrigin(origins = "*")
 public class MaquinaController {
 

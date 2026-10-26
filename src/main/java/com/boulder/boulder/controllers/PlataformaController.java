@@ -28,7 +28,7 @@ import com.boulder.boulder.services.PlataformaService;
  * @since 1.0
  */
 @RestController
-@RequestMapping("/plataforma")
+@RequestMapping("/api/operacional/plataformas")
 @CrossOrigin(origins = "*")
 public class PlataformaController {
 
@@ -49,7 +49,7 @@ public class PlataformaController {
         return ResponseEntity.ok(plataformaService.obtenerPorId(id));
     }
 
-    @GetMapping("/{codigo}")
+    @GetMapping("/codigo/{codigo}")
     public ResponseEntity<PlataformaDTO> obtenerPorCodigo(@PathVariable String codigo) {
         log.info("HTTP GET - Buscando plataforma por código: {}", codigo);
         return ResponseEntity.ok(plataformaService.obtenerPorCodigo(codigo));

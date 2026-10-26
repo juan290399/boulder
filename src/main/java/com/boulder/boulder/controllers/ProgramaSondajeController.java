@@ -28,7 +28,7 @@ import com.boulder.boulder.services.ProgramaSondajeService;
  * @since 1.0
  */
 @RestController
-@RequestMapping("/programa-sondaje")
+@RequestMapping("/api/operacional/programas-sondaje")
 @CrossOrigin(origins = "*")
 public class ProgramaSondajeController {
 
@@ -49,7 +49,7 @@ public class ProgramaSondajeController {
         return ResponseEntity.ok(programaService.obtenerPorId(id));
     }
 
-    @GetMapping("/{codigo}")
+    @GetMapping("/codigo/{codigo}")
     public ResponseEntity<ProgramaSondajeDTO> obtenerPorCodigo(@PathVariable String codigo) {
         log.info("HTTP GET - Obteniendo programa de sondaje por codigo: {}", codigo);
         return ResponseEntity.ok(programaService.obtenerPorCodigo(codigo));

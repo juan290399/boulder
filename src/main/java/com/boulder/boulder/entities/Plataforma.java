@@ -3,6 +3,9 @@ package com.boulder.boulder.entities;
 import java.io.Serializable;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -43,10 +46,12 @@ public class Plataforma implements Serializable {
     @JoinColumn(name = "proyecto_id", referencedColumnName = "id", nullable = false)
     private Proyecto proyecto;
 
-    @Column(nullable = false, length = 50)
+    // Columna char(8) en la base: CHAR, no VARCHAR (ver Proyecto.codigo).
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(nullable = false, unique = true, length = 8)
     private String codigo;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 50)
     private String nombre;
 
     @Column(nullable = false)
@@ -61,7 +66,7 @@ public class Plataforma implements Serializable {
     @Column(name = "eje_mayor")
     private Double ejeMayor;
 
-    @Column(name = "eje_minor")
+    @Column(name = "eje_menor")
     private Double ejeMinor;
 
     @Column(name = "eje_z")

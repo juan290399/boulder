@@ -36,7 +36,7 @@ public class Maquina implements Serializable {
     @Column(name = "numero_interno", insertable = false, updatable = false)
     private Integer numeroInterno;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, unique = true, length = 10)
     private String codigo;
 
     @Column(nullable = false, length = 100)
@@ -73,5 +73,5 @@ public class Maquina implements Serializable {
     private String estado = "DISPONIBLE";
 
     @Column(columnDefinition = "TEXT")
-    private String notes;
+    private String notas;
 }

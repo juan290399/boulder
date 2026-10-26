@@ -13,8 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.boulder.boulder.dto.ProgramaSondajeDTO;
 import com.boulder.boulder.entities.ProgramaSondaje;
 import com.boulder.boulder.entities.Proyecto;
+import com.boulder.boulder.entities.Plataforma;
 import com.boulder.boulder.repositories.ProgramaSondajeRepository;
 import com.boulder.boulder.repositories.ProyectoRepository;
+import com.boulder.boulder.repositories.PlataformaRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -40,6 +42,9 @@ public class ProgramaSondajeServiceImpl implements ProgramaSondajeService {
 
     @Autowired
     private ProyectoRepository proyectoRepository;
+
+    @Autowired
+    private PlataformaRepository plataformaRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -103,11 +108,19 @@ public class ProgramaSondajeServiceImpl implements ProgramaSondajeService {
             Proyecto proyecto = proyectoRepository.findById(dto.getProyectoId())
                     .orElseThrow(() -> new EntityNotFoundException("No se puede iniciar un programa si el Proyecto asignado no existe."));
 
+            if (dto.getPlataformaId() == null) {
+                throw new IllegalArgumentException("El ID de la plataforma es obligatorio para registrar un programa de sondaje.");
+            }
+            Plataforma plataforma = plataformaRepository.findById(dto.getPlataformaId())
+                    .orElseThrow(() -> new EntityNotFoundException("La Plataforma asignada no existe."));
+
             ProgramaSondaje programa = new ProgramaSondaje();
             programa.setCodigo(dto.getCodigo());
+            programa.setCodigoOriginal(dto.getCodigoOriginal());
             programa.setNombre(dto.getNombre());
             programa.setProyecto(proyecto);
-            
+            programa.setPlataforma(plataforma);
+
             programa.setEste(dto.getEste());
             programa.setNorte(dto.getNorte());
             programa.setElevacion(dto.getElevacion());
@@ -147,6 +160,15 @@ public class ProgramaSondajeServiceImpl implements ProgramaSondajeService {
                 programa.setProyecto(nuevoProyecto);
             }
 
+            if (dto.getPlataformaId() != null && (programa.getPlataforma() == null || !programa.getPlataforma().getId().equals(dto.getPlataformaId()))) {
+                Plataforma nuevaPlataforma = plataformaRepository.findById(dto.getPlataformaId())
+                        .orElseThrow(() -> new EntityNotFoundException("La nueva Plataforma asociada no existe."));
+                programa.setPlataforma(nuevaPlataforma);
+            }
+
+            if (dto.getCodigoOriginal() != null) {
+                programa.setCodigoOriginal(dto.getCodigoOriginal());
+            }
             programa.setNombre(dto.getNombre());
             programa.setEste(dto.getEste());
             programa.setNorte(dto.getNorte());
@@ -175,6 +197,7 @@ public class ProgramaSondajeServiceImpl implements ProgramaSondajeService {
         dto.setId(programa.getId());
         dto.setNumeroInterno(programa.getNumeroInterno());
         dto.setCodigo(programa.getCodigo());
+        dto.setCodigoOriginal(programa.getCodigoOriginal());
         dto.setNombre(programa.getNombre());
         dto.setEste(programa.getEste());
         dto.setNorte(programa.getNorte());
