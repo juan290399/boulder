@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,16 +38,21 @@ public class AvancePerforacionServiceImpl implements AvancePerforacionService {
 
     private static final Logger log = LoggerFactory.getLogger(AvancePerforacionServiceImpl.class);
 
-    @Autowired
-    private AvancePerforacionRepository avanceRepository;
-    @Autowired
-    private SondajeRepository sondajeRepository;
-    @Autowired
-    private MaquinaRepository maquinaRepository;
-    @Autowired
-    private PlataformaRepository plataformaRepository;
-    @Autowired
-    private EmpleadoRepository empleadoRepository;
+    private final AvancePerforacionRepository avanceRepository;
+    private final SondajeRepository sondajeRepository;
+    private final MaquinaRepository maquinaRepository;
+    private final PlataformaRepository plataformaRepository;
+    private final EmpleadoRepository empleadoRepository;
+
+    public AvancePerforacionServiceImpl(AvancePerforacionRepository avanceRepository,
+            SondajeRepository sondajeRepository, MaquinaRepository maquinaRepository,
+            PlataformaRepository plataformaRepository, EmpleadoRepository empleadoRepository) {
+        this.avanceRepository = avanceRepository;
+        this.sondajeRepository = sondajeRepository;
+        this.maquinaRepository = maquinaRepository;
+        this.plataformaRepository = plataformaRepository;
+        this.empleadoRepository = empleadoRepository;
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -107,6 +111,12 @@ public class AvancePerforacionServiceImpl implements AvancePerforacionService {
     public void eliminar(UUID id) {
         log.warn("Eliminando parte de avance ID: {}", id);
         avanceRepository.delete(buscar(id));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AvancePerforacionDTO sugerencia(UUID sondajeId) {
+        return null;
     }
 
     private AvancePerforacion buscar(UUID id) {
