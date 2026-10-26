@@ -21,6 +21,7 @@ import {
 } from '../../../services/avance-operativo.service';
 import { AvanceOperativo, AvancePerforacion, FrenteAvance } from '../../../models/operacional';
 import { PartePerforacionForm } from './parte-perforacion/parte-perforacion';
+import { ParteOperativoForm } from './parte-operativo/parte-operativo';
 
 /** Descriptor de cada parte (perforación y los siete de testigo), para la pestaña de detalle. */
 interface TipoParte {
@@ -45,7 +46,7 @@ interface TipoParte {
 @Component({
   selector: 'app-avance-operativo',
   standalone: true,
-  imports: [CommonModule, FormsModule, PartePerforacionForm],
+  imports: [CommonModule, FormsModule, PartePerforacionForm, ParteOperativoForm],
   templateUrl: './avance-operativo.html',
   styleUrl: './avance-operativo.scss',
 })
@@ -66,8 +67,8 @@ export class AvanceOperativoPage implements OnInit {
   readonly partes = signal<AvanceOperativo[]>([]);
   readonly cargandoPartes = signal(false);
 
-  /** Formulario del parte de perforación abierto: nuevo (parte null) o corrección. */
-  readonly formulario = signal<{ parte: AvancePerforacion | null } | null>(null);
+  /** Formulario abierto: de qué parte (clave del tipo) y cuál se corrige; parte null es uno nuevo. */
+  readonly formulario = signal<{ clave: string; parte: AvanceOperativo | null } | null>(null);
   readonly aviso = signal<string | null>(null);
 
   /** La perforación y los siete partes de testigo, en el orden real del flujo. */
@@ -243,29 +244,32 @@ export class AvanceOperativoPage implements OnInit {
   }
 
   elegirTipo(clave: string): void {
+    this.formulario.set(null);
     this.tipoActivo.set(clave);
     this.cargarPartes();
   }
 
-  /** Abre el formulario en la pestaña de perforación, para ver el parte entre los demás al guardarlo. */
+  /** Parte nuevo de la pestaña abierta: el formulario se precarga con los partes que ya muestra. */
   nuevoParte(): void {
     this.aviso.set(null);
-    if (this.tipoActivo() !== 'perforacion') {
-      this.elegirTipo('perforacion');
-    }
-    this.formulario.set({ parte: null });
+    this.formulario.set({ clave: this.tipoActivo(), parte: null });
   }
 
   editarParte(parte: AvanceOperativo): void {
     this.aviso.set(null);
-    this.formulario.set({ parte: parte as unknown as AvancePerforacion });
+    this.formulario.set({ clave: this.tipoActivo(), parte });
   }
 
-  parteGuardado(parte: AvancePerforacion): void {
-    const corregido = !!this.formulario()?.parte;
+  /** El parte de perforación es otro modelo; el formulario lo pide con su tipo. */
+  comoPerforacion(parte: AvanceOperativo | null): AvancePerforacion | null {
+    return parte as unknown as AvancePerforacion | null;
+  }
+
+  parteGuardado(parte: AvanceOperativo): void {
+    const abierto = this.formulario();
+    const etiqueta = this.tipos.find(t => t.clave === abierto?.clave)?.etiqueta.toLowerCase() ?? '';
     this.formulario.set(null);
-    this.aviso.set(`Parte N.º ${parte.numeroInterno} ${corregido ? 'corregido' : 'registrado'}: `
-      + `${parte.desde} → ${parte.hasta} m (${parte.avance} m).`);
+    this.aviso.set(`Parte N.º ${parte.numeroInterno} de ${etiqueta} ${abierto?.parte ? 'corregido' : 'registrado'}.`);
     this.cargarPartes();
     this.cargarFrente(true);
   }
