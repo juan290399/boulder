@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,14 +31,18 @@ public class SurveyMedicionServiceImpl implements SurveyMedicionService {
 
     private static final Logger log = LoggerFactory.getLogger(SurveyMedicionServiceImpl.class);
 
-    @Autowired
-    private SurveyMedicionRepository medicionRepository;
-    @Autowired
-    private SondajeRepository sondajeRepository;
-    @Autowired
-    private MaquinaRepository maquinaRepository;
-    @Autowired
-    private EmpleadoRepository empleadoRepository;
+    private final SurveyMedicionRepository medicionRepository;
+    private final SondajeRepository sondajeRepository;
+    private final MaquinaRepository maquinaRepository;
+    private final EmpleadoRepository empleadoRepository;
+
+    public SurveyMedicionServiceImpl(SurveyMedicionRepository medicionRepository, SondajeRepository sondajeRepository,
+            MaquinaRepository maquinaRepository, EmpleadoRepository empleadoRepository) {
+        this.medicionRepository = medicionRepository;
+        this.sondajeRepository = sondajeRepository;
+        this.maquinaRepository = maquinaRepository;
+        this.empleadoRepository = empleadoRepository;
+    }
 
     @Override
     @Transactional(readOnly = true)
