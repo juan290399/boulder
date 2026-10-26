@@ -10,7 +10,7 @@ import com.boulder.boulder.repositories.AvanceDensidadRepository;
 import com.boulder.boulder.repositories.AvanceOperativoRepository;
 
 /**
- * Implementacion de los servicios de estufa y calculo de densidad (UC20).
+ * Implementacion de los servicios de estufa y calculo de densidad (CU16).
  *
  * @author jvelazco
  * @version 1.0

@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * Objeto de transferencia para un parte de registro fotográfico (UC17).
+ * Objeto de transferencia para un parte de registro fotográfico (CU13).
  *
  * @author jvelazco
  * @version 1.0

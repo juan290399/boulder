@@ -3,7 +3,7 @@ package com.boulder.boulder.services;
 import com.boulder.boulder.dto.AvanceFotografiaDTO;
 
 /**
- * Servicios de negocio para los partes de registro fotografico (UC17).
+ * Servicios de negocio para los partes de registro fotografico (CU13).
  *
  * @author jvelazco
  * @version 1.0

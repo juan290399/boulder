@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * Objeto de transferencia para un parte de corte de densidad (UC20).
+ * Objeto de transferencia para un parte de corte de densidad (CU15).
  *
  * @author jvelazco
  * @version 1.0

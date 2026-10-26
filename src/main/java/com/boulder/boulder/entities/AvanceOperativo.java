@@ -19,7 +19,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Cabecera común a todos los partes de avance operativo (UC16 a UC20).
+ * Cabecera común a todos los partes de avance operativo (CU12 a CU18).
  *
  * <p>
  * Las siete tablas del flujo posterior a la perforación —logueo, recepción de

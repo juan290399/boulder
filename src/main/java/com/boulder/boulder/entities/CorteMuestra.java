@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Parte de corte de testigo para muestreo geoquímico (UC18).
+ * Parte de corte de testigo para muestreo geoquímico (CU14).
  *
  * <p>
  * Es el paso irreversible del flujo: una vez cortado el testigo, la mitad que

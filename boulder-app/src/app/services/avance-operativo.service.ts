@@ -24,7 +24,7 @@ export interface FiltroAvance {
 }
 
 /**
- * Acceso REST a los partes de avance operativo (UC16 a UC20).
+ * Acceso REST a los partes de avance operativo (CU12 a CU18).
  *
  * Se apoya en {@link CrudService}, que ya resuelve los cinco verbos contra la
  * convención de rutas del backend; lo único que agrega es el filtrado, que en

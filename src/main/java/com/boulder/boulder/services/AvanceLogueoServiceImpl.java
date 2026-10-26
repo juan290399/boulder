@@ -10,7 +10,7 @@ import com.boulder.boulder.repositories.AvanceLogueoRepository;
 import com.boulder.boulder.repositories.AvanceOperativoRepository;
 
 /**
- * Implementacion de los servicios de partes de avance de logueo (UC16).
+ * Implementacion de los servicios de partes de avance de logueo (CU18).
  *
  * @author jvelazco
  * @version 1.0

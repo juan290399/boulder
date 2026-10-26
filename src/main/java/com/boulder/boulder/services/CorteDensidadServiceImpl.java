@@ -10,7 +10,7 @@ import com.boulder.boulder.repositories.AvanceOperativoRepository;
 import com.boulder.boulder.repositories.CorteDensidadRepository;
 
 /**
- * Implementacion de los servicios de corte de densidad (UC20).
+ * Implementacion de los servicios de corte de densidad (CU15).
  *
  * @author jvelazco
  * @version 1.0

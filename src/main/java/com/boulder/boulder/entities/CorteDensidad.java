@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Parte de corte de testigo para ensayo de densidad (parte de UC20).
+ * Parte de corte de testigo para ensayo de densidad (parte de CU15).
  *
  * <p>
  * Va por separado del corte geoquímico porque la muestra de densidad es una

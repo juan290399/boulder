@@ -9,7 +9,7 @@ import com.boulder.boulder.services.AvanceOperativoService;
 import com.boulder.boulder.services.CorteMuestraService;
 
 /**
- * Controlador REST para corte geoquimico (UC18).
+ * Controlador REST para corte geoquimico (CU14).
  *
  * <p>Los verbos los aporta {@link AvanceOperativoControllerBase}.</p>
  *

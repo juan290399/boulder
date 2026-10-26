@@ -5,7 +5,7 @@ import org.springframework.stereotype.Repository;
 import com.boulder.boulder.entities.AvanceFotografia;
 
 /**
- * Repositorio de acceso a datos para los partes de registro fotográfico (UC17).
+ * Repositorio de acceso a datos para los partes de registro fotográfico (CU13).
  *
  * @author jvelazco
  * @version 1.0

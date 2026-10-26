@@ -3,7 +3,7 @@ package com.boulder.boulder.services;
 import com.boulder.boulder.dto.AvanceMuestreoDTO;
 
 /**
- * Servicios de negocio para los partes de muestreo geoquimico (UC19).
+ * Servicios de negocio para los partes de muestreo geoquimico (CU17).
  *
  * @author jvelazco
  * @version 1.0

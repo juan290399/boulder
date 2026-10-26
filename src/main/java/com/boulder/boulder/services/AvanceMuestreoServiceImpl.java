@@ -10,7 +10,7 @@ import com.boulder.boulder.repositories.AvanceMuestreoRepository;
 import com.boulder.boulder.repositories.AvanceOperativoRepository;
 
 /**
- * Implementacion de los servicios de muestreo geoquimico (UC19).
+ * Implementacion de los servicios de muestreo geoquimico (CU17).
  *
  * @author jvelazco
  * @version 1.0

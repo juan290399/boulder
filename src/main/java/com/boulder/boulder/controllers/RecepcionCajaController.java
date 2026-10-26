@@ -9,7 +9,7 @@ import com.boulder.boulder.services.AvanceOperativoService;
 import com.boulder.boulder.services.RecepcionCajaService;
 
 /**
- * Controlador REST para recepcion de cajas (UC16).
+ * Controlador REST para recepcion de cajas (CU12).
  *
  * <p>Los verbos los aporta {@link AvanceOperativoControllerBase}.</p>
  *

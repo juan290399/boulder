@@ -32,7 +32,7 @@ import com.boulder.boulder.repositories.SondajeRepository;
 import com.boulder.boulder.repositories.SurveyMedicionRepository;
 
 /**
- * Registro de una medición de desvío desde el formulario (RF07, CU17). Los
+ * Registro de una medición de desvío desde el formulario (RF08, CU10). Los
  * repositorios son dobles de prueba.
  */
 @ExtendWith(MockitoExtension.class)

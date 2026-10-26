@@ -25,7 +25,7 @@ import com.boulder.boulder.services.AvancePerforacionService;
 import jakarta.validation.Valid;
 
 /**
- * Controlador REST para los partes diarios de avance de perforación (UC15).
+ * Controlador REST para los partes diarios de avance de perforación (CU09).
  *
  * @author jvelazco
  * @version 1.0

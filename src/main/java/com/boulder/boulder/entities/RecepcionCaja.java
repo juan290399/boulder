@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Recepción de cajas de campo en el almacén de testigos (apoyo a UC16).
+ * Recepción de cajas de campo en el almacén de testigos (apoyo a CU12).
  *
  * <p>
  * Es el eslabón entre la perforación y el logueo: hasta que las cajas no se

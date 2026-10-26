@@ -24,7 +24,7 @@ import org.hibernate.annotations.Generated;
 import lombok.Data;
 
 /**
- * Parte diario de avance de perforación (UC15).
+ * Parte diario de avance de perforación (CU09).
  *
  * <p>
  * Registra el metraje perforado por turno en un sondaje, los parámetros

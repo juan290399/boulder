@@ -38,7 +38,7 @@ import com.boulder.boulder.repositories.SondajeRepository;
 import jakarta.persistence.EntityNotFoundException;
 
 /**
- * Registro del parte de perforación desde el formulario (RF05, CU15). Los
+ * Registro del parte de perforación desde el formulario (RF07, CU09). Los
  * repositorios son dobles de prueba.
  */
 @ExtendWith(MockitoExtension.class)
