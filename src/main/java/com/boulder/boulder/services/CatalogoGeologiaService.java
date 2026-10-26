@@ -1,9 +1,11 @@
 package com.boulder.boulder.services;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import com.boulder.boulder.dto.CatalogoGeologiaDTO;
+import com.boulder.boulder.repositories.CatalogoGeologiaRepository.Estructura;
 
 /**
  * Los diccionarios del esquema {@code geologia}: litologías, alteraciones,
@@ -22,6 +24,12 @@ public interface CatalogoGeologiaService {
 
     /** Los veintiún catálogos aplanados en una sola lista con discriminador. */
     List<CatalogoGeologiaDTO> listarTodos();
+
+    /**
+     * Qué columnas opcionales tiene cada catálogo y el largo de su código. La
+     * pantalla de diccionarios arma el formulario con esto.
+     */
+    Map<String, Estructura> estructura();
 
     /**
      * Agrega un código a un catálogo.
