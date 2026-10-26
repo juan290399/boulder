@@ -21,7 +21,7 @@ type Formulario = Record<string, unknown> & { fecha: string; turno?: string | nu
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './parte-operativo.html',
-  styleUrl: '../formulario-parte.scss',
+  styleUrl: '../../../../components/formulario-parte.scss',
 })
 export class ParteOperativoForm implements OnInit {
 
