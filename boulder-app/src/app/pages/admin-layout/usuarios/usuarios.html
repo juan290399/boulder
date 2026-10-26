@@ -1,0 +1,183 @@
+<div class="panel panel__body">
+
+  <div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+      <h1 class="page-head__title mb-1">Usuarios</h1>
+      <p class="text-muted mb-0 small">
+        Altas, estado de las cuentas y asignación de roles.
+      </p>
+    </div>
+
+    <span *ngIf="totalPendientes > 0" class="badge text-bg-warning">
+      {{ totalPendientes }} pendiente{{ totalPendientes === 1 ? '' : 's' }} de activación
+    </span>
+  </div>
+
+  <!-- ------------------------------------------------------------- formulario -->
+  <fieldset class="border rounded p-3 mb-4">
+    <legend class="float-none w-auto px-2 fs-6 text-muted">
+      {{ form.id ? 'Editar cuenta: ' + form.usuario : 'Nueva cuenta' }}
+    </legend>
+
+    <div class="row g-2 mb-2">
+      <div class="col-md-3">
+        <input class="form-control" placeholder="Nombres" [(ngModel)]="form.nombres" />
+      </div>
+      <div class="col-md-3">
+        <input class="form-control" placeholder="Apellidos" [(ngModel)]="form.apellidos" />
+      </div>
+      <div class="col-md-4">
+        <input class="form-control" type="email" placeholder="Correo" [(ngModel)]="form.correo" />
+      </div>
+      <div class="col-md-2">
+        <div class="form-check form-switch mt-2">
+          <input class="form-check-input" type="checkbox" id="estadoNuevo" [(ngModel)]="form.estado" />
+          <label class="form-check-label small" for="estadoNuevo">Activa</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-2 mb-3">
+      <div class="col-md-3">
+        <!-- El identificador de acceso no se puede cambiar: el backend no lo
+             actualiza y es el `sub` de los tokens ya emitidos. -->
+        <input class="form-control" placeholder="Usuario" [(ngModel)]="form.usuario"
+               [disabled]="!!form.id" />
+      </div>
+      <div class="col-md-3">
+        <input class="form-control" type="password" [(ngModel)]="form.contrasenia"
+               [placeholder]="form.id ? 'Contraseña (en blanco = no cambiar)' : 'Contraseña'" />
+      </div>
+    </div>
+
+    <button class="btn btn-success me-2" (click)="guardar()">
+      {{ form.id ? 'Actualizar' : 'Crear' }}
+    </button>
+    <button class="btn btn-secondary" (click)="limpiar()">Limpiar</button>
+
+    <p class="text-muted small mb-0 mt-2" *ngIf="!form.id">
+      Los roles se asignan después, desde el listado.
+    </p>
+  </fieldset>
+
+  <div *ngIf="mensaje" class="alert-inline alert-inline--ok">{{ mensaje }}</div>
+  <div *ngIf="error" class="alert-inline">{{ error }}</div>
+
+  <!-- ---------------------------------------------------------------- filtros -->
+  <div class="row g-2 mb-3">
+    <div class="col-md-6">
+      <input class="form-control" placeholder="Buscar por nombre, usuario o correo"
+             [(ngModel)]="busqueda" />
+    </div>
+    <div class="col-md-4">
+      <select class="form-select" [(ngModel)]="filtroEstado">
+        <option value="todos">Todas las cuentas</option>
+        <option value="activos">Solo activas</option>
+        <option value="inactivos">Solo inactivas</option>
+        <option value="pendientes">Pendientes de activación</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <button class="btn btn-outline-primary w-100" [disabled]="loading" (click)="listar()">
+        Refrescar
+      </button>
+    </div>
+  </div>
+
+  <!-- ---------------------------------------------------------------- listado -->
+  <div class="table-scroll" *ngIf="usuariosFiltrados.length > 0; else vacio">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Usuario</th>
+          <th>Correo</th>
+          <th>Roles</th>
+          <th>Estado</th>
+          <th class="text-end">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let u of usuariosFiltrados">
+          <tr>
+            <td>
+              {{ u.nombres }} {{ u.apellidos }}
+              <span *ngIf="esUsuarioActual(u)" class="badge text-bg-light border ms-1">tú</span>
+            </td>
+            <td><code>{{ u.usuario }}</code></td>
+            <td class="small">{{ u.correo }}</td>
+            <td>
+              <span *ngFor="let r of u.roles" class="badge text-bg-secondary me-1">{{ r }}</span>
+              <span *ngIf="(u.roles?.length ?? 0) === 0" class="text-muted small">sin roles</span>
+            </td>
+            <td>
+              <span class="badge" [class.text-bg-success]="u.estado" [class.text-bg-danger]="!u.estado">
+                {{ u.estado ? 'Activa' : 'Inactiva' }}
+              </span>
+            </td>
+            <td class="text-end text-nowrap">
+              <button class="btn btn-sm btn-outline-secondary me-1" (click)="editar(u)">
+                Editar
+              </button>
+              <button class="btn btn-sm btn-outline-primary me-1" (click)="abrirRoles(u)">
+                Roles
+              </button>
+              <!-- Desactivarse a uno mismo lo rechaza el backend; no se ofrece. -->
+              <button *ngIf="u.estado && !esUsuarioActual(u)"
+                      class="btn btn-sm btn-outline-danger" (click)="cambiarEstado(u, false)">
+                Desactivar
+              </button>
+              <button *ngIf="!u.estado"
+                      class="btn btn-sm btn-outline-success" (click)="cambiarEstado(u, true)">
+                Activar
+              </button>
+            </td>
+          </tr>
+
+          <!-- Editor de roles, desplegado bajo su propia fila -->
+          <tr *ngIf="editandoRolesDe?.id === u.id">
+            <td colspan="6" class="bg-light">
+              <div class="p-2">
+                <p class="fw-semibold mb-2">
+                  Roles de {{ u.nombres }} {{ u.apellidos }}
+                </p>
+
+                <div class="form-check form-check-inline" *ngFor="let r of roles">
+                  <input class="form-check-input" type="checkbox"
+                         [id]="'rol-' + u.id + '-' + r.codigo"
+                         [checked]="tieneRolSeleccionado(r.codigo)"
+                         (change)="alternarRol(r.codigo)" />
+                  <label class="form-check-label" [for]="'rol-' + u.id + '-' + r.codigo">
+                    {{ r.nombre }} <span class="text-muted small">({{ r.codigo }})</span>
+                  </label>
+                </div>
+
+                <div class="mt-3">
+                  <button class="btn btn-sm btn-success me-2" (click)="guardarRoles()">
+                    Guardar roles
+                  </button>
+                  <button class="btn btn-sm btn-secondary" (click)="cerrarRoles()">
+                    Cancelar
+                  </button>
+                </div>
+
+                <p class="text-muted small mb-0 mt-2">
+                  Es un reemplazo: lo que quede sin marcar se revoca. Los cambios
+                  no afectan a la sesión abierta del usuario hasta que vuelva a
+                  iniciar sesión.
+                </p>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #vacio>
+    <div class="empty-state">
+      No hay cuentas que coincidan con el filtro.
+    </div>
+  </ng-template>
+
+</div>

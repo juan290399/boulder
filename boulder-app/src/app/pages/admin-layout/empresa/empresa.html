@@ -1,0 +1,84 @@
+<div class="page">
+  <div class="panel panel__body">
+    <h1 class="page-head__title mb-4">Empresas</h1>
+
+    <div class="row g-2 mb-3">
+      <div class="col-md-2">
+        <input class="form-control" placeholder="Código" [(ngModel)]="form.codigo" />
+      </div>
+      <div class="col-md-4">
+        <input class="form-control" placeholder="Razón social" [(ngModel)]="form.nombre" />
+      </div>
+      <div class="col-md-2">
+        <input class="form-control" placeholder="RUC" [(ngModel)]="form.ruc" />
+      </div>
+      <div class="col-md-4">
+        <input class="form-control" placeholder="Dirección" [(ngModel)]="form.direccion" />
+      </div>
+    </div>
+
+    <div class="row g-2 mb-3">
+      <div class="col-md-3">
+        <input class="form-control" placeholder="Teléfono" [(ngModel)]="form.telefono" />
+      </div>
+      <div class="col-md-4">
+        <input class="form-control" placeholder="Correo" [(ngModel)]="form.correo" />
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <button class="btn btn-success me-2" (click)="guardar()">
+        {{ form.id ? 'Actualizar' : 'Crear' }}
+      </button>
+      <button class="btn btn-secondary" (click)="limpiar()">Limpiar</button>
+    </div>
+
+    <div *ngIf="mensaje" class="alert-inline alert-inline--info">{{ mensaje }}</div>
+
+    <hr class="my-3" />
+
+    <div class="row g-2 mb-3">
+      <div class="col-md-6">
+        <div class="input-group">
+          <input class="form-control" placeholder="Buscar por RUC" [(ngModel)]="busquedaRuc" />
+          <button class="btn btn-primary" (click)="buscarPorRuc()">Buscar</button>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="input-group">
+          <input class="form-control" placeholder="Buscar por ID" [(ngModel)]="busquedaId" />
+          <button class="btn btn-primary" (click)="buscarPorId()">Buscar</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-outline-primary mb-3" [disabled]="loading" (click)="listar()">
+      Refrescar listado
+    </button>
+
+    <div class="table-scroll" *ngIf="empresas.length > 0; else vacio">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Código</th><th>Razón social</th><th>RUC</th><th>Dirección</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let e of empresas">
+            <td>{{ e.codigo }}</td>
+            <td>{{ e.nombre }}</td>
+            <td>{{ e.ruc || '—' }}</td>
+            <td>{{ e.direccion || '—' }}</td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-primary" (click)="editar(e)">Editar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #vacio>
+      <div class="empty-state">No hay empresas para mostrar.</div>
+    </ng-template>
+  </div>
+</div>
