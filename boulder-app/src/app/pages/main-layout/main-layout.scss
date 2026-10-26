@@ -1,0 +1,5 @@
+/* El armazón (.app-shell, .app-main, .app-viewport) es del sistema de diseño.
+   Antes este archivo compensaba a mano el `position: fixed` de la barra
+   lateral con un `margin-left: 280px` cableado: si la barra cambiaba de ancho,
+   el contenido quedaba corrido. Ahora la barra es parte del flujo y no hay
+   ninguna medida que mantener sincronizada. */
