@@ -17,6 +17,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import java.util.List;
 
 /**
  * Pruebas de integración de la capa de seguridad, con el contexto completo y la
@@ -28,6 +32,19 @@ class SeguridadApiTest {
 
     @Autowired
     private MockMvc mvc;
+
+    @Autowired
+    private JwtUtils jwtUtils;
+
+    @Test
+    @DisplayName("Un token bien firmado de una cuenta que ya no existe no abre el API")
+    void tokenDeCuentaBorrada() throws Exception {
+        String token = jwtUtils.generateToken(new UsernamePasswordAuthenticationToken(
+                "cuenta_borrada_tdd", null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+        mvc.perform(get("/api/operacional/sondajes").header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+    }
 
     @ParameterizedTest(name = "{0} sin token se rechaza")
     @ValueSource(strings = {"/api/operacional/sondajes", "/api/logueo/quicklog", "/api/fotos", "/api/base/usuarios"})
