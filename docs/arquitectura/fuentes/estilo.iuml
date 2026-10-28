@@ -1,5 +1,4 @@
-' Estilo común: texto negro, rellenos grises y un acento azul claro, como los
-' informes del curso. El motor smetana evita depender de Graphviz.
+' Texto negro, rellenos grises y acento azul claro. Motor smetana (sin Graphviz).
 !pragma layout smetana
 skinparam dpi 200
 skinparam shadowing false
