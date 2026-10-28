@@ -1,0 +1,15 @@
+@startuml ciclo_tdd
+!include estilo.iuml
+skinparam activityDiamondBackgroundColor #F1F1F1
+
+start
+repeat
+  #F3DEDE:Se escribe la prueba y un esqueleto que compila;
+  #F3DEDE:La prueba falla · commit «test(…) (rojo)»;
+  #E0EFE0:Se implementa lo mínimo para que pase;
+  #E0EFE0:La prueba pasa · commit «feat(…) (verde)»;
+  #DDE8F3:Se refactoriza con la suite completa en verde;
+repeat while (¿Hay otra regla?) is (sí)
+-> no;
+stop
+@enduml

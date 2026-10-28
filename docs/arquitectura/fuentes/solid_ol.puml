@@ -1,0 +1,31 @@
+@startuml solid_ol
+!include estilo.iuml
+
+package "O · Abierto / cerrado" as O {
+  interface ImportadorPlantilla {
+    + clave() : String
+    + importar(libro, catalogos, aplicar)
+  }
+  abstract class ImportadorBase
+  class ImportadorPerforacion
+  class ImportadorAlmacen
+  class ImportadorLogueo
+  class ImportadorDesvio
+  class ImportadorQuicklog
+  class ImportacionServiceImpl
+}
+package "L · Sustitución de Liskov" as L {
+  abstract class "AvanceOperativoControllerBase<D>" as CB
+  interface "AvanceOperativoService<D>" as AOS
+  class RecepcionCajaController
+}
+ImportadorPlantilla <|.. ImportadorBase
+ImportadorBase <|-- ImportadorPerforacion
+ImportadorBase <|-- ImportadorAlmacen
+ImportadorBase <|-- ImportadorLogueo
+ImportadorBase <|-- ImportadorDesvio
+ImportadorBase <|-- ImportadorQuicklog
+ImportacionServiceImpl --> "*" ImportadorPlantilla : List<…>
+CB --> AOS : cualquiera de los 7
+CB <|-- RecepcionCajaController
+@enduml

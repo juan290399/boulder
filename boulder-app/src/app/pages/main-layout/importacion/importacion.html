@@ -1,9 +1,6 @@
 <div class="page-head">
   <div>
     <h1 class="page-head__title">Cargar datos</h1>
-    <p class="page-head__sub">
-      Las plantillas de Excel entran por acá. Primero se prueban, después se cargan.
-    </p>
   </div>
 </div>
 
@@ -98,7 +95,6 @@
         <div class="metric">
           <div class="metric__label"><i class="bi bi-list-ol"></i>Renglones leídos</div>
           <div class="metric__value">{{ r.totalLeidas }}</div>
-          <div class="metric__hint">sin contar cabeceras ni filas en blanco</div>
         </div>
         <div class="metric">
           <div class="metric__label"><i class="bi bi-check2"></i>{{ r.aplicado ? 'Cargados' : 'Entrarían' }}</div>
@@ -111,7 +107,6 @@
         <div class="metric">
           <div class="metric__label"><i class="bi bi-arrow-repeat"></i>Ya estaban</div>
           <div class="metric__value">{{ r.totalOmitidas }}</div>
-          <div class="metric__hint">repetidos en el archivo o ya cargados antes</div>
         </div>
         <div class="metric">
           <div class="metric__label"><i class="bi bi-x-octagon"></i>Rechazados</div>
