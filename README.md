@@ -62,7 +62,9 @@ uno declara solo sus reglas:
 
 ![DAO de los partes](docs/arquitectura/dao_partes.png)
 
-Cómo se aplica cada principio SOLID: [docs/arquitectura/solid.png](docs/arquitectura/solid.png).
+Cómo se aplica cada principio SOLID: [S, D e I](docs/arquitectura/solid_sdi.png) y
+[O y L](docs/arquitectura/solid_ol.png). Las fuentes de los diagramas están en
+[docs/arquitectura/fuentes/](docs/arquitectura/fuentes/).
 El detalle por paquete está en el Javadoc.
 
 ## Seguridad

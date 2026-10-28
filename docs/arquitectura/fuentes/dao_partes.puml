@@ -1,0 +1,50 @@
+@startuml dao_partes
+!include estilo.iuml
+left to right direction
+
+interface "AvanceOperativoService<D>" as Srv {
+  + listarPorSondaje(UUID) : List<D>
+  + guardar(D) : D
+  + actualizar(UUID, D) : D
+  + eliminar(UUID)
+}
+abstract class "AvanceOperativoServiceBase<E, D>" as Base {
+  # repositorio() : AvanceOperativoRepository<E>
+  # revisar(D, Revision)
+  # aplicarDetalle(D, E)
+  # volcarDetalle(E, D)
+  + guardar(D) : D
+}
+interface "AvanceOperativoRepository<E>" as Repo <<DAO · extends JpaRepository>> {
+  + findBySondajeId…(UUID)
+  + findByFechaBetween…(desde, hasta)
+}
+
+class RecepcionCajaServiceImpl
+class AvanceFotografiaServiceImpl
+class CorteMuestraServiceImpl
+class CorteDensidadServiceImpl
+class AvanceDensidadServiceImpl
+class AvanceMuestreoServiceImpl
+class AvanceLogueoServiceImpl
+
+Srv <|.. Base
+Base --> Repo : usa
+Base <|-- RecepcionCajaServiceImpl
+Base <|-- AvanceFotografiaServiceImpl
+Base <|-- CorteMuestraServiceImpl
+Base <|-- CorteDensidadServiceImpl
+Base <|-- AvanceDensidadServiceImpl
+Base <|-- AvanceMuestreoServiceImpl
+Base <|-- AvanceLogueoServiceImpl
+
+note right of Base
+  Patrón plantilla: guardar() fija el orden
+  validar → aplicar → save → flush;
+  cada parte completa los ganchos.
+end note
+note bottom of Repo
+  Cada parte tiene su …Repository;
+  Spring genera la implementación.
+end note
+@enduml

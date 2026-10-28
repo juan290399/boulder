@@ -1,0 +1,51 @@
+' Estilo común: texto negro, rellenos grises y un acento azul claro, como los
+' informes del curso. El motor smetana evita depender de Graphviz.
+!pragma layout smetana
+skinparam dpi 200
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam defaultFontColor #111111
+skinparam ArrowColor #111111
+skinparam ArrowFontSize 10
+skinparam roundCorner 8
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F7F7
+  BorderColor #4A4A4A
+  FontStyle bold
+}
+skinparam rectangle {
+  BackgroundColor #F1F1F1
+  BorderColor #4A4A4A
+}
+skinparam component {
+  BackgroundColor #F1F1F1
+  BorderColor #4A4A4A
+}
+skinparam database {
+  BackgroundColor #E2E2E2
+  BorderColor #4A4A4A
+}
+skinparam class {
+  BackgroundColor #F1F1F1
+  BorderColor #4A4A4A
+  HeaderBackgroundColor #DDE8F3
+  StereotypeFontSize 9
+}
+skinparam interface {
+  BackgroundColor #DDE8F3
+  BorderColor #4A4A4A
+}
+skinparam note {
+  BackgroundColor #FFFFFF
+  BorderColor #4A4A4A
+}
+skinparam activity {
+  BackgroundColor #F1F1F1
+  BorderColor #4A4A4A
+}
+hide circle
+hide empty members
+skinparam classAttributeIconSize 0

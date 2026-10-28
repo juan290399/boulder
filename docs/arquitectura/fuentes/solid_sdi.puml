@@ -1,0 +1,35 @@
+@startuml solid_sdi
+!include estilo.iuml
+
+package "S · Responsabilidad única" as S {
+  interface CambioContrasenaService {
+    + cambiar(usuario, actual, nueva)
+  }
+  interface UsuarioService {
+    + guardar(UsuarioDTO)
+    + cambiarEstado(UUID, boolean)
+  }
+}
+package "D · Inversión de dependencias" as D {
+  class CambioContrasenaServiceImpl {
+    + CambioContrasenaServiceImpl(UsuarioRepository, PasswordEncoder)
+  }
+  interface UsuarioRepository
+  interface PasswordEncoder
+}
+package "I · Segregación de interfaces" as I {
+  interface AlmacenFotos {
+    + guardar(clave, contenido)
+    + abrir(clave) : InputStream
+    + existe(clave) : boolean
+    + borrar(clave)
+  }
+  class AlmacenFotosDisco
+  class FotoService
+}
+CambioContrasenaService <|.. CambioContrasenaServiceImpl
+CambioContrasenaServiceImpl --> UsuarioRepository
+CambioContrasenaServiceImpl --> PasswordEncoder
+AlmacenFotos <|.. AlmacenFotosDisco
+FotoService --> AlmacenFotos
+@enduml
