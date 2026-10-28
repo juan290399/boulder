@@ -1,7 +1,6 @@
 <div class="page-head">
   <div>
     <h1 class="page-head__title">Mi cuenta</h1>
-    <p class="page-head__sub">Datos de acceso de la cuenta con la que iniciaste sesión.</p>
   </div>
 </div>
 
@@ -24,7 +23,6 @@
             }
           </dd>
         </dl>
-        <p class="tenue mb-0">El rol con el que trabajas se elige al iniciar sesión.</p>
       } @else {
         <div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Cargando…</p></div>
       }
@@ -66,7 +64,6 @@
       <button type="submit" class="btn btn-primary" [disabled]="!listo() || guardando()">
         <i class="bi bi-key me-1"></i>{{ guardando() ? 'Guardando…' : 'Cambiar contraseña' }}
       </button>
-      <p class="tenue mt-2 mb-0">Se guarda cifrada (BCrypt). Si la actual no coincide, no se cambia nada.</p>
     </form>
   </div>
 
