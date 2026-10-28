@@ -5,7 +5,11 @@
   margin: 0 0 1rem;
   padding: 0;
 
+  /* Bootstrap deja la leyenda flotando y solo despeja al elemento siguiente;
+     si ese es un <datalist> oculto, la primera fila queda aplastada junto a
+     la leyenda con ancho 0. Sin flotar no hace falta despejar nada. */
   legend {
+    float: none;
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.06em;
