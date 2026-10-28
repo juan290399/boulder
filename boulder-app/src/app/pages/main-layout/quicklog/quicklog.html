@@ -1,9 +1,6 @@
 <div class="page-head">
   <div>
     <h1 class="page-head__title">Quicklog</h1>
-    <p class="page-head__sub">
-      Logueo rápido que sube la aplicación móvil desde el almacén de testigos.
-    </p>
   </div>
   <div class="page-head__actions">
     <span class="en-vivo" [class.en-vivo--on]="canal() === 'conectado'"
@@ -149,7 +146,6 @@
 <div class="panel">
   <div class="panel__head">
     <h2 class="panel__title">Tablets de GeoLog</h2>
-    <span class="text-muted small">Si un sondaje no muestra quicklog, acá se ve si es que no se logueó o que el tablet no ha sincronizado.</span>
   </div>
   @if (!dispositivos().length) {
     <div class="empty-state">
