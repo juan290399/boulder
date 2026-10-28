@@ -48,5 +48,6 @@ out/
 .env
 
 # Material del curso (indicaciones y rúbricas): no es obra propia
-/integrador/*INDICACION*
-/integrador/rubrica*
+
+### Material académico del autor (no se publica) ###
+/integrador/
