@@ -1,0 +1,46 @@
+@startuml arquitectura_mvc
+!include estilo.iuml
+skinparam linetype ortho
+
+package "Vista · Angular 21" as vista {
+  rectangle "15 pantallas y formularios\ncon avisos en vivo" as pantallas
+  rectangle "25 servicios HTTP\n+ interceptor JWT" as http
+}
+package "Controlador · Spring MVC" as ctrl {
+  rectangle "28 @RestController\nBean Validation · @PreAuthorize" as rest
+  rectangle "GlobalExceptionHandler\n400 · 403 · 404 · 409" as errores
+}
+package "Servicio" as srv {
+  rectangle "Interfaces de servicio" as isrv
+  rectangle "Implementaciones\n@Transactional" as impl
+}
+package "DAO" as dao {
+  rectangle "Spring Data JPA\nJpaRepository" as jpa
+  rectangle "JdbcTemplate\nconsultas parametrizadas" as jdbc
+}
+package "Modelo" as modelo {
+  rectangle "Entidades JPA (32)" as ent
+  rectangle "DTO (34)" as dto
+}
+package "Dominio · reglas puras" as dominio {
+  rectangle "ParteTurno · Revision\nDesviacion · CodigoSondaje" as reglas
+}
+package "Seguridad" as seg {
+  rectangle "JwtAuthenticationFilter\nJwtAuthorizationFilter" as filtros
+  rectangle "CuentasActivas\nLimiteIntentosLogin" as cuentas
+}
+database "PostgreSQL 18" as db
+
+pantallas --> http
+http --> rest : REST + JSON\ncon token JWT
+filtros ..> rest : antes de cada petición
+rest --> isrv
+isrv <|.. impl
+impl --> reglas
+impl --> jpa
+impl --> jdbc
+jpa --> ent
+rest --> dto
+jpa --> db
+jdbc --> db
+@enduml
