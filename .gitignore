@@ -46,8 +46,3 @@ out/
 # Credenciales locales: nunca se versionan
 /src/main/resources/application-local.properties
 .env
-
-# Material del curso (indicaciones y rúbricas): no es obra propia
-
-### Material académico del autor (no se publica) ###
-/integrador/
