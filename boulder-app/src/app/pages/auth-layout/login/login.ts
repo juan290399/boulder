@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, EventEmitter, Output, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 
@@ -56,10 +57,14 @@ export class Login {
 
         this.router.navigate(['/auth/seleccionar-rol']);
       },
-      error: () => {
+      error: (e: HttpErrorResponse) => {
         this.loading = false;
         this.loginForm.enable();
-        this.errorMessage = 'Credenciales incorrectas o usuario inactivo';
+        // Con 429 el backend avisa que la cuenta quedó bloqueada por intentos
+        // fallidos; el mensaje genérico haría creer que basta con reintentar.
+        this.errorMessage = e.status === 429 && e.error?.mensaje
+          ? e.error.mensaje
+          : 'Credenciales incorrectas o usuario inactivo';
         this.cdr.detectChanges();
       },
     });
