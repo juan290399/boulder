@@ -117,8 +117,6 @@ muestra el ciclo: un commit `test(…) (rojo)` con la prueba que falla y el sigu
 - [Javadoc](docs/javadoc/index.html): arquitectura, MVC/DAO y SOLID explicados por paquete.
 - [Reporte de cobertura](docs/cobertura/index.html).
 - [Diagramas de arquitectura](docs/arquitectura/).
-- Entregables del curso: [`integrador/`](integrador/) (APF2 con BPMN, modelo de datos,
-  casos de uso y prototipo).
 
 ## Control de versiones
 
@@ -146,7 +144,7 @@ Wrapper viene incluido.
 
    ```bash
    createdb -U postgres boulder_db
-   psql -U postgres -d boulder_db -f integrador/APF2_entrega/anexos/B_base_datos/boulder_db_esquema_fisico.sql
+   psql -U postgres -d boulder_db -f db/boulder_db_esquema_fisico.sql
    ```
 
 2. **Credenciales.** Copiar `src/main/resources/application-local.properties.example`
@@ -182,5 +180,5 @@ src/main/java/com/boulder/boulder/
 src/test/java/   pruebas unitarias, web e integración
 boulder-app/     frontend Angular
 docs/            arquitectura, Javadoc y cobertura
-integrador/      entregables del curso
+db/              esquema físico de PostgreSQL
 ```
