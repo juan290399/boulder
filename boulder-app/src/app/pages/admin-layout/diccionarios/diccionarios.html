@@ -1,7 +1,6 @@
 <div class="page-head">
   <div>
     <h1 class="page-head__title">Diccionarios geológicos</h1>
-    <p class="page-head__sub">Los códigos que el quicklog y el logueo ofrecen en sus combos.</p>
   </div>
   <div class="page-head__actions">
     <button type="button" class="btn btn-sm btn-primary" (click)="nuevo()">
@@ -112,7 +111,6 @@
       <input id="codigo" name="codigo" class="form-control mb-1 mono text-uppercase"
              [maxlength]="forma().largoCodigo"
              [ngModel]="form().codigo" (ngModelChange)="actualizarForm({ codigo: $event })">
-      <p class="tenue mb-3">Letras y números, hasta {{ forma().largoCodigo }} caracteres. Se guarda en mayúsculas.</p>
 
       <label class="form-label" for="nombre">Nombre *</label>
       <input id="nombre" name="nombre" class="form-control mb-3" maxlength="150"
@@ -150,7 +148,6 @@
         }
       </div>
       @if (tieneEstado()) {
-        <p class="tenue mt-3 mb-0">Desactivar un código no borra lo ya registrado: solo deja de ofrecerse en las pantallas de captura.</p>
       }
     </form>
   </div>

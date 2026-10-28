@@ -1,7 +1,6 @@
 <div class="page-head">
   <div>
     <h1 class="page-head__title">Fotos de testigo</h1>
-    <p class="page-head__sub">Las cajas de cada sondaje, ordenadas por profundidad.</p>
   </div>
   <div class="page-head__actions">
     <span class="en-vivo" [class.en-vivo--on]="canal() === 'conectado'">
@@ -110,8 +109,7 @@
     <div class="metric"><div class="metric__label"><i class="bi bi-images"></i>Fotos</div><div class="metric__value">{{ resumen().total }}</div></div>
     <div class="metric"><div class="metric__label"><i class="bi bi-sun"></i>Seco / húmedo</div><div class="metric__value">{{ resumen().secas }} / {{ resumen().humedas }}</div></div>
     <div class="metric"><div class="metric__label"><i class="bi bi-arrow-down"></i>Fotografiado hasta</div><div class="metric__value">{{ resumen().hasta | number:'1.0-2' }} m</div></div>
-    <div class="metric"><div class="metric__label"><i class="bi bi-question-circle"></i>Sin tramo</div><div class="metric__value">{{ resumen().sinTramo }}</div>
-      <div class="metric__hint">no cuentan para el frente de avance</div></div>
+    <div class="metric"><div class="metric__label"><i class="bi bi-question-circle"></i>Sin tramo</div><div class="metric__value">{{ resumen().sinTramo }}</div></div>
   </div>
 }
 

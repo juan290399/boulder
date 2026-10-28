@@ -3,9 +3,6 @@
   <div class="d-flex justify-content-between align-items-start mb-4">
     <div>
       <h1 class="page-head__title mb-1">Usuarios</h1>
-      <p class="text-muted mb-0 small">
-        Altas, estado de las cuentas y asignación de roles.
-      </p>
     </div>
 
     <span *ngIf="totalPendientes > 0" class="badge text-bg-warning">
@@ -55,9 +52,6 @@
     </button>
     <button class="btn btn-secondary" (click)="limpiar()">Limpiar</button>
 
-    <p class="text-muted small mb-0 mt-2" *ngIf="!form.id">
-      Los roles se asignan después, desde el listado.
-    </p>
   </fieldset>
 
   <div *ngIf="mensaje" class="alert-inline alert-inline--ok">{{ mensaje }}</div>
@@ -161,11 +155,6 @@
                   </button>
                 </div>
 
-                <p class="text-muted small mb-0 mt-2">
-                  Es un reemplazo: lo que quede sin marcar se revoca. Los cambios
-                  no afectan a la sesión abierta del usuario hasta que vuelva a
-                  iniciar sesión.
-                </p>
               </div>
             </td>
           </tr>

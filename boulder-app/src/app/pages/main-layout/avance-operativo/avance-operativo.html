@@ -1,9 +1,6 @@
 <div class="page-head">
   <div>
     <h1 class="page-head__title">Avances operativos</h1>
-    <p class="page-head__sub">
-      Hasta dónde llegó cada etapa del flujo de testigo, sondaje por sondaje.
-    </p>
   </div>
 
   <div class="page-head__actions">
@@ -31,25 +28,21 @@
   <div class="metric">
     <div class="metric__label"><i class="bi bi-record-circle"></i>Sondajes activos</div>
     <div class="metric__value">{{ resumen().activos }}</div>
-    <div class="metric__hint">sin fecha de cierre</div>
   </div>
 
   <div class="metric">
     <div class="metric__label"><i class="bi bi-journal-text"></i>Rezago de logueo</div>
     <div class="metric__value">{{ resumen().rezagoLogueo | number:'1.0-1' }} m</div>
-    <div class="metric__hint">perforado y todavía sin describir</div>
   </div>
 
   <div class="metric">
     <div class="metric__label"><i class="bi bi-bag"></i>Muestras embolsadas</div>
     <div class="metric__value">{{ resumen().muestras | number }}</div>
-    <div class="metric__hint">acumulado de los sondajes en lista</div>
   </div>
 
   <div class="metric">
     <div class="metric__label"><i class="bi bi-pause-circle"></i>Sin movimiento</div>
     <div class="metric__value">{{ resumen().detenidos }}</div>
-    <div class="metric__hint">activos con más de 7 días sin partes</div>
   </div>
 </div>
 
