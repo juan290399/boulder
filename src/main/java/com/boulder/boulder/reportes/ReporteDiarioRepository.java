@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.boulder.boulder.reportes.ReporteDiario.FilaSondaje;
+import com.boulder.boulder.reportes.ReportePeriodo.FilaDia;
 
 /**
  * Consultas del reporte diario (patrón DAO con JdbcTemplate).
@@ -62,6 +63,24 @@ public class ReporteDiarioRepository {
                 rs.getBigDecimal("logueado"),
                 rs.getInt("cajas"),
                 rs.getInt("muestras")), dia, dia, dia, dia);
+    }
+
+    /**
+     * @param desde primer día, incluido
+     * @param hasta último día, incluido
+     * @return actividad acumulada por sondaje en el periodo, sin orden garantizado
+     */
+    public List<FilaSondaje> porSondaje(LocalDate desde, LocalDate hasta) {
+        return List.of();
+    }
+
+    /**
+     * @param desde primer día, incluido
+     * @param hasta último día, incluido
+     * @return actividad por día; los días sin partes no aparecen
+     */
+    public List<FilaDia> porDia(LocalDate desde, LocalDate hasta) {
+        return List.of();
     }
 
     /**
