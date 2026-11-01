@@ -45,6 +45,7 @@ class HumoApiIT {
             "/api/geologia/catalogos", "/api/geologia/catalogos/estructura",
             "/api/importacion/plantillas", "/api/logueo/dispositivos",
             "/api/reportes/diario?fecha=2026-09-07",
+            "/api/reportes/periodo?desde=2026-09-01&hasta=2026-09-07",
     })
     @DisplayName("Los listados del API responden 200 con JSON")
     void listados(String ruta) throws Exception {
