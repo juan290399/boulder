@@ -1,11 +1,12 @@
 package com.boulder.boulder.services;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -150,23 +151,80 @@ public class LogueoServiceImpl implements LogueoService {
     }
 
     /**
-     * Guarda un lote entero o ninguno.
+     * Guarda un lote fila por fila, cada una en su transacción.
      *
-     * <p>{@code saveAll} sobre entidades con el id ya puesto hace un UPSERT:
-     * Hibernate mira si la fila existe y actualiza o inserta. Es lo que permite
-     * que el tablet reintente una subida sin duplicar nada cuando la cobertura
-     * se corta a mitad.</p>
+     * <p>{@code saveAndFlush} sobre una entidad con el id ya puesto hace un
+     * UPSERT, así que el tablet puede reintentar sin duplicar. Una fila que la
+     * base rechaza (solapamiento, CHECK) no arrastra a las demás.</p>
      *
-     * <p>Se rechaza el lote sin id en vez de generarlo aquí: un id puesto por el
-     * servidor no es el que el tablet tiene guardado, así que la fila se
-     * duplicaría en el siguiente intento y nadie se enteraría.</p>
+     * <p>Una fila sin id se rechaza en vez de generarlo aquí: un id puesto por
+     * el servidor no es el que el tablet tiene guardado y se duplicaría en el
+     * siguiente intento.</p>
      */
     private <T extends RegistroLogueo> ResultadoSubidaDTO guardar(String dispositivo, String usuario, String versionApp,
                             String plantilla,
                             List<T> items,
                             JpaRepository<T, UUID> repositorio,
                             Function<T, UUID> idDe) {
-        return new ResultadoSubidaDTO(0, List.of());
+
+        if (items == null || items.isEmpty()) {
+            log.debug("Subida de {} sin contenido; no hay nada que hacer", plantilla);
+            return new ResultadoSubidaDTO(0, List.of());
+        }
+
+        // Bajas primero: liberan el tramo antes de que una alta lo ocupe.
+        List<Integer> orden = new ArrayList<>();
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i).getEliminadoEn() != null) {
+                orden.add(i);
+            }
+        }
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i).getEliminadoEn() == null) {
+                orden.add(i);
+            }
+        }
+
+        List<ResultadoSubidaDTO.Rechazo> rechazadas = new ArrayList<>();
+        Set<UUID> sondajes = new HashSet<>();
+        int guardadas = 0;
+        for (int i : orden) {
+            T item = items.get(i);
+            UUID id = idDe.apply(item);
+            if (id == null) {
+                rechazadas.add(new ResultadoSubidaDTO.Rechazo(i, null,
+                        "falta el id; lo genera el cliente para que la subida se pueda repetir sin duplicar"));
+                continue;
+            }
+            try {
+                transacciones.executeWithoutResult(estado -> repositorio.saveAndFlush(item));
+                guardadas++;
+                if (item.getSondajeId() != null) {
+                    sondajes.add(item.getSondajeId());
+                }
+            } catch (RuntimeException e) {
+                rechazadas.add(new ResultadoSubidaDTO.Rechazo(i, id, motivo(e)));
+            }
+        }
+        rechazadas.sort(Comparator.comparingInt(ResultadoSubidaDTO.Rechazo::indice));
+        log.info("Subida de {}: {} guardadas, {} rechazadas", plantilla, guardadas, rechazadas.size());
+
+        if (guardadas > 0) {
+            eventos.publishEvent(CambioDatos.de(recursoDe(plantilla), sondajes,
+                    dispositivo != null ? "tablet" : "web", guardadas));
+            registrarDispositivo(dispositivo, usuario, versionApp, guardadas);
+        }
+        return new ResultadoSubidaDTO(guardadas, rechazadas);
+    }
+
+    /** Causa más específica del rechazo, en una línea. */
+    private static String motivo(Throwable e) {
+        Throwable raiz = e;
+        while (raiz.getCause() != null && raiz.getCause() != raiz) {
+            raiz = raiz.getCause();
+        }
+        String m = raiz.getMessage() != null ? raiz.getMessage() : raiz.getClass().getSimpleName();
+        return m.lines().findFirst().orElse(m).strip();
     }
 
     /**
