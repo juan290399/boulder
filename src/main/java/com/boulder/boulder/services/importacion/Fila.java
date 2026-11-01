@@ -280,9 +280,18 @@ public class Fila {
         UUID id = catalogos.sondaje(codigo);
         if (id == null) {
             error(columna + ": el sondaje «" + codigo + "» no está en el catálogo"
-                    + " (si el lote no es de un sondaje, poné " + Catalogos.SIN_SONDAJE + ")");
+                    + " (si el lote no es de un sondaje, pon " + Catalogos.SIN_SONDAJE + ")");
         }
         return id;
+    }
+
+    /**
+     * Código con el que se guarda el sondaje: el del catálogo si resolvió, o el
+     * texto de la celda (por ejemplo {@code VARIOS}).
+     */
+    public String codigoSondaje(UUID sondajeId, String columna) {
+        String codigo = catalogos.codigoSondaje(sondajeId);
+        return codigo != null ? codigo : texto(columna, 30);
     }
 
     public UUID maquina(String columna) {
