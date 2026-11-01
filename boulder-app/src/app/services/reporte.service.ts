@@ -28,12 +28,33 @@ export interface ReporteDiario {
   totalMuestras: number;
 }
 
-/** Reporte diario consolidado (`/api/reportes/diario`, pantalla P11). */
+export interface FilaDiaReporte {
+  fecha: string;
+  perforado: number;
+  logueado: number;
+  cajas: number;
+  muestras: number;
+}
+
+/** Espejo del record `ReportePeriodo` del backend. */
+export interface ReportePeriodo {
+  desde: string;
+  hasta: string;
+  sondajes: FilaSondajeReporte[];
+  dias: FilaDiaReporte[];
+  totalPerforado: number;
+  totalLogueado: number;
+  totalCajas: number;
+  totalMuestras: number;
+}
+
+/** Reportes consolidados: diario (`/api/reportes/diario`, P11) y de periodo (`/api/reportes/periodo`). */
 @Injectable({ providedIn: 'root' })
 export class ReporteService {
 
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiBase}/reportes/diario`;
+  private readonly periodoUrl = `${environment.apiBase}/reportes/periodo`;
 
   diario(fecha: string): Observable<ReporteDiario> {
     return this.http.get<ReporteDiario>(this.baseUrl, { params: new HttpParams().set('fecha', fecha) });
@@ -48,5 +69,17 @@ export class ReporteService {
       params: new HttpParams().set('fecha', fecha),
       responseType: 'blob',
     });
+  }
+
+  periodo(desde: string, hasta: string): Observable<ReportePeriodo> {
+    return this.http.get<ReportePeriodo>(this.periodoUrl, { params: this.rango(desde, hasta) });
+  }
+
+  excelPeriodo(desde: string, hasta: string): Observable<Blob> {
+    return this.http.get(`${this.periodoUrl}/excel`, { params: this.rango(desde, hasta), responseType: 'blob' });
+  }
+
+  private rango(desde: string, hasta: string): HttpParams {
+    return new HttpParams().set('desde', desde).set('hasta', hasta);
   }
 }

@@ -10,6 +10,7 @@ import { Foto, FotoService, MetadatosFoto, leerNombreFoto } from '../../../servi
 import { SondajeService } from '../../../services/sondaje.service';
 import { EventosService } from '../../../services/eventos.service';
 import { Sondaje } from '../../../models/operacional';
+import { AuthService } from '../../../services/auth.service';
 
 /** Un archivo elegido para subir, con sus datos editables. */
 interface PorSubir {
@@ -47,6 +48,7 @@ interface PorSubir {
 export class Fotos implements OnInit {
 
   private readonly fotoService = inject(FotoService);
+  readonly puedeRegistrar = inject(AuthService).puedeRegistrar();
   private readonly sondajeService = inject(SondajeService);
   private readonly eventos = inject(EventosService);
   private readonly destroyRef = inject(DestroyRef);

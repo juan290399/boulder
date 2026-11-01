@@ -2,6 +2,9 @@ package com.boulder.boulder.config;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 
@@ -11,7 +14,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 
 import jakarta.servlet.DispatcherType;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authorization.AuthorizationDecision;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -136,12 +145,9 @@ public class SecurityConfig {
                 // guard del frontend no protege nada, la puerta real es esta.
                 .requestMatchers("/api/base/**").hasRole("ADMIN")
 
-                // Antes estaba en permitAll(): cualquiera en la red podía leer y
-                // borrar partes sin token. Se cerró el 28/09/2026 tras comprobar
-                // que los dos clientes —Angular por su interceptor y GeoLog por
-                // InterceptorAutenticacion— mandan el token en toda petición.
-                // Queda pendiente afinar por rol (hoy basta estar autenticado).
-                .requestMatchers("/api/operacional/**").authenticated()
+                // Lectura con cualquier sesión; escritura según el rol (PermisosEscritura).
+                .requestMatchers("/api/operacional/**", "/api/logueo/**", "/api/importacion/**", "/api/fotos/**")
+                    .access(SecurityConfig::escrituraPorRol)
 
                 .anyRequest().authenticated()
             )
@@ -151,5 +157,17 @@ public class SecurityConfig {
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
  
         return http.build();
+    }
+
+    private static AuthorizationDecision escrituraPorRol(Supplier<? extends Authentication> autenticacion,
+                                                         RequestAuthorizationContext contexto) {
+        Authentication a = autenticacion.get();
+        if (a == null || !a.isAuthenticated() || a instanceof AnonymousAuthenticationToken) {
+            return new AuthorizationDecision(false);
+        }
+        HttpServletRequest peticion = contexto.getRequest();
+        String ruta = peticion.getRequestURI().substring(peticion.getContextPath().length());
+        Set<String> roles = a.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
+        return new AuthorizationDecision(PermisosEscritura.permite(peticion.getMethod(), ruta, roles));
     }
 }

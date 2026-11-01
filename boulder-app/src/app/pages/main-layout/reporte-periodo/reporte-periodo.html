@@ -1,0 +1,115 @@
+<div class="page-head">
+  <div>
+    <h1 class="page-head__title">Reporte de periodo</h1>
+  </div>
+  <div class="page-head__actions no-print">
+    <a class="btn btn-sm btn-outline-secondary" routerLink="/reportes">Diario</a>
+    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="semana()">7 días</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="mes()">Mes</button>
+    <input type="date" class="form-control form-control-sm fecha" [max]="hasta()"
+           aria-label="Desde" [ngModel]="desde()" (ngModelChange)="cambiarDesde($event)">
+    <input type="date" class="form-control form-control-sm fecha" [min]="desde()" [max]="hoyIso"
+           aria-label="Hasta" [ngModel]="hasta()" (ngModelChange)="cambiarHasta($event)">
+    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="exportarExcel()"
+            [disabled]="!reporte() || descargando()">
+      <i class="bi bi-file-earmark-excel me-1"></i>{{ descargando() ? 'Descargando…' : 'Excel' }}
+    </button>
+    <button type="button" class="btn btn-sm btn-primary" (click)="imprimir()" [disabled]="!reporte()">
+      <i class="bi bi-printer me-1"></i>Imprimir / PDF
+    </button>
+  </div>
+</div>
+
+@if (error(); as mensaje) {
+  <div class="alert-inline"><i class="bi bi-exclamation-triangle"></i>{{ mensaje }}</div>
+}
+
+@if (cargando()) {
+  <div class="panel"><div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Generando…</p></div></div>
+} @else if (reporte(); as r) {
+
+  <p class="solo-impresion">Reporte del {{ r.desde }} al {{ r.hasta }}</p>
+
+  <div class="metric-grid">
+    <div class="metric"><div class="metric__label"><i class="bi bi-arrow-down-circle"></i>Perforado</div>
+      <div class="metric__value">{{ r.totalPerforado | number:'1.2-2' }} m</div></div>
+    <div class="metric"><div class="metric__label"><i class="bi bi-journal-text"></i>Logueo geológico</div>
+      <div class="metric__value">{{ r.totalLogueado | number:'1.2-2' }} m</div></div>
+    <div class="metric"><div class="metric__label"><i class="bi bi-box-seam"></i>Cajas recibidas</div>
+      <div class="metric__value">{{ r.totalCajas }}</div></div>
+    <div class="metric"><div class="metric__label"><i class="bi bi-eyedropper"></i>Muestras</div>
+      <div class="metric__value">{{ r.totalMuestras }}</div></div>
+  </div>
+
+  <div class="reporte-grid">
+    <div class="panel">
+      <div class="panel__head"><h2 class="panel__title">Metros perforados por día</h2></div>
+      <div class="grafico" role="img" aria-label="Metros perforados por día">
+        @for (b of barras(); track b.fecha) {
+          <div class="grafico__col">
+            <span class="grafico__valor">{{ b.perforado > 0 && barras().length <= 31 ? (b.perforado | number:'1.0-1') : '' }}</span>
+            <div class="grafico__barra" [style.height.%]="b.alto"></div>
+            <span class="grafico__dia">{{ barras().length <= 31 ? diaCorto(b.fecha) : '' }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel__head"><h2 class="panel__title">Acumulado por sondaje</h2></div>
+      @if (!r.sondajes.length) {
+        <div class="empty-state"><i class="bi bi-calendar-x"></i><p>Sin partes registrados en el periodo.</p></div>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr><th>Sondaje</th><th class="num">Perforado (m)</th><th class="num">Logueado (m)</th>
+                <th class="num">Cajas</th><th class="num">Muestras</th></tr>
+            </thead>
+            <tbody>
+              @for (s of r.sondajes; track s.codigo) {
+                <tr>
+                  <td class="mono">{{ s.codigo }}</td>
+                  <td class="num">{{ s.perforado | number:'1.2-2' }}</td>
+                  <td class="num">{{ s.logueado | number:'1.2-2' }}</td>
+                  <td class="num">{{ s.cajas }}</td>
+                  <td class="num">{{ s.muestras }}</td>
+                </tr>
+              }
+              <tr class="total">
+                <td>Total</td>
+                <td class="num">{{ r.totalPerforado | number:'1.2-2' }}</td>
+                <td class="num">{{ r.totalLogueado | number:'1.2-2' }}</td>
+                <td class="num">{{ r.totalCajas }}</td>
+                <td class="num">{{ r.totalMuestras }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel__head"><h2 class="panel__title">Por día</h2></div>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr><th>Fecha</th><th class="num">Perforado (m)</th><th class="num">Logueado (m)</th>
+            <th class="num">Cajas</th><th class="num">Muestras</th></tr>
+        </thead>
+        <tbody>
+          @for (d of r.dias; track d.fecha) {
+            <tr>
+              <td class="mono">{{ d.fecha }}</td>
+              <td class="num">{{ d.perforado | number:'1.2-2' }}</td>
+              <td class="num">{{ d.logueado | number:'1.2-2' }}</td>
+              <td class="num">{{ d.cajas }}</td>
+              <td class="num">{{ d.muestras }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

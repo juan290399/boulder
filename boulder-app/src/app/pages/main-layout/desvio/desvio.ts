@@ -20,6 +20,7 @@ import {
   SurveyMedicion,
   TrayectoriaSondaje,
 } from '../../../models/operacional';
+import { AuthService } from '../../../services/auth.service';
 
 /** Las cuatro miradas sobre el mismo dato de desviación. */
 type Vista = 'sondaje' | 'perforista' | 'maquina' | 'trayectoria';
@@ -56,6 +57,7 @@ interface FormSeguimiento {
 export class Desvio implements OnInit {
 
   private readonly service = inject(DesviacionService);
+  readonly puedeRegistrar = inject(AuthService).puedeRegistrar();
   private readonly medicionService = inject(SurveyMedicionService);
   private readonly sondajeService = inject(SondajeService);
 

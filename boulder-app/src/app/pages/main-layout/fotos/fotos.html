@@ -26,7 +26,7 @@
         </select>
       </div>
       <span class="toolbar__spacer"></span>
-      @if (sondajeId) {
+      @if (sondajeId && puedeRegistrar) {
         <label class="btn btn-sm btn-primary mb-0 subir-btn">
           <i class="bi bi-cloud-arrow-up me-1"></i>Agregar fotos
           <input type="file" accept="image/jpeg,image/png" multiple hidden (change)="elegirArchivos($event)">
@@ -52,10 +52,6 @@
         </button>
       </div>
     </div>
-    <p class="nota">
-      Si el nombre del archivo sigue la convención <code>SONDAJE_C133-142_247.25-283.95_S.jpg</code>,
-      las cajas, el tramo y la condición se completan solos. Revisalos antes de subir.
-    </p>
     <div class="table-scroll">
       <table class="data-table">
         <thead>
@@ -156,7 +152,9 @@
           <div class="tenue">{{ a.foto.archivoOriginal }} · {{ a.foto.ancho }}×{{ a.foto.alto }} · {{ tamanio(a.foto.bytes) }} · {{ a.foto.autor ?? '' }}</div>
         </div>
         <div>
+          @if (puedeRegistrar) {
           <button type="button" class="btn btn-sm btn-outline-danger" (click)="eliminar(a.foto)"><i class="bi bi-trash me-1"></i>Quitar</button>
+          }
           <button type="button" class="btn btn-sm btn-outline-secondary ms-2" (click)="ampliada.set(null)"><i class="bi bi-x-lg"></i></button>
         </div>
       </div>

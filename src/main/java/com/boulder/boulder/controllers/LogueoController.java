@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.boulder.boulder.dto.ResultadoSubidaDTO;
 import com.boulder.boulder.entities.Alteracion;
 import com.boulder.boulder.entities.Estructural;
 import com.boulder.boulder.entities.Litologia;
@@ -94,48 +95,48 @@ public class LogueoController {
     // ------------------------------------------------------------------
 
     @PutMapping("/litologia")
-    public ResponseEntity<Void> subirLitologia(@RequestBody List<Litologia> items,
+    public ResponseEntity<ResultadoSubidaDTO> subirLitologia(@RequestBody List<Litologia> items,
             @RequestHeader(value = "X-Dispositivo", required = false) String dispositivo,
             @RequestHeader(value = "X-App-Version", required = false) String versionApp,
             Principal principal) {
-        logueoService.guardarLitologia(items, dispositivo, principal != null ? principal.getName() : null, versionApp);
-        return ResponseEntity.noContent().build();
+        return responder(logueoService.guardarLitologia(items, dispositivo, principal != null ? principal.getName() : null, versionApp));
     }
 
     @PutMapping("/alteracion")
-    public ResponseEntity<Void> subirAlteracion(@RequestBody List<Alteracion> items,
+    public ResponseEntity<ResultadoSubidaDTO> subirAlteracion(@RequestBody List<Alteracion> items,
             @RequestHeader(value = "X-Dispositivo", required = false) String dispositivo,
             @RequestHeader(value = "X-App-Version", required = false) String versionApp,
             Principal principal) {
-        logueoService.guardarAlteracion(items, dispositivo, principal != null ? principal.getName() : null, versionApp);
-        return ResponseEntity.noContent().build();
+        return responder(logueoService.guardarAlteracion(items, dispositivo, principal != null ? principal.getName() : null, versionApp));
     }
 
     @PutMapping("/mineralizacion")
-    public ResponseEntity<Void> subirMineralizacion(@RequestBody List<Mineralizacion> items,
+    public ResponseEntity<ResultadoSubidaDTO> subirMineralizacion(@RequestBody List<Mineralizacion> items,
             @RequestHeader(value = "X-Dispositivo", required = false) String dispositivo,
             @RequestHeader(value = "X-App-Version", required = false) String versionApp,
             Principal principal) {
-        logueoService.guardarMineralizacion(items, dispositivo, principal != null ? principal.getName() : null, versionApp);
-        return ResponseEntity.noContent().build();
+        return responder(logueoService.guardarMineralizacion(items, dispositivo, principal != null ? principal.getName() : null, versionApp));
     }
 
     @PutMapping("/estructural")
-    public ResponseEntity<Void> subirEstructural(@RequestBody List<Estructural> items,
+    public ResponseEntity<ResultadoSubidaDTO> subirEstructural(@RequestBody List<Estructural> items,
             @RequestHeader(value = "X-Dispositivo", required = false) String dispositivo,
             @RequestHeader(value = "X-App-Version", required = false) String versionApp,
             Principal principal) {
-        logueoService.guardarEstructural(items, dispositivo, principal != null ? principal.getName() : null, versionApp);
-        return ResponseEntity.noContent().build();
+        return responder(logueoService.guardarEstructural(items, dispositivo, principal != null ? principal.getName() : null, versionApp));
     }
 
     @PutMapping("/quicklog")
-    public ResponseEntity<Void> subirQuicklog(@RequestBody List<Quicklog> items,
+    public ResponseEntity<ResultadoSubidaDTO> subirQuicklog(@RequestBody List<Quicklog> items,
             @RequestHeader(value = "X-Dispositivo", required = false) String dispositivo,
             @RequestHeader(value = "X-App-Version", required = false) String versionApp,
             Principal principal) {
-        logueoService.guardarQuicklog(items, dispositivo, principal != null ? principal.getName() : null, versionApp);
-        return ResponseEntity.noContent().build();
+        return responder(logueoService.guardarQuicklog(items, dispositivo, principal != null ? principal.getName() : null, versionApp));
+    }
+
+    /** 204 si el lote entró completo; 422 con las filas rechazadas si no. Las demás quedan guardadas. */
+    private static ResponseEntity<ResultadoSubidaDTO> responder(ResultadoSubidaDTO r) {
+        return r.completo() ? ResponseEntity.noContent().build() : ResponseEntity.unprocessableEntity().body(r);
     }
 
     /** Tablets de GeoLog y cuándo sincronizó cada una por última vez. */

@@ -22,6 +22,7 @@ import {
 import { AvanceOperativo, AvancePerforacion, FrenteAvance } from '../../../models/operacional';
 import { PartePerforacionForm } from './parte-perforacion/parte-perforacion';
 import { ParteOperativoForm } from './parte-operativo/parte-operativo';
+import { AuthService } from '../../../services/auth.service';
 
 /** Descriptor de cada parte (perforación y los siete de testigo), para la pestaña de detalle. */
 interface TipoParte {
@@ -53,6 +54,7 @@ interface TipoParte {
 export class AvanceOperativoPage implements OnInit {
 
   private readonly frenteService = inject(FrenteAvanceService);
+  readonly puedeRegistrar = inject(AuthService).puedeRegistrar();
   private readonly eventos = inject(EventosService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly perforacion = inject(AvancePerforacionService);

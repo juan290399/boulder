@@ -1,21 +1,23 @@
 package com.boulder.boulder.services;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionOperations;
 
+import com.boulder.boulder.dto.ResultadoSubidaDTO;
 import com.boulder.boulder.entities.Alteracion;
 import com.boulder.boulder.entities.Estructural;
 import com.boulder.boulder.entities.Litologia;
@@ -50,26 +52,28 @@ public class LogueoServiceImpl implements LogueoService {
 
     private static final Logger log = LoggerFactory.getLogger(LogueoServiceImpl.class);
 
-    @Autowired
-    private LitologiaRepository litologiaRepository;
+    private final LitologiaRepository litologiaRepository;
+    private final AlteracionRepository alteracionRepository;
+    private final MineralizacionRepository mineralizacionRepository;
+    private final EstructuralRepository estructuralRepository;
+    private final QuicklogRepository quicklogRepository;
+    private final ApplicationEventPublisher eventos;
+    private final JdbcTemplate jdbc;
+    private final TransactionOperations transacciones;
 
-    @Autowired
-    private AlteracionRepository alteracionRepository;
-
-    @Autowired
-    private MineralizacionRepository mineralizacionRepository;
-
-    @Autowired
-    private EstructuralRepository estructuralRepository;
-
-    @Autowired
-    private QuicklogRepository quicklogRepository;
-
-    @Autowired
-    private ApplicationEventPublisher eventos;
-
-    @Autowired
-    private JdbcTemplate jdbc;
+    public LogueoServiceImpl(LitologiaRepository litologiaRepository, AlteracionRepository alteracionRepository,
+                             MineralizacionRepository mineralizacionRepository, EstructuralRepository estructuralRepository,
+                             QuicklogRepository quicklogRepository, ApplicationEventPublisher eventos, JdbcTemplate jdbc,
+                             TransactionOperations transacciones) {
+        this.litologiaRepository = litologiaRepository;
+        this.alteracionRepository = alteracionRepository;
+        this.mineralizacionRepository = mineralizacionRepository;
+        this.estructuralRepository = estructuralRepository;
+        this.quicklogRepository = quicklogRepository;
+        this.eventos = eventos;
+        this.jdbc = jdbc;
+        this.transacciones = transacciones;
+    }
 
     // ------------------------------------------------------------------
     // Bajada
@@ -115,32 +119,27 @@ public class LogueoServiceImpl implements LogueoService {
     // ------------------------------------------------------------------
 
     @Override
-    @Transactional
-    public int guardarLitologia(List<Litologia> items, String dispositivo, String usuario, String versionApp) {
+    public ResultadoSubidaDTO guardarLitologia(List<Litologia> items, String dispositivo, String usuario, String versionApp) {
         return guardar(dispositivo, usuario, versionApp, "litología", items, litologiaRepository, Litologia::getId);
     }
 
     @Override
-    @Transactional
-    public int guardarAlteracion(List<Alteracion> items, String dispositivo, String usuario, String versionApp) {
+    public ResultadoSubidaDTO guardarAlteracion(List<Alteracion> items, String dispositivo, String usuario, String versionApp) {
         return guardar(dispositivo, usuario, versionApp, "alteración", items, alteracionRepository, Alteracion::getId);
     }
 
     @Override
-    @Transactional
-    public int guardarMineralizacion(List<Mineralizacion> items, String dispositivo, String usuario, String versionApp) {
+    public ResultadoSubidaDTO guardarMineralizacion(List<Mineralizacion> items, String dispositivo, String usuario, String versionApp) {
         return guardar(dispositivo, usuario, versionApp, "mineralización", items, mineralizacionRepository, Mineralizacion::getId);
     }
 
     @Override
-    @Transactional
-    public int guardarEstructural(List<Estructural> items, String dispositivo, String usuario, String versionApp) {
+    public ResultadoSubidaDTO guardarEstructural(List<Estructural> items, String dispositivo, String usuario, String versionApp) {
         return guardar(dispositivo, usuario, versionApp, "estructural", items, estructuralRepository, Estructural::getId);
     }
 
     @Override
-    @Transactional
-    public int guardarQuicklog(List<Quicklog> items, String dispositivo, String usuario, String versionApp) {
+    public ResultadoSubidaDTO guardarQuicklog(List<Quicklog> items, String dispositivo, String usuario, String versionApp) {
         return guardar(dispositivo, usuario, versionApp, "quicklog", items, quicklogRepository, Quicklog::getId);
     }
 
@@ -152,18 +151,17 @@ public class LogueoServiceImpl implements LogueoService {
     }
 
     /**
-     * Guarda un lote entero o ninguno.
+     * Guarda un lote fila por fila, cada una en su transacción.
      *
-     * <p>{@code saveAll} sobre entidades con el id ya puesto hace un UPSERT:
-     * Hibernate mira si la fila existe y actualiza o inserta. Es lo que permite
-     * que el tablet reintente una subida sin duplicar nada cuando la cobertura
-     * se corta a mitad.</p>
+     * <p>{@code saveAndFlush} sobre una entidad con el id ya puesto hace un
+     * UPSERT, así que el tablet puede reintentar sin duplicar. Una fila que la
+     * base rechaza (solapamiento, CHECK) no arrastra a las demás.</p>
      *
-     * <p>Se rechaza el lote sin id en vez de generarlo aquí: un id puesto por el
-     * servidor no es el que el tablet tiene guardado, así que la fila se
-     * duplicaría en el siguiente intento y nadie se enteraría.</p>
+     * <p>Una fila sin id se rechaza en vez de generarlo aquí: un id puesto por
+     * el servidor no es el que el tablet tiene guardado y se duplicaría en el
+     * siguiente intento.</p>
      */
-    private <T extends RegistroLogueo> int guardar(String dispositivo, String usuario, String versionApp,
+    private <T extends RegistroLogueo> ResultadoSubidaDTO guardar(String dispositivo, String usuario, String versionApp,
                             String plantilla,
                             List<T> items,
                             JpaRepository<T, UUID> repositorio,
@@ -171,37 +169,62 @@ public class LogueoServiceImpl implements LogueoService {
 
         if (items == null || items.isEmpty()) {
             log.debug("Subida de {} sin contenido; no hay nada que hacer", plantilla);
-            return 0;
+            return new ResultadoSubidaDTO(0, List.of());
         }
 
-        for (T item : items) {
-            if (idDe.apply(item) == null) {
-                log.warn("Subida de {} rechazada: llega una fila sin identificador", plantilla);
-                throw new IllegalArgumentException(
-                    "Cada registro de " + plantilla + " debe traer su propio id; "
-                  + "lo genera el cliente para que la subida se pueda repetir sin duplicar.");
+        // Bajas primero: liberan el tramo antes de que una alta lo ocupe.
+        List<Integer> orden = new ArrayList<>();
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i).getEliminadoEn() != null) {
+                orden.add(i);
+            }
+        }
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i).getEliminadoEn() == null) {
+                orden.add(i);
             }
         }
 
-        // Primero las bajas y con flush. Hibernate ejecuta los INSERT antes que
-        // los UPDATE al vaciar la sesión, así que si el tablet borró un tramo y
-        // logueó otro en el mismo metro dentro de la misma subida, el nuevo
-        // chocaría con la restricción de no solapamiento mientras el viejo
-        // todavía figura como vigente.
-        List<T> bajas = items.stream().filter(i -> i.getEliminadoEn() != null).toList();
-        List<T> vigentes = items.stream().filter(i -> i.getEliminadoEn() == null).toList();
-        if (!bajas.isEmpty()) {
-            repositorio.saveAllAndFlush(bajas);
+        List<ResultadoSubidaDTO.Rechazo> rechazadas = new ArrayList<>();
+        Set<UUID> sondajes = new HashSet<>();
+        int guardadas = 0;
+        for (int i : orden) {
+            T item = items.get(i);
+            UUID id = idDe.apply(item);
+            if (id == null) {
+                rechazadas.add(new ResultadoSubidaDTO.Rechazo(i, null,
+                        "falta el id; lo genera el cliente para que la subida se pueda repetir sin duplicar"));
+                continue;
+            }
+            try {
+                transacciones.executeWithoutResult(estado -> repositorio.saveAndFlush(item));
+                guardadas++;
+                if (item.getSondajeId() != null) {
+                    sondajes.add(item.getSondajeId());
+                }
+            } catch (RuntimeException e) {
+                rechazadas.add(new ResultadoSubidaDTO.Rechazo(i, id, motivo(e)));
+            }
         }
-        repositorio.saveAll(vigentes);
-        log.info("Guardadas {} filas de {} ({} bajas)", items.size(), plantilla, bajas.size());
+        rechazadas.sort(Comparator.comparingInt(ResultadoSubidaDTO.Rechazo::indice));
+        log.info("Subida de {}: {} guardadas, {} rechazadas", plantilla, guardadas, rechazadas.size());
 
-        Set<UUID> sondajes = items.stream().map(RegistroLogueo::getSondajeId)
-                .filter(Objects::nonNull).collect(Collectors.toSet());
-        eventos.publishEvent(CambioDatos.de(recursoDe(plantilla), sondajes,
-                dispositivo != null ? "tablet" : "web", items.size()));
-        registrarDispositivo(dispositivo, usuario, versionApp, items.size());
-        return items.size();
+        if (guardadas > 0) {
+            eventos.publishEvent(CambioDatos.de(recursoDe(plantilla), sondajes,
+                    dispositivo != null ? "tablet" : "web", guardadas));
+            registrarDispositivo(dispositivo, usuario, versionApp, guardadas);
+        }
+        return new ResultadoSubidaDTO(guardadas, rechazadas);
+    }
+
+    /** Causa más específica del rechazo, en una línea. */
+    private static String motivo(Throwable e) {
+        Throwable raiz = e;
+        while (raiz.getCause() != null && raiz.getCause() != raiz) {
+            raiz = raiz.getCause();
+        }
+        String m = raiz.getMessage() != null ? raiz.getMessage() : raiz.getClass().getSimpleName();
+        return m.lines().findFirst().orElse(m).strip();
     }
 
     /**
