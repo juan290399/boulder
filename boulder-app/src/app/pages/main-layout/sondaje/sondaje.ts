@@ -15,6 +15,7 @@ import {
   Plataforma,
   Maquina,
 } from '../../../models/operacional';
+import { AuthService } from '../../../services/auth.service';
 
 const FORM_VACIO = (): SondajeModel => ({
   codigo: '',
@@ -43,6 +44,7 @@ const FORM_VACIO = (): SondajeModel => ({
 })
 export class Sondaje implements OnInit {
   private readonly service = inject(SondajeService);
+  readonly puedeEditar = inject(AuthService).puedeMantenerMaestros();
   private readonly proyectoService = inject(ProyectoService);
   private readonly collarService = inject(CollarService);
   private readonly plataformaService = inject(PlataformaService);

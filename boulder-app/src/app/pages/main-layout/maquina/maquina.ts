@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { MaquinaService } from '../../../services/maquina.service';
 import { Maquina as MaquinaModel } from '../../../models/operacional';
+import { AuthService } from '../../../services/auth.service';
 
 const FORM_VACIO = (): MaquinaModel => ({
   codigo: '',
@@ -23,6 +24,7 @@ const FORM_VACIO = (): MaquinaModel => ({
 })
 export class Maquina implements OnInit {
   private readonly service = inject(MaquinaService);
+  readonly puedeEditar = inject(AuthService).puedeMantenerMaestros();
   private readonly cdr = inject(ChangeDetectorRef);
 
   maquinas: MaquinaModel[] = [];
