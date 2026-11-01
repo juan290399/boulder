@@ -2,6 +2,7 @@
   <div class="panel panel__body">
     <h1 class="page-head__title mb-4">Máquinas de Perforación</h1>
 
+    <ng-container *ngIf="puedeEditar">
     <div class="row g-2 mb-3">
       <div class="col-md-2">
         <input class="form-control" placeholder="Código" [(ngModel)]="form.codigo" />
@@ -41,6 +42,7 @@
       </button>
       <button class="btn btn-secondary" (click)="limpiar()">Limpiar</button>
     </div>
+    </ng-container>
 
     <div *ngIf="mensaje" class="alert-inline alert-inline--info">{{ mensaje }}</div>
 
@@ -75,7 +77,7 @@
             <p class="mb-1"><b>Marca:</b> {{ m.marca || '—' }}</p>
             <p class="mb-2"><b>Alcance:</b> PQ {{ m.alcancePq || '—' }} / HQ {{ m.alcanceHq || '—' }} / NQ {{ m.alcanceNq || '—' }}</p>
             <span class="badge bg-secondary">{{ m.estado }}</span>
-            <button class="btn btn-sm btn-outline-primary mt-3 w-100" (click)="editar(m)">Editar</button>
+            <button *ngIf="puedeEditar" class="btn btn-sm btn-outline-primary mt-3 w-100" (click)="editar(m)">Editar</button>
           </div>
         </div>
       </div>

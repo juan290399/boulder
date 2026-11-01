@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { RouterLink } from '@angular/router';
 
 import { ReporteDiario, ReporteService } from '../../../services/reporte.service';
 
@@ -15,7 +16,7 @@ import { ReporteDiario, ReporteService } from '../../../services/reporte.service
 @Component({
   selector: 'app-reporte-diario',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './reporte-diario.html',
   styleUrl: './reporte-diario.scss',
 })

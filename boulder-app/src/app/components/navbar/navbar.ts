@@ -58,6 +58,7 @@ export class Navbar {
       items: [
         { etiqueta: 'Cargar datos', ruta: '/importar', icono: 'bi-upload' },
         { etiqueta: 'Reporte diario', ruta: '/reportes', icono: 'bi-file-earmark-bar-graph' },
+        { etiqueta: 'Reporte de periodo', ruta: '/reportes/periodo', icono: 'bi-calendar-range' },
       ],
     },
     {

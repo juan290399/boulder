@@ -77,6 +77,16 @@ export class AuthService {
     return this.getRolesFromToken().includes(seleccionado) ? seleccionado : null;
   }
 
+  /** Registra y corrige partes, logueo, cargas y fotos (PermisosEscritura del backend). */
+  puedeRegistrar(): boolean {
+    return ['ADMIN', 'GEOLOGO', 'ASISTENTE_GEOLOGIA'].some(r => this.hasRole(r));
+  }
+
+  /** Mantiene los datos maestros de la campaña y borra partes. */
+  puedeMantenerMaestros(): boolean {
+    return ['ADMIN', 'GEOLOGO'].some(r => this.hasRole(r));
+  }
+
   /** El JWT incluye este rol, con independencia del que esté seleccionado. */
   hasRole(codigo: string): boolean {
     return this.getRolesFromToken().includes(codigo);
