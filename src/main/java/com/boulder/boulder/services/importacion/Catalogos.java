@@ -52,6 +52,11 @@ public class Catalogos {
         return buscar("operacional.prf_sondaje", "codigo", codigo);
     }
 
+    /** Código del catálogo de un sondaje ya resuelto. */
+    public String codigoSondaje(UUID id) {
+        return null;
+    }
+
     public UUID maquina(String codigo) {
         return buscar("operacional.prf_maquina", "codigo", codigo);
     }
