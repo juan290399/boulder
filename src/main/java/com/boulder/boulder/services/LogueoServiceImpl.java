@@ -9,13 +9,14 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionOperations;
 
+import com.boulder.boulder.dto.ResultadoSubidaDTO;
 import com.boulder.boulder.entities.Alteracion;
 import com.boulder.boulder.entities.Estructural;
 import com.boulder.boulder.entities.Litologia;
@@ -50,26 +51,28 @@ public class LogueoServiceImpl implements LogueoService {
 
     private static final Logger log = LoggerFactory.getLogger(LogueoServiceImpl.class);
 
-    @Autowired
-    private LitologiaRepository litologiaRepository;
+    private final LitologiaRepository litologiaRepository;
+    private final AlteracionRepository alteracionRepository;
+    private final MineralizacionRepository mineralizacionRepository;
+    private final EstructuralRepository estructuralRepository;
+    private final QuicklogRepository quicklogRepository;
+    private final ApplicationEventPublisher eventos;
+    private final JdbcTemplate jdbc;
+    private final TransactionOperations transacciones;
 
-    @Autowired
-    private AlteracionRepository alteracionRepository;
-
-    @Autowired
-    private MineralizacionRepository mineralizacionRepository;
-
-    @Autowired
-    private EstructuralRepository estructuralRepository;
-
-    @Autowired
-    private QuicklogRepository quicklogRepository;
-
-    @Autowired
-    private ApplicationEventPublisher eventos;
-
-    @Autowired
-    private JdbcTemplate jdbc;
+    public LogueoServiceImpl(LitologiaRepository litologiaRepository, AlteracionRepository alteracionRepository,
+                             MineralizacionRepository mineralizacionRepository, EstructuralRepository estructuralRepository,
+                             QuicklogRepository quicklogRepository, ApplicationEventPublisher eventos, JdbcTemplate jdbc,
+                             TransactionOperations transacciones) {
+        this.litologiaRepository = litologiaRepository;
+        this.alteracionRepository = alteracionRepository;
+        this.mineralizacionRepository = mineralizacionRepository;
+        this.estructuralRepository = estructuralRepository;
+        this.quicklogRepository = quicklogRepository;
+        this.eventos = eventos;
+        this.jdbc = jdbc;
+        this.transacciones = transacciones;
+    }
 
     // ------------------------------------------------------------------
     // Bajada
@@ -115,32 +118,27 @@ public class LogueoServiceImpl implements LogueoService {
     // ------------------------------------------------------------------
 
     @Override
-    @Transactional
-    public int guardarLitologia(List<Litologia> items, String dispositivo, String usuario, String versionApp) {
+    public ResultadoSubidaDTO guardarLitologia(List<Litologia> items, String dispositivo, String usuario, String versionApp) {
         return guardar(dispositivo, usuario, versionApp, "litología", items, litologiaRepository, Litologia::getId);
     }
 
     @Override
-    @Transactional
-    public int guardarAlteracion(List<Alteracion> items, String dispositivo, String usuario, String versionApp) {
+    public ResultadoSubidaDTO guardarAlteracion(List<Alteracion> items, String dispositivo, String usuario, String versionApp) {
         return guardar(dispositivo, usuario, versionApp, "alteración", items, alteracionRepository, Alteracion::getId);
     }
 
     @Override
-    @Transactional
-    public int guardarMineralizacion(List<Mineralizacion> items, String dispositivo, String usuario, String versionApp) {
+    public ResultadoSubidaDTO guardarMineralizacion(List<Mineralizacion> items, String dispositivo, String usuario, String versionApp) {
         return guardar(dispositivo, usuario, versionApp, "mineralización", items, mineralizacionRepository, Mineralizacion::getId);
     }
 
     @Override
-    @Transactional
-    public int guardarEstructural(List<Estructural> items, String dispositivo, String usuario, String versionApp) {
+    public ResultadoSubidaDTO guardarEstructural(List<Estructural> items, String dispositivo, String usuario, String versionApp) {
         return guardar(dispositivo, usuario, versionApp, "estructural", items, estructuralRepository, Estructural::getId);
     }
 
     @Override
-    @Transactional
-    public int guardarQuicklog(List<Quicklog> items, String dispositivo, String usuario, String versionApp) {
+    public ResultadoSubidaDTO guardarQuicklog(List<Quicklog> items, String dispositivo, String usuario, String versionApp) {
         return guardar(dispositivo, usuario, versionApp, "quicklog", items, quicklogRepository, Quicklog::getId);
     }
 
@@ -163,45 +161,12 @@ public class LogueoServiceImpl implements LogueoService {
      * servidor no es el que el tablet tiene guardado, así que la fila se
      * duplicaría en el siguiente intento y nadie se enteraría.</p>
      */
-    private <T extends RegistroLogueo> int guardar(String dispositivo, String usuario, String versionApp,
+    private <T extends RegistroLogueo> ResultadoSubidaDTO guardar(String dispositivo, String usuario, String versionApp,
                             String plantilla,
                             List<T> items,
                             JpaRepository<T, UUID> repositorio,
                             Function<T, UUID> idDe) {
-
-        if (items == null || items.isEmpty()) {
-            log.debug("Subida de {} sin contenido; no hay nada que hacer", plantilla);
-            return 0;
-        }
-
-        for (T item : items) {
-            if (idDe.apply(item) == null) {
-                log.warn("Subida de {} rechazada: llega una fila sin identificador", plantilla);
-                throw new IllegalArgumentException(
-                    "Cada registro de " + plantilla + " debe traer su propio id; "
-                  + "lo genera el cliente para que la subida se pueda repetir sin duplicar.");
-            }
-        }
-
-        // Primero las bajas y con flush. Hibernate ejecuta los INSERT antes que
-        // los UPDATE al vaciar la sesión, así que si el tablet borró un tramo y
-        // logueó otro en el mismo metro dentro de la misma subida, el nuevo
-        // chocaría con la restricción de no solapamiento mientras el viejo
-        // todavía figura como vigente.
-        List<T> bajas = items.stream().filter(i -> i.getEliminadoEn() != null).toList();
-        List<T> vigentes = items.stream().filter(i -> i.getEliminadoEn() == null).toList();
-        if (!bajas.isEmpty()) {
-            repositorio.saveAllAndFlush(bajas);
-        }
-        repositorio.saveAll(vigentes);
-        log.info("Guardadas {} filas de {} ({} bajas)", items.size(), plantilla, bajas.size());
-
-        Set<UUID> sondajes = items.stream().map(RegistroLogueo::getSondajeId)
-                .filter(Objects::nonNull).collect(Collectors.toSet());
-        eventos.publishEvent(CambioDatos.de(recursoDe(plantilla), sondajes,
-                dispositivo != null ? "tablet" : "web", items.size()));
-        registrarDispositivo(dispositivo, usuario, versionApp, items.size());
-        return items.size();
+        return new ResultadoSubidaDTO(0, List.of());
     }
 
     /**
