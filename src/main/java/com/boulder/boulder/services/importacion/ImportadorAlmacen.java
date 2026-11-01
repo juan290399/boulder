@@ -98,7 +98,7 @@ public class ImportadorAlmacen extends ImportadorBase {
     /** Cabecera común a las seis hojas: sondaje, fecha y turno. */
     private UUID cabecera(Fila f, AvanceOperativo e) {
         UUID sondajeId = f.sondajeOVarios("sondaje_codigo");
-        e.setSondajeCodigo(f.texto("sondaje_codigo", 30));
+        e.setSondajeCodigo(f.codigoSondaje(sondajeId, "sondaje_codigo"));
         e.setFecha(f.fechaReq("fecha"));
         e.setTurno(f.opcion("turno", false, "dia", "noche"));
         e.setObservaciones(f.texto("observaciones"));

@@ -3,6 +3,7 @@ package com.boulder.boulder.services;
 import java.util.List;
 import java.util.UUID;
 
+import com.boulder.boulder.dto.ResultadoSubidaDTO;
 import com.boulder.boulder.entities.Alteracion;
 import com.boulder.boulder.entities.Estructural;
 import com.boulder.boulder.entities.Litologia;
@@ -38,15 +39,15 @@ public interface LogueoService {
 
     List<Quicklog> listarQuicklog(UUID sondajeId, boolean incluirEliminados);
 
-    int guardarLitologia(List<Litologia> items, String dispositivo, String usuario, String versionApp);
+    ResultadoSubidaDTO guardarLitologia(List<Litologia> items, String dispositivo, String usuario, String versionApp);
 
-    int guardarAlteracion(List<Alteracion> items, String dispositivo, String usuario, String versionApp);
+    ResultadoSubidaDTO guardarAlteracion(List<Alteracion> items, String dispositivo, String usuario, String versionApp);
 
-    int guardarMineralizacion(List<Mineralizacion> items, String dispositivo, String usuario, String versionApp);
+    ResultadoSubidaDTO guardarMineralizacion(List<Mineralizacion> items, String dispositivo, String usuario, String versionApp);
 
-    int guardarEstructural(List<Estructural> items, String dispositivo, String usuario, String versionApp);
+    ResultadoSubidaDTO guardarEstructural(List<Estructural> items, String dispositivo, String usuario, String versionApp);
 
-    int guardarQuicklog(List<Quicklog> items, String dispositivo, String usuario, String versionApp);
+    ResultadoSubidaDTO guardarQuicklog(List<Quicklog> items, String dispositivo, String usuario, String versionApp);
 
     /** Última sincronización de cada tablet, la más reciente primero. */
     List<java.util.Map<String, Object>> dispositivos();

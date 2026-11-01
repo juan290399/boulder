@@ -137,4 +137,23 @@ class ImportacionIT {
         assertThat(segunda.getTotalAceptadas()).as(resumen(segunda)).isZero();
         assertThat(segunda.getTotalOmitidas()).as(resumen(segunda)).isEqualTo(1);
     }
+
+    @ParameterizedTest(name = "«{0}» se reconoce como DDH-VERO-S-035-26")
+    @CsvSource({"VERO S 35_26", "Sondaje-vero-s-35-26", "ddh-vero-s035-26"})
+    @DisplayName("Un código de sondaje mal escrito pero inequívoco se normaliza")
+    void sondajeNormalizado(String escrito) throws Exception {
+        ResultadoImportacionDTO r = importar("quicklog", quicklogCon(java.util.Map.of("sondaje_codigo", escrito)), false);
+
+        assertThat(r.getTotalRechazadas()).as(resumen(r)).isZero();
+        assertThat(r.getTotalOmitidas()).as("es la fila de ejemplo, ya cargada").isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("Un código de sondaje ambiguo se rechaza, no se adivina")
+    void sondajeAmbiguo() throws Exception {
+        ResultadoImportacionDTO r = importar("quicklog", quicklogCon(java.util.Map.of("sondaje_codigo", "DDH-35")), false);
+
+        assertThat(r.getTotalRechazadas()).as(resumen(r)).isEqualTo(1);
+        assertThat(r.getHojas().get(0).getErrores().get(0).getMotivo()).contains("DDH-35");
+    }
 }
