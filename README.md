@@ -39,6 +39,10 @@ El alcance comprometido en el APF2 está implementado: 15 requisitos funcionales
 | RF14 | Cargar datos desde plantillas Excel | CU21 | P10 |
 | RF15 | Generar reporte diario consolidado (Excel y PDF) | CU22 | P11 |
 
+Además: reporte de periodo (por sondaje y por día, hasta 92 días, Excel y PDF) y
+subida de logueo desde GeoLog fila por fila (204 si entra completa; 422 con las
+filas rechazadas, las demás quedan guardadas).
+
 ## Arquitectura
 
 Aplicación en capas con MVC del lado del servidor y acceso a datos por DAO. La
@@ -77,8 +81,10 @@ El detalle por paquete está en el Javadoc.
   Guava); responde 429.
 - Bitácora de seguridad aparte (`logs/seguridad.log`, Logback, 90 días), sin
   contraseñas y con los datos del cliente saneados contra inyección de líneas.
-- Una sola política CORS; las escrituras sensibles exigen rol ADMIN (`@PreAuthorize`);
-  el usuario de una operación sale del token, nunca del cuerpo.
+- Escritura por rol en operacional, logueo, importación y fotos (`PermisosEscritura`):
+  `ASISTENTE_GEOLOGIA` registra y corrige; `GEOLOGO` además borra partes y mantiene
+  datos maestros; `VISITANTE` solo lee; `ADMIN` todo. Administración solo `ADMIN`.
+- Una sola política CORS; el usuario de una operación sale del token, nunca del cuerpo.
 - Excel exportado sin fórmulas (texto siempre como texto); nombres de archivo de las
   fotos saneados con Commons IO; nombres de tabla contra una lista blanca.
 
@@ -87,8 +93,8 @@ El detalle por paquete está en el Javadoc.
 | Librería | Dónde y para qué |
 |---|---|
 | Google Guava | Caché de intentos fallidos con expiración (`LimiteIntentosLogin`), caché de cuentas activas (`CuentasActivas`), estructura de catálogos memorizada, colecciones inmutables, `Preconditions` |
-| Apache POI | Importador de plantillas `.xlsx` y exportación del reporte diario a Excel |
-| Apache Commons Lang | Normalización de códigos de sondaje y textos (`StringUtils`) |
+| Apache POI | Importador de plantillas `.xlsx` y exportación de los reportes diario y de periodo a Excel |
+| Apache Commons Lang | Normalización de códigos de sondaje en el importador (`CodigoSondaje`) y textos (`StringUtils`) |
 | Apache Commons IO | Nombre de archivo seguro de las fotos (`FilenameUtils`) |
 | Logback | Bitácora general y bitácora de seguridad separada |
 
@@ -175,7 +181,7 @@ src/main/java/com/boulder/boulder/
   repositories/  DAO
   entities/ dto/ modelo
   dominio/       reglas puras
-  reportes/      reporte diario (consulta, armado, Excel, API)
+  reportes/      reportes diario y de periodo (consulta, armado, Excel, API)
   fotos/ eventos/
 src/test/java/   pruebas unitarias, web e integración
 boulder-app/     frontend Angular
