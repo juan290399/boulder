@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.ErrorResponse;
@@ -98,6 +99,17 @@ public class GlobalExceptionHandler {
      * deja que la cadena de filtros la traduzca al 403 que corresponde.
      * </p>
      */
+    /**
+     * Cuerpo que no se puede leer (JSON roto, tipo equivocado) -> 400. El
+     * mensaje del parser nombra clases internas, así que no se devuelve.
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleNoLegible(HttpMessageNotReadableException ex, WebRequest request) {
+        log.warn("Cuerpo ilegible: {}", ex.getMostSpecificCause().getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(body(HttpStatus.BAD_REQUEST, "El cuerpo de la petición no es un JSON válido", request));
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public void handleAccessDenied(AccessDeniedException ex) throws AccessDeniedException {
         throw ex;
