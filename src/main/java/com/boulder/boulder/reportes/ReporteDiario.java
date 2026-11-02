@@ -34,7 +34,7 @@ public record ReporteDiario(LocalDate fecha, List<FilaSondaje> sondajes, List<Pu
 
     /** Metros perforados en la campaña hasta la fecha del reporte. */
     public BigDecimal totalCampania() {
-        return BigDecimal.ZERO;
+        return campania.stream().map(FilaCampania::avance).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     /** Actividad de un sondaje en el día. */
@@ -73,6 +73,7 @@ public record ReporteDiario(LocalDate fecha, List<FilaSondaje> sondajes, List<Pu
                 ordenadas.stream().map(FilaSondaje::logueado).reduce(BigDecimal.ZERO, BigDecimal::add),
                 ordenadas.stream().mapToInt(FilaSondaje::cajas).sum(),
                 ordenadas.stream().mapToInt(FilaSondaje::muestras).sum(),
-                List.of());
+                campania.stream().sorted(Comparator.comparing(FilaCampania::codigo))
+                        .collect(ImmutableList.toImmutableList()));
     }
 }

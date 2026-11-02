@@ -12,6 +12,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import com.boulder.boulder.reportes.ReporteDiario.FilaCampania;
 import com.boulder.boulder.reportes.ReporteDiario.FilaSondaje;
 
 /**
@@ -26,6 +27,8 @@ import com.boulder.boulder.reportes.ReporteDiario.FilaSondaje;
 public final class ReporteDiarioExcel {
 
     private static final String[] CABECERA = {"Sondaje", "Perforado (m)", "Logueado (m)", "Cajas", "Muestras"};
+    private static final String[] CAB_CAMPANIA = {"Sondaje", "Máquina", "Inicio", "Fin", "Días", "Avance total (m)",
+            "Estado"};
 
     private ReporteDiarioExcel() {
     }
@@ -69,8 +72,45 @@ public final class ReporteDiarioExcel {
             for (int i = 0; i < CABECERA.length; i++) {
                 hoja.autoSizeColumn(i);
             }
+
+            campania(libro, r, negrita, metros);
             libro.write(salida);
             return salida.toByteArray();
+        }
+    }
+
+    /** Hoja con el resumen de la campaña hasta la fecha del reporte. */
+    private static void campania(XSSFWorkbook libro, ReporteDiario r, CellStyle negrita, CellStyle metros) {
+        Sheet hoja = libro.createSheet("Campaña");
+        CellStyle fecha = libro.createCellStyle();
+        fecha.setDataFormat(libro.createDataFormat().getFormat("yyyy-mm-dd"));
+        texto(hoja.createRow(0), 0, "Perforación de la campaña al " + r.fecha(), negrita);
+        Row cab = hoja.createRow(2);
+        for (int i = 0; i < CAB_CAMPANIA.length; i++) {
+            texto(cab, i, CAB_CAMPANIA[i], negrita);
+        }
+        int fila = 3;
+        for (FilaCampania c : r.campania()) {
+            Row row = hoja.createRow(fila++);
+            texto(row, 0, c.codigo(), null);
+            if (c.maquina() != null) {
+                texto(row, 1, c.maquina(), null);
+            }
+            Cell inicio = row.createCell(2);
+            inicio.setCellValue(c.inicio());
+            inicio.setCellStyle(fecha);
+            Cell fin = row.createCell(3);
+            fin.setCellValue(c.fin());
+            fin.setCellStyle(fecha);
+            row.createCell(4).setCellValue(c.dias());
+            numero(row, 5, c.avance(), metros);
+            texto(row, 6, c.estado(), null);
+        }
+        Row total = hoja.createRow(fila);
+        texto(total, 0, "Total", negrita);
+        numero(total, 5, r.totalCampania(), metros);
+        for (int i = 0; i < CAB_CAMPANIA.length; i++) {
+            hoja.autoSizeColumn(i);
         }
     }
 

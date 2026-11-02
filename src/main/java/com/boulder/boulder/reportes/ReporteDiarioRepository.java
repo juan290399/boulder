@@ -3,6 +3,7 @@ package com.boulder.boulder.reportes;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -131,7 +132,24 @@ public class ReporteDiarioRepository {
      * @return sondajes con partes de perforación hasta {@code fecha}, sin orden garantizado
      */
     public List<FilaCampania> campania(LocalDate fecha) {
-        return List.of();
+        return jdbc.query("""
+                SELECT s.codigo, rtrim(m.codigo) AS maquina,
+                       coalesce(s.fecha_inicio, min(a.fecha)) AS inicio,
+                       CASE WHEN s.fecha_fin <= ? THEN s.fecha_fin ELSE max(a.fecha) END AS fin,
+                       sum(a.avance) AS avance,
+                       CASE WHEN s.fecha_fin <= ? THEN 'Finalizado' ELSE 'En proceso' END AS estado
+                  FROM operacional.prf_avance a
+                  JOIN operacional.prf_sondaje s ON s.id = a.sondaje_id
+                  LEFT JOIN operacional.prf_maquina m ON m.id = s.maquina_id
+                 WHERE a.fecha <= ?
+                 GROUP BY s.id, s.codigo, m.codigo, s.fecha_inicio, s.fecha_fin
+                """, (rs, i) -> {
+            LocalDate inicio = rs.getDate("inicio").toLocalDate();
+            LocalDate fin = rs.getDate("fin").toLocalDate();
+            return new FilaCampania(rs.getString("codigo"), rs.getString("maquina"), inicio, fin,
+                    ChronoUnit.DAYS.between(inicio, fin), rs.getBigDecimal("avance"),
+                    rs.getString("estado"));
+        }, Date.valueOf(fecha), Date.valueOf(fecha), Date.valueOf(fecha));
     }
 
     /** Los cuatro pares (desde, hasta) de las consultas por rango. */
