@@ -484,6 +484,10 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Returns the value of the <code>cajas</code> record component.</div>
 </dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.FilaDia.html#cajas()" class="member-name-link">cajas()</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.FilaDia.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a></dt>
+<dd>
+<div class="block">Returns the value of the <code>cajas</code> record component.</div>
+</dd>
 <dt><a href="com/boulder/boulder/dominio/Revision.html#cajas(java.lang.String,java.lang.Integer,java.lang.Integer)" class="member-name-link">cajas(String, Integer, Integer)</a> - Method in class com.boulder.boulder.dominio.<a href="com/boulder/boulder/dominio/Revision.html" title="class in com.boulder.boulder.dominio">Revision</a></dt>
 <dd>
 <div class="block">Un rango de cajas: si vienen los dos extremos, la última no puede ser anterior a la primera.</div>
@@ -650,6 +654,15 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Códigos válidos de un catálogo, para poder mostrarlos en el error.</div>
 </dd>
+<dt><a href="com/boulder/boulder/services/importacion/Catalogos.html#codigoSondaje(java.util.UUID)" class="member-name-link">codigoSondaje(UUID)</a> - Method in class com.boulder.boulder.services.importacion.<a href="com/boulder/boulder/services/importacion/Catalogos.html" title="class in com.boulder.boulder.services.importacion">Catalogos</a></dt>
+<dd>
+<div class="block">Código del catálogo de un sondaje ya resuelto.</div>
+</dd>
+<dt><a href="com/boulder/boulder/services/importacion/Fila.html#codigoSondaje(java.util.UUID,java.lang.String)" class="member-name-link">codigoSondaje(UUID, String)</a> - Method in class com.boulder.boulder.services.importacion.<a href="com/boulder/boulder/services/importacion/Fila.html" title="class in com.boulder.boulder.services.importacion">Fila</a></dt>
+<dd>
+<div class="block">Código con el que se guarda el sondaje: el del catálogo si resolvió, o el
+ texto de la celda (por ejemplo <code>VARIOS</code>).</div>
+</dd>
 <dt><a href="com/boulder/boulder/dominio/CodigoSondaje.html" class="type-name-link" title="class in com.boulder.boulder.dominio">CodigoSondaje</a> - Class in <a href="com/boulder/boulder/dominio/package-summary.html">com.boulder.boulder.dominio</a></dt>
 <dd>
 <div class="block">Código canónico de un sondaje: <code>DDH-&lt;PROYECTO&gt;-&lt;SECTOR&gt;-&lt;NNN&gt;-&lt;AA&gt;</code>,
@@ -752,6 +765,8 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Carga masiva desde las plantillas oficiales de Excel con Apache POI.</div>
 </dd>
+<dt><a href="com/boulder/boulder/dto/ResultadoSubidaDTO.html#completo()" class="member-name-link">completo()</a> - Method in record class com.boulder.boulder.dto.<a href="com/boulder/boulder/dto/ResultadoSubidaDTO.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/fotos/FotoService.Metadatos.html#condicion()" class="member-name-link">condicion()</a> - Method in record class com.boulder.boulder.fotos.<a href="com/boulder/boulder/fotos/FotoService.Metadatos.html" title="class in com.boulder.boulder.fotos">FotoService.Metadatos</a></dt>
 <dd>
 <div class="block">Returns the value of the <code>condicion</code> record component.</div>
@@ -884,6 +899,10 @@ loadScripts(document, 'script');</script>
 <dl class="index">
 <dt><a href="com/boulder/boulder/eventos/CambioDatos.html#de(java.lang.String,java.util.Set,java.lang.String,int)" class="member-name-link">de(String, Set&lt;UUID&gt;, String, int)</a> - Static method in record class com.boulder.boulder.eventos.<a href="com/boulder/boulder/eventos/CambioDatos.html" title="class in com.boulder.boulder.eventos">CambioDatos</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.html#de(java.time.LocalDate,java.time.LocalDate,java.util.List,java.util.List)" class="member-name-link">de(LocalDate, LocalDate, List&lt;ReporteDiario.FilaSondaje&gt;, List&lt;ReportePeriodo.FilaDia&gt;)</a> - Static method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.html" title="class in com.boulder.boulder.reportes">ReportePeriodo</a></dt>
+<dd>
+<div class="block">Ordena los sondajes por código, completa los días sin actividad y calcula los totales.</div>
+</dd>
 <dt><a href="com/boulder/boulder/reportes/ReporteDiario.html#de(java.time.LocalDate,java.util.List,java.util.List)" class="member-name-link">de(LocalDate, List&lt;ReporteDiario.FilaSondaje&gt;, List&lt;ReporteDiario.PuntoSerie&gt;)</a> - Static method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiario.html" title="class in com.boulder.boulder.reportes">ReporteDiario</a></dt>
 <dd>
 <div class="block">Arma el reporte: ordena las filas por código y calcula los totales.</div>
@@ -913,6 +932,10 @@ loadScripts(document, 'script');</script>
 <dt><a href="com/boulder/boulder/fotos/FotoService.Metadatos.html#desde()" class="member-name-link">desde()</a> - Method in record class com.boulder.boulder.fotos.<a href="com/boulder/boulder/fotos/FotoService.Metadatos.html" title="class in com.boulder.boulder.fotos">FotoService.Metadatos</a></dt>
 <dd>
 <div class="block">Returns the value of the <code>desde</code> record component.</div>
+</dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.html#desde()" class="member-name-link">desde()</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.html" title="class in com.boulder.boulder.reportes">ReportePeriodo</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./com/boulder/boulder/reportes/ReportePeriodo.html#param-desde"><code>desde</code></a> record component.</div>
 </dd>
 <dt><a href="com/boulder/boulder/dominio/Desviacion.html" class="type-name-link" title="class in com.boulder.boulder.dominio">Desviacion</a> - Record Class in <a href="com/boulder/boulder/dominio/package-summary.html">com.boulder.boulder.dominio</a></dt>
 <dd>
@@ -961,6 +984,10 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="com/boulder/boulder/dto/DesviacionSondajeDTO.html#%3Cinit%3E()" class="member-name-link">DesviacionSondajeDTO()</a> - Constructor for class com.boulder.boulder.dto.<a href="com/boulder/boulder/dto/DesviacionSondajeDTO.html" title="class in com.boulder.boulder.dto">DesviacionSondajeDTO</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.html#dias()" class="member-name-link">dias()</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.html" title="class in com.boulder.boulder.reportes">ReportePeriodo</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./com/boulder/boulder/reportes/ReportePeriodo.html#param-dias"><code>dias</code></a> record component.</div>
+</dd>
 <dt><a href="com/boulder/boulder/controllers/LogueoController.html#dispositivos()" class="member-name-link">dispositivos()</a> - Method in class com.boulder.boulder.controllers.<a href="com/boulder/boulder/controllers/LogueoController.html" title="class in com.boulder.boulder.controllers">LogueoController</a></dt>
 <dd>
 <div class="block">Tablets de GeoLog y cuándo sincronizó cada una por última vez.</div>
@@ -1094,6 +1121,14 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Indicates whether some other object is "equal to" this one.</div>
 </dd>
+<dt><a href="com/boulder/boulder/dto/ResultadoSubidaDTO.html#equals(java.lang.Object)" class="member-name-link">equals(Object)</a> - Method in record class com.boulder.boulder.dto.<a href="com/boulder/boulder/dto/ResultadoSubidaDTO.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO</a></dt>
+<dd>
+<div class="block">Indicates whether some other object is "equal to" this one.</div>
+</dd>
+<dt><a href="com/boulder/boulder/dto/ResultadoSubidaDTO.Rechazo.html#equals(java.lang.Object)" class="member-name-link">equals(Object)</a> - Method in record class com.boulder.boulder.dto.<a href="com/boulder/boulder/dto/ResultadoSubidaDTO.Rechazo.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO.Rechazo</a></dt>
+<dd>
+<div class="block">Indicates whether some other object is "equal to" this one.</div>
+</dd>
 <dt><a href="com/boulder/boulder/eventos/CambioDatos.html#equals(java.lang.Object)" class="member-name-link">equals(Object)</a> - Method in record class com.boulder.boulder.eventos.<a href="com/boulder/boulder/eventos/CambioDatos.html" title="class in com.boulder.boulder.eventos">CambioDatos</a></dt>
 <dd>
 <div class="block">Indicates whether some other object is "equal to" this one.</div>
@@ -1111,6 +1146,14 @@ loadScripts(document, 'script');</script>
 <div class="block">Indicates whether some other object is "equal to" this one.</div>
 </dd>
 <dt><a href="com/boulder/boulder/reportes/ReporteDiario.PuntoSerie.html#equals(java.lang.Object)" class="member-name-link">equals(Object)</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiario.PuntoSerie.html" title="class in com.boulder.boulder.reportes">ReporteDiario.PuntoSerie</a></dt>
+<dd>
+<div class="block">Indicates whether some other object is "equal to" this one.</div>
+</dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.html#equals(java.lang.Object)" class="member-name-link">equals(Object)</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.html" title="class in com.boulder.boulder.reportes">ReportePeriodo</a></dt>
+<dd>
+<div class="block">Indicates whether some other object is "equal to" this one.</div>
+</dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.FilaDia.html#equals(java.lang.Object)" class="member-name-link">equals(Object)</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.FilaDia.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a></dt>
 <dd>
 <div class="block">Indicates whether some other object is "equal to" this one.</div>
 </dd>
@@ -1192,6 +1235,10 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">El mismo reporte como libro de Excel para descargar.</div>
 </dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodoController.html#excel(java.time.LocalDate,java.time.LocalDate)" class="member-name-link">excel(LocalDate, LocalDate)</a> - Method in class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodoController.html" title="class in com.boulder.boulder.reportes">ReportePeriodoController</a></dt>
+<dd>
+<div class="block">El mismo reporte como libro de Excel.</div>
+</dd>
 <dt><a href="com/boulder/boulder/fotos/AlmacenFotos.html#existe(java.lang.String)" class="member-name-link">existe(String)</a> - Method in interface com.boulder.boulder.fotos.<a href="com/boulder/boulder/fotos/AlmacenFotos.html" title="interface in com.boulder.boulder.fotos">AlmacenFotos</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/fotos/AlmacenFotosDisco.html#existe(java.lang.String)" class="member-name-link">existe(String)</a> - Method in class com.boulder.boulder.fotos.<a href="com/boulder/boulder/fotos/AlmacenFotosDisco.html" title="class in com.boulder.boulder.fotos">AlmacenFotosDisco</a></dt>
@@ -1231,6 +1278,10 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Returns the value of the <code>fecha</code> record component.</div>
 </dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.FilaDia.html#fecha()" class="member-name-link">fecha()</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.FilaDia.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a></dt>
+<dd>
+<div class="block">Returns the value of the <code>fecha</code> record component.</div>
+</dd>
 <dt><a href="com/boulder/boulder/services/importacion/Fila.html#fecha(java.lang.String)" class="member-name-link">fecha(String)</a> - Method in class com.boulder.boulder.services.importacion.<a href="com/boulder/boulder/services/importacion/Fila.html" title="class in com.boulder.boulder.services.importacion">Fila</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/services/importacion/Fila.html#fechaReq(java.lang.String)" class="member-name-link">fechaReq(String)</a> - Method in class com.boulder.boulder.services.importacion.<a href="com/boulder/boulder/services/importacion/Fila.html" title="class in com.boulder.boulder.services.importacion">Fila</a></dt>
@@ -1241,6 +1292,10 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="com/boulder/boulder/services/importacion/Fila.html#%3Cinit%3E(org.apache.poi.ss.usermodel.Row,java.util.Map,com.boulder.boulder.services.importacion.Catalogos)" class="member-name-link">Fila(Row, Map&lt;String, Integer&gt;, Catalogos)</a> - Constructor for class com.boulder.boulder.services.importacion.<a href="com/boulder/boulder/services/importacion/Fila.html" title="class in com.boulder.boulder.services.importacion">Fila</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.FilaDia.html#%3Cinit%3E(java.time.LocalDate,java.math.BigDecimal,java.math.BigDecimal,int,int)" class="member-name-link">FilaDia(LocalDate, BigDecimal, BigDecimal, int, int)</a> - Constructor for record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.FilaDia.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a></dt>
+<dd>
+<div class="block">Creates an instance of a <code>FilaDia</code> record class.</div>
+</dd>
 <dt><a href="com/boulder/boulder/eventos/CambioDatos.html#filas()" class="member-name-link">filas()</a> - Method in record class com.boulder.boulder.eventos.<a href="com/boulder/boulder/eventos/CambioDatos.html" title="class in com.boulder.boulder.eventos">CambioDatos</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./com/boulder/boulder/eventos/CambioDatos.html#param-filas"><code>filas</code></a> record component.</div>
@@ -1428,7 +1483,11 @@ loadScripts(document, 'script');</script>
 <dl class="index">
 <dt><a href="com/boulder/boulder/reportes/ReporteDiarioExcel.html#generar(com.boulder.boulder.reportes.ReporteDiario)" class="member-name-link">generar(ReporteDiario)</a> - Static method in class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiarioExcel.html" title="class in com.boulder.boulder.reportes">ReporteDiarioExcel</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodoExcel.html#generar(com.boulder.boulder.reportes.ReportePeriodo)" class="member-name-link">generar(ReportePeriodo)</a> - Static method in class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodoExcel.html" title="class in com.boulder.boulder.reportes">ReportePeriodoExcel</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/reportes/ReporteDiarioService.html#generar(java.time.LocalDate)" class="member-name-link">generar(LocalDate)</a> - Method in class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiarioService.html" title="class in com.boulder.boulder.reportes">ReporteDiarioService</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodoService.html#generar(java.time.LocalDate,java.time.LocalDate)" class="member-name-link">generar(LocalDate, LocalDate)</a> - Method in class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodoService.html" title="class in com.boulder.boulder.reportes">ReportePeriodoService</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/config/JwtUtils.html#generateToken(org.springframework.security.core.Authentication)" class="member-name-link">generateToken(Authentication)</a> - Method in class com.boulder.boulder.config.<a href="com/boulder/boulder/config/JwtUtils.html" title="class in com.boulder.boulder.config">JwtUtils</a></dt>
 <dd>&nbsp;</dd>
@@ -1503,6 +1562,10 @@ loadScripts(document, 'script');</script>
 <dt><a href="com/boulder/boulder/services/importacion/ImportadorBase.Registro.html#grabar()" class="member-name-link">grabar()</a> - Method in record class com.boulder.boulder.services.importacion.<a href="com/boulder/boulder/services/importacion/ImportadorBase.Registro.html" title="class in com.boulder.boulder.services.importacion">ImportadorBase.Registro</a></dt>
 <dd>
 <div class="block">Returns the value of the <code>grabar</code> record component.</div>
+</dd>
+<dt><a href="com/boulder/boulder/dto/ResultadoSubidaDTO.html#guardadas()" class="member-name-link">guardadas()</a> - Method in record class com.boulder.boulder.dto.<a href="com/boulder/boulder/dto/ResultadoSubidaDTO.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./com/boulder/boulder/dto/ResultadoSubidaDTO.html#param-guardadas"><code>guardadas</code></a> record component.</div>
 </dd>
 <dt><a href="com/boulder/boulder/controllers/AvancePerforacionController.html#guardar(com.boulder.boulder.dto.AvancePerforacionDTO)" class="member-name-link">guardar(AvancePerforacionDTO)</a> - Method in class com.boulder.boulder.controllers.<a href="com/boulder/boulder/controllers/AvancePerforacionController.html" title="class in com.boulder.boulder.controllers">AvancePerforacionController</a></dt>
 <dd>&nbsp;</dd>
@@ -1651,6 +1714,14 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Returns a hash code value for this object.</div>
 </dd>
+<dt><a href="com/boulder/boulder/dto/ResultadoSubidaDTO.html#hashCode()" class="member-name-link">hashCode()</a> - Method in record class com.boulder.boulder.dto.<a href="com/boulder/boulder/dto/ResultadoSubidaDTO.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO</a></dt>
+<dd>
+<div class="block">Returns a hash code value for this object.</div>
+</dd>
+<dt><a href="com/boulder/boulder/dto/ResultadoSubidaDTO.Rechazo.html#hashCode()" class="member-name-link">hashCode()</a> - Method in record class com.boulder.boulder.dto.<a href="com/boulder/boulder/dto/ResultadoSubidaDTO.Rechazo.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO.Rechazo</a></dt>
+<dd>
+<div class="block">Returns a hash code value for this object.</div>
+</dd>
 <dt><a href="com/boulder/boulder/eventos/CambioDatos.html#hashCode()" class="member-name-link">hashCode()</a> - Method in record class com.boulder.boulder.eventos.<a href="com/boulder/boulder/eventos/CambioDatos.html" title="class in com.boulder.boulder.eventos">CambioDatos</a></dt>
 <dd>
 <div class="block">Returns a hash code value for this object.</div>
@@ -1671,6 +1742,14 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Returns a hash code value for this object.</div>
 </dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.FilaDia.html#hashCode()" class="member-name-link">hashCode()</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.FilaDia.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a></dt>
+<dd>
+<div class="block">Returns a hash code value for this object.</div>
+</dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.html#hashCode()" class="member-name-link">hashCode()</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.html" title="class in com.boulder.boulder.reportes">ReportePeriodo</a></dt>
+<dd>
+<div class="block">Returns a hash code value for this object.</div>
+</dd>
 <dt><a href="com/boulder/boulder/repositories/CatalogoGeologiaRepository.Estructura.html#hashCode()" class="member-name-link">hashCode()</a> - Method in record class com.boulder.boulder.repositories.<a href="com/boulder/boulder/repositories/CatalogoGeologiaRepository.Estructura.html" title="class in com.boulder.boulder.repositories">CatalogoGeologiaRepository.Estructura</a></dt>
 <dd>
 <div class="block">Returns a hash code value for this object.</div>
@@ -1683,6 +1762,10 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Returns the value of the <code>hasta</code> record component.</div>
 </dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.html#hasta()" class="member-name-link">hasta()</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.html" title="class in com.boulder.boulder.reportes">ReportePeriodo</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./com/boulder/boulder/reportes/ReportePeriodo.html#param-hasta"><code>hasta</code></a> record component.</div>
+</dd>
 <dt><a href="com/boulder/boulder/services/importacion/Fila.html#hayErrores()" class="member-name-link">hayErrores()</a> - Method in class com.boulder.boulder.services.importacion.<a href="com/boulder/boulder/services/importacion/Fila.html" title="class in com.boulder.boulder.services.importacion">Fila</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/services/importacion/ImportadorBase.html#hoja(org.apache.poi.ss.usermodel.Workbook,java.lang.String,java.lang.String,java.lang.String,com.boulder.boulder.services.importacion.Catalogos,boolean,com.boulder.boulder.dto.importacion.ResultadoImportacionDTO,com.boulder.boulder.services.importacion.ImportadorBase.ManejadorFila)" class="member-name-link">hoja(Workbook, String, String, String, Catalogos, boolean, ResultadoImportacionDTO, ImportadorBase.ManejadorFila)</a> - Method in class com.boulder.boulder.services.importacion.<a href="com/boulder/boulder/services/importacion/ImportadorBase.html" title="class in com.boulder.boulder.services.importacion">ImportadorBase</a></dt>
@@ -1692,6 +1775,10 @@ loadScripts(document, 'script');</script>
 </dl>
 <h2 class="title" id="I:I">I</h2>
 <dl class="index">
+<dt><a href="com/boulder/boulder/dto/ResultadoSubidaDTO.Rechazo.html#id()" class="member-name-link">id()</a> - Method in record class com.boulder.boulder.dto.<a href="com/boulder/boulder/dto/ResultadoSubidaDTO.Rechazo.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO.Rechazo</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./com/boulder/boulder/dto/ResultadoSubidaDTO.Rechazo.html#param-id"><code>id</code></a> record component.</div>
+</dd>
 <dt><a href="com/boulder/boulder/services/importacion/ImportadorBase.html#idOCodigo(java.util.UUID,java.lang.String)" class="member-name-link">idOCodigo(UUID, String)</a> - Static method in class com.boulder.boulder.services.importacion.<a href="com/boulder/boulder/services/importacion/ImportadorBase.html" title="class in com.boulder.boulder.services.importacion">ImportadorBase</a></dt>
 <dd>
 <div class="block">Parte de la clave que identifica al sondaje.</div>
@@ -1791,6 +1878,10 @@ loadScripts(document, 'script');</script>
 <dt><a href="com/boulder/boulder/dominio/Desviacion.html#inclinacion()" class="member-name-link">inclinacion()</a> - Method in record class com.boulder.boulder.dominio.<a href="com/boulder/boulder/dominio/Desviacion.html" title="class in com.boulder.boulder.dominio">Desviacion</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./com/boulder/boulder/dominio/Desviacion.html#param-inclinacion"><code>inclinacion</code></a> record component.</div>
+</dd>
+<dt><a href="com/boulder/boulder/dto/ResultadoSubidaDTO.Rechazo.html#indice()" class="member-name-link">indice()</a> - Method in record class com.boulder.boulder.dto.<a href="com/boulder/boulder/dto/ResultadoSubidaDTO.Rechazo.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO.Rechazo</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./com/boulder/boulder/dto/ResultadoSubidaDTO.Rechazo.html#param-indice"><code>indice</code></a> record component.</div>
 </dd>
 <dt><a href="com/boulder/boulder/repositories/CatalogoGeologiaRepository.html#insertar(java.lang.String,com.boulder.boulder.dto.CatalogoGeologiaDTO)" class="member-name-link">insertar(String, CatalogoGeologiaDTO)</a> - Method in class com.boulder.boulder.repositories.<a href="com/boulder/boulder/repositories/CatalogoGeologiaRepository.html" title="class in com.boulder.boulder.repositories">CatalogoGeologiaRepository</a></dt>
 <dd>
@@ -2087,6 +2178,10 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Returns the value of the <code>logueado</code> record component.</div>
 </dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.FilaDia.html#logueado()" class="member-name-link">logueado()</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.FilaDia.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a></dt>
+<dd>
+<div class="block">Returns the value of the <code>logueado</code> record component.</div>
+</dd>
 <dt><a href="com/boulder/boulder/controllers/LogueoController.html" class="type-name-link" title="class in com.boulder.boulder.controllers">LogueoController</a> - Class in <a href="com/boulder/boulder/controllers/package-summary.html">com.boulder.boulder.controllers</a></dt>
 <dd>
 <div class="block">Controlador REST del logueo geológico.</div>
@@ -2101,7 +2196,7 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Implementación de la sincronización del logueo geológico.</div>
 </dd>
-<dt><a href="com/boulder/boulder/services/LogueoServiceImpl.html#%3Cinit%3E()" class="member-name-link">LogueoServiceImpl()</a> - Constructor for class com.boulder.boulder.services.<a href="com/boulder/boulder/services/LogueoServiceImpl.html" title="class in com.boulder.boulder.services">LogueoServiceImpl</a></dt>
+<dt><a href="com/boulder/boulder/services/LogueoServiceImpl.html#%3Cinit%3E(com.boulder.boulder.repositories.LitologiaRepository,com.boulder.boulder.repositories.AlteracionRepository,com.boulder.boulder.repositories.MineralizacionRepository,com.boulder.boulder.repositories.EstructuralRepository,com.boulder.boulder.repositories.QuicklogRepository,org.springframework.context.ApplicationEventPublisher,org.springframework.jdbc.core.JdbcTemplate,org.springframework.transaction.support.TransactionOperations)" class="member-name-link">LogueoServiceImpl(LitologiaRepository, AlteracionRepository, MineralizacionRepository, EstructuralRepository, QuicklogRepository, ApplicationEventPublisher, JdbcTemplate, TransactionOperations)</a> - Constructor for class com.boulder.boulder.services.<a href="com/boulder/boulder/services/LogueoServiceImpl.html" title="class in com.boulder.boulder.services">LogueoServiceImpl</a></dt>
 <dd>&nbsp;</dd>
 </dl>
 <h2 class="title" id="I:M">M</h2>
@@ -2180,9 +2275,17 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Returns the value of the <a href="./com/boulder/boulder/eventos/CambioDatos.html#param-momento"><code>momento</code></a> record component.</div>
 </dd>
+<dt><a href="com/boulder/boulder/dto/ResultadoSubidaDTO.Rechazo.html#motivo()" class="member-name-link">motivo()</a> - Method in record class com.boulder.boulder.dto.<a href="com/boulder/boulder/dto/ResultadoSubidaDTO.Rechazo.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO.Rechazo</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./com/boulder/boulder/dto/ResultadoSubidaDTO.Rechazo.html#param-motivo"><code>motivo</code></a> record component.</div>
+</dd>
 <dt><a href="com/boulder/boulder/services/importacion/Fila.html#motivos()" class="member-name-link">motivos()</a> - Method in class com.boulder.boulder.services.importacion.<a href="com/boulder/boulder/services/importacion/Fila.html" title="class in com.boulder.boulder.services.importacion">Fila</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/reportes/ReporteDiario.FilaSondaje.html#muestras()" class="member-name-link">muestras()</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiario.FilaSondaje.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaSondaje</a></dt>
+<dd>
+<div class="block">Returns the value of the <code>muestras</code> record component.</div>
+</dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.FilaDia.html#muestras()" class="member-name-link">muestras()</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.FilaDia.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a></dt>
 <dd>
 <div class="block">Returns the value of the <code>muestras</code> record component.</div>
 </dd>
@@ -2475,7 +2578,17 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Returns the value of the <code>perforado</code> record component.</div>
 </dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.FilaDia.html#perforado()" class="member-name-link">perforado()</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.FilaDia.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a></dt>
+<dd>
+<div class="block">Returns the value of the <code>perforado</code> record component.</div>
+</dd>
 <dt><a href="com/boulder/boulder/reportes/ReporteDiarioRepository.html#perforadoPorDia(java.time.LocalDate,java.time.LocalDate)" class="member-name-link">perforadoPorDia(LocalDate, LocalDate)</a> - Method in class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiarioRepository.html" title="class in com.boulder.boulder.reportes">ReporteDiarioRepository</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/boulder/boulder/config/PermisosEscritura.html" class="type-name-link" title="class in com.boulder.boulder.config">PermisosEscritura</a> - Class in <a href="com/boulder/boulder/config/package-summary.html">com.boulder.boulder.config</a></dt>
+<dd>
+<div class="block">Quién puede escribir en el API operacional, de logueo, de importación y de fotos.</div>
+</dd>
+<dt><a href="com/boulder/boulder/config/PermisosEscritura.html#permite(java.lang.String,java.lang.String,java.util.Set)" class="member-name-link">permite(String, String, Set&lt;String&gt;)</a> - Static method in class com.boulder.boulder.config.<a href="com/boulder/boulder/config/PermisosEscritura.html" title="class in com.boulder.boulder.config">PermisosEscritura</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/dto/importacion/PlantillaDTO.html" class="type-name-link" title="class in com.boulder.boulder.dto.importacion">PlantillaDTO</a> - Class in <a href="com/boulder/boulder/dto/importacion/package-summary.html">com.boulder.boulder.dto.importacion</a></dt>
 <dd>
@@ -2533,6 +2646,8 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Un porcentaje entre 0 y 100; <code>null</code> se acepta.</div>
 </dd>
+<dt><a href="com/boulder/boulder/reportes/ReporteDiarioRepository.html#porDia(java.time.LocalDate,java.time.LocalDate)" class="member-name-link">porDia(LocalDate, LocalDate)</a> - Method in class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiarioRepository.html" title="class in com.boulder.boulder.reportes">ReporteDiarioRepository</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/controllers/DesviacionController.html#porMaquina()" class="member-name-link">porMaquina()</a> - Method in class com.boulder.boulder.controllers.<a href="com/boulder/boulder/controllers/DesviacionController.html" title="class in com.boulder.boulder.controllers">DesviacionController</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/controllers/DesviacionController.html#porPerforista()" class="member-name-link">porPerforista()</a> - Method in class com.boulder.boulder.controllers.<a href="com/boulder/boulder/controllers/DesviacionController.html" title="class in com.boulder.boulder.controllers">DesviacionController</a></dt>
@@ -2540,6 +2655,8 @@ loadScripts(document, 'script');</script>
 <dt><a href="com/boulder/boulder/controllers/DesviacionController.html#porSondaje(java.lang.String)" class="member-name-link">porSondaje(String)</a> - Method in class com.boulder.boulder.controllers.<a href="com/boulder/boulder/controllers/DesviacionController.html" title="class in com.boulder.boulder.controllers">DesviacionController</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/reportes/ReporteDiarioRepository.html#porSondaje(java.time.LocalDate)" class="member-name-link">porSondaje(LocalDate)</a> - Method in class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiarioRepository.html" title="class in com.boulder.boulder.reportes">ReporteDiarioRepository</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/boulder/boulder/reportes/ReporteDiarioRepository.html#porSondaje(java.time.LocalDate,java.time.LocalDate)" class="member-name-link">porSondaje(LocalDate, LocalDate)</a> - Method in class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiarioRepository.html" title="class in com.boulder.boulder.reportes">ReporteDiarioRepository</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/package-summary.html#principios-solid-aplicados-heading" class="search-tag-link">Principios SOLID aplicados</a> - Search tag in package com.boulder.boulder</dt>
 <dd>Section</dd>
@@ -2703,6 +2820,14 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="com/boulder/boulder/services/RecepcionCajaServiceImpl.html#%3Cinit%3E()" class="member-name-link">RecepcionCajaServiceImpl()</a> - Constructor for class com.boulder.boulder.services.<a href="com/boulder/boulder/services/RecepcionCajaServiceImpl.html" title="class in com.boulder.boulder.services">RecepcionCajaServiceImpl</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="com/boulder/boulder/dto/ResultadoSubidaDTO.html#rechazadas()" class="member-name-link">rechazadas()</a> - Method in record class com.boulder.boulder.dto.<a href="com/boulder/boulder/dto/ResultadoSubidaDTO.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./com/boulder/boulder/dto/ResultadoSubidaDTO.html#param-rechazadas"><code>rechazadas</code></a> record component.</div>
+</dd>
+<dt><a href="com/boulder/boulder/dto/ResultadoSubidaDTO.Rechazo.html#%3Cinit%3E(int,java.util.UUID,java.lang.String)" class="member-name-link">Rechazo(int, UUID, String)</a> - Constructor for record class com.boulder.boulder.dto.<a href="com/boulder/boulder/dto/ResultadoSubidaDTO.Rechazo.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO.Rechazo</a></dt>
+<dd>
+<div class="block">Creates an instance of a <code>Rechazo</code> record class.</div>
+</dd>
 <dt><a href="com/boulder/boulder/eventos/CambioDatos.html#recurso()" class="member-name-link">recurso()</a> - Method in record class com.boulder.boulder.eventos.<a href="com/boulder/boulder/eventos/CambioDatos.html" title="class in com.boulder.boulder.eventos">CambioDatos</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./com/boulder/boulder/eventos/CambioDatos.html#param-recurso"><code>recurso</code></a> record component.</div>
@@ -2792,6 +2917,35 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="com/boulder/boulder/reportes/ReporteDiarioService.html#%3Cinit%3E(com.boulder.boulder.reportes.ReporteDiarioRepository,java.time.Clock)" class="member-name-link">ReporteDiarioService(ReporteDiarioRepository, Clock)</a> - Constructor for class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiarioService.html" title="class in com.boulder.boulder.reportes">ReporteDiarioService</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReportePeriodo</a> - Record Class in <a href="com/boulder/boulder/reportes/package-summary.html">com.boulder.boulder.reportes</a></dt>
+<dd>
+<div class="block">Reporte consolidado de un periodo (semanal, mensual o cualquier rango).</div>
+</dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.html#%3Cinit%3E(java.time.LocalDate,java.time.LocalDate,java.util.List,java.util.List,java.math.BigDecimal,java.math.BigDecimal,int,int)" class="member-name-link">ReportePeriodo(LocalDate, LocalDate, List&lt;ReporteDiario.FilaSondaje&gt;, List&lt;ReportePeriodo.FilaDia&gt;, BigDecimal, BigDecimal, int, int)</a> - Constructor for record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.html" title="class in com.boulder.boulder.reportes">ReportePeriodo</a></dt>
+<dd>
+<div class="block">Creates an instance of a <code>ReportePeriodo</code> record class.</div>
+</dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.FilaDia.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a> - Record Class in <a href="com/boulder/boulder/reportes/package-summary.html">com.boulder.boulder.reportes</a></dt>
+<dd>
+<div class="block">Actividad de la campaña en un día.</div>
+</dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodoController.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReportePeriodoController</a> - Class in <a href="com/boulder/boulder/reportes/package-summary.html">com.boulder.boulder.reportes</a></dt>
+<dd>
+<div class="block">Reporte consolidado de un periodo.</div>
+</dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodoController.html#%3Cinit%3E(com.boulder.boulder.reportes.ReportePeriodoService)" class="member-name-link">ReportePeriodoController(ReportePeriodoService)</a> - Constructor for class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodoController.html" title="class in com.boulder.boulder.reportes">ReportePeriodoController</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodoExcel.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReportePeriodoExcel</a> - Class in <a href="com/boulder/boulder/reportes/package-summary.html">com.boulder.boulder.reportes</a></dt>
+<dd>
+<div class="block">Exporta el reporte de un periodo a Excel con Apache POI: una hoja por sondaje
+ y otra por día.</div>
+</dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodoService.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReportePeriodoService</a> - Class in <a href="com/boulder/boulder/reportes/package-summary.html">com.boulder.boulder.reportes</a></dt>
+<dd>
+<div class="block">Arma el reporte de un periodo con los mismos registros que el reporte diario.</div>
+</dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodoService.html#%3Cinit%3E(com.boulder.boulder.reportes.ReporteDiarioRepository,java.time.Clock)" class="member-name-link">ReportePeriodoService(ReporteDiarioRepository, Clock)</a> - Constructor for class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodoService.html" title="class in com.boulder.boulder.reportes">ReportePeriodoService</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/services/AvanceDensidadServiceImpl.html#repositorio()" class="member-name-link">repositorio()</a> - Method in class com.boulder.boulder.services.<a href="com/boulder/boulder/services/AvanceDensidadServiceImpl.html" title="class in com.boulder.boulder.services">AvanceDensidadServiceImpl</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/services/AvanceFotografiaServiceImpl.html#repositorio()" class="member-name-link">repositorio()</a> - Method in class com.boulder.boulder.services.<a href="com/boulder/boulder/services/AvanceFotografiaServiceImpl.html" title="class in com.boulder.boulder.services">AvanceFotografiaServiceImpl</a></dt>
@@ -2824,6 +2978,19 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="com/boulder/boulder/dto/importacion/ResultadoImportacionDTO.html#%3Cinit%3E()" class="member-name-link">ResultadoImportacionDTO()</a> - Constructor for class com.boulder.boulder.dto.importacion.<a href="com/boulder/boulder/dto/importacion/ResultadoImportacionDTO.html" title="class in com.boulder.boulder.dto.importacion">ResultadoImportacionDTO</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="com/boulder/boulder/dto/ResultadoSubidaDTO.html" class="type-name-link" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO</a> - Record Class in <a href="com/boulder/boulder/dto/package-summary.html">com.boulder.boulder.dto</a></dt>
+<dd>
+<div class="block">Resultado de la subida de un lote de logueo: cuántas filas se guardaron y
+ cuáles se rechazaron, con su motivo.</div>
+</dd>
+<dt><a href="com/boulder/boulder/dto/ResultadoSubidaDTO.html#%3Cinit%3E(int,java.util.List)" class="member-name-link">ResultadoSubidaDTO(int, List&lt;ResultadoSubidaDTO.Rechazo&gt;)</a> - Constructor for record class com.boulder.boulder.dto.<a href="com/boulder/boulder/dto/ResultadoSubidaDTO.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO</a></dt>
+<dd>
+<div class="block">Creates an instance of a <code>ResultadoSubidaDTO</code> record class.</div>
+</dd>
+<dt><a href="com/boulder/boulder/dto/ResultadoSubidaDTO.Rechazo.html" class="type-name-link" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO.Rechazo</a> - Record Class in <a href="com/boulder/boulder/dto/package-summary.html">com.boulder.boulder.dto</a></dt>
+<dd>
+<div class="block">Fila rechazada.</div>
+</dd>
 <dt><a href="com/boulder/boulder/services/DesviacionService.html#resumenPorMaquina()" class="member-name-link">resumenPorMaquina()</a> - Method in interface com.boulder.boulder.services.<a href="com/boulder/boulder/services/DesviacionService.html" title="interface in com.boulder.boulder.services">DesviacionService</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/services/DesviacionServiceImpl.html#resumenPorMaquina()" class="member-name-link">resumenPorMaquina()</a> - Method in class com.boulder.boulder.services.<a href="com/boulder/boulder/services/DesviacionServiceImpl.html" title="class in com.boulder.boulder.services">DesviacionServiceImpl</a></dt>
@@ -2973,6 +3140,10 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Returns the value of the <a href="./com/boulder/boulder/reportes/ReporteDiario.html#param-sondajes"><code>sondajes</code></a> record component.</div>
 </dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.html#sondajes()" class="member-name-link">sondajes()</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.html" title="class in com.boulder.boulder.reportes">ReportePeriodo</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./com/boulder/boulder/reportes/ReportePeriodo.html#param-sondajes"><code>sondajes</code></a> record component.</div>
+</dd>
 <dt><a href="com/boulder/boulder/services/SondajeService.html" class="type-name-link" title="interface in com.boulder.boulder.services">SondajeService</a> - Interface in <a href="com/boulder/boulder/services/package-summary.html">com.boulder.boulder.services</a></dt>
 <dd>
 <div class="block">Define las operaciones de negocio relacionadas con el registro operativo de sondajes.</div>
@@ -3119,6 +3290,14 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Las contraseñas nunca aparecen en un log ni en un mensaje de error.</div>
 </dd>
+<dt><a href="com/boulder/boulder/dto/ResultadoSubidaDTO.Rechazo.html#toString()" class="member-name-link">toString()</a> - Method in record class com.boulder.boulder.dto.<a href="com/boulder/boulder/dto/ResultadoSubidaDTO.Rechazo.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO.Rechazo</a></dt>
+<dd>
+<div class="block">Returns a string representation of this record class.</div>
+</dd>
+<dt><a href="com/boulder/boulder/dto/ResultadoSubidaDTO.html#toString()" class="member-name-link">toString()</a> - Method in record class com.boulder.boulder.dto.<a href="com/boulder/boulder/dto/ResultadoSubidaDTO.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO</a></dt>
+<dd>
+<div class="block">Returns a string representation of this record class.</div>
+</dd>
 <dt><a href="com/boulder/boulder/eventos/CambioDatos.html#toString()" class="member-name-link">toString()</a> - Method in record class com.boulder.boulder.eventos.<a href="com/boulder/boulder/eventos/CambioDatos.html" title="class in com.boulder.boulder.eventos">CambioDatos</a></dt>
 <dd>
 <div class="block">Returns a string representation of this record class.</div>
@@ -3139,6 +3318,14 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Returns a string representation of this record class.</div>
 </dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.FilaDia.html#toString()" class="member-name-link">toString()</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.FilaDia.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a></dt>
+<dd>
+<div class="block">Returns a string representation of this record class.</div>
+</dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.html#toString()" class="member-name-link">toString()</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.html" title="class in com.boulder.boulder.reportes">ReportePeriodo</a></dt>
+<dd>
+<div class="block">Returns a string representation of this record class.</div>
+</dd>
 <dt><a href="com/boulder/boulder/repositories/CatalogoGeologiaRepository.Estructura.html#toString()" class="member-name-link">toString()</a> - Method in record class com.boulder.boulder.repositories.<a href="com/boulder/boulder/repositories/CatalogoGeologiaRepository.Estructura.html" title="class in com.boulder.boulder.repositories">CatalogoGeologiaRepository.Estructura</a></dt>
 <dd>
 <div class="block">Returns a string representation of this record class.</div>
@@ -3155,6 +3342,10 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Returns the value of the <a href="./com/boulder/boulder/reportes/ReporteDiario.html#param-totalCajas"><code>totalCajas</code></a> record component.</div>
 </dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.html#totalCajas()" class="member-name-link">totalCajas()</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.html" title="class in com.boulder.boulder.reportes">ReportePeriodo</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./com/boulder/boulder/reportes/ReportePeriodo.html#param-totalCajas"><code>totalCajas</code></a> record component.</div>
+</dd>
 <dt><a href="com/boulder/boulder/dto/importacion/ResultadoImportacionDTO.html#totalizar()" class="member-name-link">totalizar()</a> - Method in class com.boulder.boulder.dto.importacion.<a href="com/boulder/boulder/dto/importacion/ResultadoImportacionDTO.html" title="class in com.boulder.boulder.dto.importacion">ResultadoImportacionDTO</a></dt>
 <dd>
 <div class="block">Recalcula los totales a partir de las hojas ya procesadas.</div>
@@ -3163,13 +3354,25 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Returns the value of the <a href="./com/boulder/boulder/reportes/ReporteDiario.html#param-totalLogueado"><code>totalLogueado</code></a> record component.</div>
 </dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.html#totalLogueado()" class="member-name-link">totalLogueado()</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.html" title="class in com.boulder.boulder.reportes">ReportePeriodo</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./com/boulder/boulder/reportes/ReportePeriodo.html#param-totalLogueado"><code>totalLogueado</code></a> record component.</div>
+</dd>
 <dt><a href="com/boulder/boulder/reportes/ReporteDiario.html#totalMuestras()" class="member-name-link">totalMuestras()</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiario.html" title="class in com.boulder.boulder.reportes">ReporteDiario</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./com/boulder/boulder/reportes/ReporteDiario.html#param-totalMuestras"><code>totalMuestras</code></a> record component.</div>
 </dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.html#totalMuestras()" class="member-name-link">totalMuestras()</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.html" title="class in com.boulder.boulder.reportes">ReportePeriodo</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./com/boulder/boulder/reportes/ReportePeriodo.html#param-totalMuestras"><code>totalMuestras</code></a> record component.</div>
+</dd>
 <dt><a href="com/boulder/boulder/reportes/ReporteDiario.html#totalPerforado()" class="member-name-link">totalPerforado()</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiario.html" title="class in com.boulder.boulder.reportes">ReporteDiario</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./com/boulder/boulder/reportes/ReporteDiario.html#param-totalPerforado"><code>totalPerforado</code></a> record component.</div>
+</dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodo.html#totalPerforado()" class="member-name-link">totalPerforado()</a> - Method in record class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.html" title="class in com.boulder.boulder.reportes">ReportePeriodo</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./com/boulder/boulder/reportes/ReportePeriodo.html#param-totalPerforado"><code>totalPerforado</code></a> record component.</div>
 </dd>
 <dt><a href="com/boulder/boulder/dominio/Revision.html#tramo(java.lang.String,java.math.BigDecimal,java.math.BigDecimal)" class="member-name-link">tramo(String, BigDecimal, BigDecimal)</a> - Method in class com.boulder.boulder.dominio.<a href="com/boulder/boulder/dominio/Revision.html" title="class in com.boulder.boulder.dominio">Revision</a></dt>
 <dd>
@@ -3264,6 +3467,8 @@ loadScripts(document, 'script');</script>
 <dt><a href="com/boulder/boulder/config/JwtUtils.html#validateToken(java.lang.String)" class="member-name-link">validateToken(String)</a> - Method in class com.boulder.boulder.config.<a href="com/boulder/boulder/config/JwtUtils.html" title="class in com.boulder.boulder.config">JwtUtils</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/reportes/ReporteDiarioController.html#ver(java.time.LocalDate)" class="member-name-link">ver(LocalDate)</a> - Method in class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiarioController.html" title="class in com.boulder.boulder.reportes">ReporteDiarioController</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/boulder/boulder/reportes/ReportePeriodoController.html#ver(java.time.LocalDate,java.time.LocalDate)" class="member-name-link">ver(LocalDate, LocalDate)</a> - Method in class com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodoController.html" title="class in com.boulder.boulder.reportes">ReportePeriodoController</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/repositories/FotoRepository.html#vigentesDe(java.util.UUID)" class="member-name-link">vigentesDe(UUID)</a> - Method in interface com.boulder.boulder.repositories.<a href="com/boulder/boulder/repositories/FotoRepository.html" title="interface in com.boulder.boulder.repositories">FotoRepository</a></dt>
 <dd>

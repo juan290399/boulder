@@ -94,7 +94,7 @@ import jakarta.persistence.PersistenceContext;
             }
 
 <span class="fc" id="L96">            AvanceLogueo e = new AvanceLogueo();</span>
-<span class="fc" id="L97">            e.setSondajeCodigo(f.texto(&quot;sondaje_codigo&quot;, 30));</span>
+<span class="fc" id="L97">            e.setSondajeCodigo(f.codigoSondaje(sondajeId, &quot;sondaje_codigo&quot;));</span>
 <span class="fc" id="L98">            e.setFecha(fecha);</span>
 <span class="fc" id="L99">            e.setTurno(f.opcion(&quot;turno&quot;, false, &quot;dia&quot;, &quot;noche&quot;));</span>
 <span class="fc" id="L100">            e.setTipoLogueo(tipo);</span>
