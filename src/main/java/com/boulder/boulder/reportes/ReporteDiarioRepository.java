@@ -11,7 +11,9 @@ import java.util.Map;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.boulder.boulder.reportes.ReporteDiario.CeldaMensual;
 import com.boulder.boulder.reportes.ReporteDiario.FilaCampania;
+import com.boulder.boulder.reportes.ReporteDiario.FilaMaquina;
 import com.boulder.boulder.reportes.ReporteDiario.FilaSondaje;
 import com.boulder.boulder.reportes.ReportePeriodo.FilaDesvio;
 import com.boulder.boulder.reportes.ReportePeriodo.FilaDia;
@@ -150,6 +152,22 @@ public class ReporteDiarioRepository {
                     ChronoUnit.DAYS.between(inicio, fin), rs.getBigDecimal("avance"),
                     rs.getString("estado"));
         }, Date.valueOf(fecha), Date.valueOf(fecha), Date.valueOf(fecha));
+    }
+
+    /**
+     * @param fecha día consultado
+     * @return metros perforados en el día por máquina, sin orden garantizado
+     */
+    public List<FilaMaquina> porMaquina(LocalDate fecha) {
+        return List.of();
+    }
+
+    /**
+     * @param fecha último día considerado
+     * @return metros perforados por sondaje y por mes hasta {@code fecha}
+     */
+    public List<CeldaMensual> mensual(LocalDate fecha) {
+        return List.of();
     }
 
     /** Los cuatro pares (desde, hasta) de las consultas por rango. */
