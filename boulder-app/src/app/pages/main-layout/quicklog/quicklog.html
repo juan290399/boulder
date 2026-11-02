@@ -3,6 +3,10 @@
     <h1 class="page-head__title">Quicklog</h1>
   </div>
   <div class="page-head__actions">
+    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="descargarHoja()"
+            [disabled]="!sondajeId || descargando()">
+      <i class="bi bi-file-earmark-excel me-1"></i>{{ descargando() ? 'Descargando…' : 'Hoja de registro' }}
+    </button>
     <span class="en-vivo" [class.en-vivo--on]="canal() === 'conectado'"
           [title]="canal() === 'conectado' ? 'Los tramos que suban los tablets aparecen solos' : 'Sin conexión en vivo: recarga para ver lo nuevo'">
       <span class="en-vivo__punto"></span>
