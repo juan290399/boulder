@@ -49,3 +49,6 @@ out/
 
 # Respaldos locales de la base (scripts/mantenimiento/respaldo_bd.sh)
 /respaldos/
+
+# Construcción con Maven
+/target/
