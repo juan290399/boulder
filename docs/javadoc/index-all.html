@@ -162,6 +162,8 @@ loadScripts(document, 'script');</script>
 <dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/controllers/AvanceOperativoControllerBase.html#actualizar(java.util.UUID,D)" class="member-name-link">actualizar(UUID, D)</a> - Method in class com.boulder.boulder.controllers.<a href="com/boulder/boulder/controllers/AvanceOperativoControllerBase.html" title="class in com.boulder.boulder.controllers">AvanceOperativoControllerBase</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="com/boulder/boulder/config/AplicacionWebConfig.html#addResourceHandlers(org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry)" class="member-name-link">addResourceHandlers(ResourceHandlerRegistry)</a> - Method in class com.boulder.boulder.config.<a href="com/boulder/boulder/config/AplicacionWebConfig.html" title="class in com.boulder.boulder.config">AplicacionWebConfig</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/eventos/CanalEventos.html#alConfirmarse(com.boulder.boulder.eventos.CambioDatos)" class="member-name-link">alConfirmarse(CambioDatos)</a> - Method in class com.boulder.boulder.eventos.<a href="com/boulder/boulder/eventos/CanalEventos.html" title="class in com.boulder.boulder.eventos">CanalEventos</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/fotos/AlmacenFotos.html" class="type-name-link" title="interface in com.boulder.boulder.fotos">AlmacenFotos</a> - Interface in <a href="com/boulder/boulder/fotos/package-summary.html">com.boulder.boulder.fotos</a></dt>
@@ -190,6 +192,13 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Repositorio de acceso a datos para los tramos de alteración.</div>
 </dd>
+<dt><a href="com/boulder/boulder/config/AplicacionWebConfig.html" class="type-name-link" title="class in com.boulder.boulder.config">AplicacionWebConfig</a> - Class in <a href="com/boulder/boulder/config/package-summary.html">com.boulder.boulder.config</a></dt>
+<dd>
+<div class="block">Sirve la aplicación Angular desde <code>classpath:/static/</code>, empaquetada en
+ el mismo jar que el API.</div>
+</dd>
+<dt><a href="com/boulder/boulder/config/AplicacionWebConfig.html#%3Cinit%3E()" class="member-name-link">AplicacionWebConfig()</a> - Constructor for class com.boulder.boulder.config.<a href="com/boulder/boulder/config/AplicacionWebConfig.html" title="class in com.boulder.boulder.config">AplicacionWebConfig</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/services/AvanceDensidadServiceImpl.html#aplicarDetalle(com.boulder.boulder.dto.AvanceDensidadDTO,com.boulder.boulder.entities.AvanceDensidad)" class="member-name-link">aplicarDetalle(AvanceDensidadDTO, AvanceDensidad)</a> - Method in class com.boulder.boulder.services.<a href="com/boulder/boulder/services/AvanceDensidadServiceImpl.html" title="class in com.boulder.boulder.services">AvanceDensidadServiceImpl</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/services/AvanceFotografiaServiceImpl.html#aplicarDetalle(com.boulder.boulder.dto.AvanceFotografiaDTO,com.boulder.boulder.entities.AvanceFotografia)" class="member-name-link">aplicarDetalle(AvanceFotografiaDTO, AvanceFotografia)</a> - Method in class com.boulder.boulder.services.<a href="com/boulder/boulder/services/AvanceFotografiaServiceImpl.html" title="class in com.boulder.boulder.services">AvanceFotografiaServiceImpl</a></dt>
@@ -1888,9 +1897,7 @@ loadScripts(document, 'script');</script>
 <h2 class="title" id="I:H">H</h2>
 <dl class="index">
 <dt><a href="com/boulder/boulder/config/GlobalExceptionHandler.html#handleAccessDenied(org.springframework.security.access.AccessDeniedException)" class="member-name-link">handleAccessDenied(AccessDeniedException)</a> - Method in class com.boulder.boulder.config.<a href="com/boulder/boulder/config/GlobalExceptionHandler.html" title="class in com.boulder.boulder.config">GlobalExceptionHandler</a></dt>
-<dd>
-<div class="block">Falta de permisos -&gt; 403.</div>
-</dd>
+<dd>&nbsp;</dd>
 <dt><a href="com/boulder/boulder/config/GlobalExceptionHandler.html#handleBadRequest(java.lang.RuntimeException,org.springframework.web.context.request.WebRequest)" class="member-name-link">handleBadRequest(RuntimeException, WebRequest)</a> - Method in class com.boulder.boulder.config.<a href="com/boulder/boulder/config/GlobalExceptionHandler.html" title="class in com.boulder.boulder.config">GlobalExceptionHandler</a></dt>
 <dd>
 <div class="block">Argumentos inválidos de negocio -&gt; 400.</div>
@@ -1902,6 +1909,10 @@ loadScripts(document, 'script');</script>
 <dt><a href="com/boulder/boulder/config/GlobalExceptionHandler.html#handleIntegrity(org.springframework.dao.DataIntegrityViolationException,org.springframework.web.context.request.WebRequest)" class="member-name-link">handleIntegrity(DataIntegrityViolationException, WebRequest)</a> - Method in class com.boulder.boulder.config.<a href="com/boulder/boulder/config/GlobalExceptionHandler.html" title="class in com.boulder.boulder.config">GlobalExceptionHandler</a></dt>
 <dd>
 <div class="block">Violación de integridad (FK, unique, check) -&gt; 409.</div>
+</dd>
+<dt><a href="com/boulder/boulder/config/GlobalExceptionHandler.html#handleNoLegible(org.springframework.http.converter.HttpMessageNotReadableException,org.springframework.web.context.request.WebRequest)" class="member-name-link">handleNoLegible(HttpMessageNotReadableException, WebRequest)</a> - Method in class com.boulder.boulder.config.<a href="com/boulder/boulder/config/GlobalExceptionHandler.html" title="class in com.boulder.boulder.config">GlobalExceptionHandler</a></dt>
+<dd>
+<div class="block">Cuerpo que no se puede leer (JSON roto, tipo equivocado) -&gt; 400.</div>
 </dd>
 <dt><a href="com/boulder/boulder/config/GlobalExceptionHandler.html#handleNotFound(jakarta.persistence.EntityNotFoundException,org.springframework.web.context.request.WebRequest)" class="member-name-link">handleNotFound(EntityNotFoundException, WebRequest)</a> - Method in class com.boulder.boulder.config.<a href="com/boulder/boulder/config/GlobalExceptionHandler.html" title="class in com.boulder.boulder.config">GlobalExceptionHandler</a></dt>
 <dd>

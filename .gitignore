@@ -46,3 +46,12 @@ out/
 # Credenciales locales: nunca se versionan
 /src/main/resources/application-local.properties
 .env
+
+# Respaldos locales de la base (scripts/mantenimiento/respaldo_bd.sh)
+/respaldos/
+
+# Construcción con Maven
+/target/
+
+# Variables de entorno reales del servidor
+/deploy/boulder.env

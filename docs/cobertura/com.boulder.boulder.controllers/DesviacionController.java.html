@@ -50,8 +50,8 @@ import com.boulder.boulder.services.DesviacionService;
     @GetMapping(&quot;/sondaje&quot;)
     public ResponseEntity&lt;List&lt;DesviacionSondajeDTO&gt;&gt; porSondaje(
             @RequestParam(value = &quot;codigo&quot;, required = false) String codigo) {
-<span class="nc" id="L53">        log.info(&quot;HTTP GET - Evolución de desviación por sondaje. Filtro: {}&quot;, codigo);</span>
-<span class="nc" id="L54">        return ResponseEntity.ok(desviacionService.evolucionPorSondaje(codigo));</span>
+<span class="fc" id="L53">        log.info(&quot;HTTP GET - Evolución de desviación por sondaje. Filtro: {}&quot;, codigo);</span>
+<span class="fc" id="L54">        return ResponseEntity.ok(desviacionService.evolucionPorSondaje(codigo));</span>
     }
 
     /**
