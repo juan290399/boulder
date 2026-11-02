@@ -53,6 +53,19 @@ class HojaQuicklogIT {
     }
 
     @Test
+    @DisplayName("Los códigos de los diccionarios salen sin el relleno de char(n)")
+    void codigosSinRelleno() {
+        HojaQuicklog h = servicio.generar(sondajeConQuicklog());
+
+        assertThat(h.tramos()).allSatisfy(t -> {
+            assertThat(t.lito()).doesNotEndWith(" ");
+            if (t.ensambleAlteracion() != null) {
+                assertThat(t.ensambleAlteracion()).doesNotContain(" ");
+            }
+        });
+    }
+
+    @Test
     @DisplayName("Cualquier sesión descarga el Excel")
     void excel() throws Exception {
         byte[] libro = mvc.perform(get("/api/reportes/quicklog/excel").param("sondajeId", sondajeConQuicklog().toString()))

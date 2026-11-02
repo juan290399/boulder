@@ -15,7 +15,7 @@ import com.boulder.boulder.reportes.HojaQuicklog.Tramo;
 public class HojaQuicklogRepository {
 
     private static final String CABECERA = """
-            SELECT s.codigo, p.nombre AS ubicacion, m.codigo AS maquina,
+            SELECT rtrim(s.codigo) AS codigo, p.nombre AS ubicacion, rtrim(m.codigo) AS maquina,
                    coalesce(s.azimut_setup, ps.azimut) AS azimut,
                    coalesce(s.inclinacion_setup, ps.inclinacion) AS dip,
                    c.norte, c.este, c.elevacion,
@@ -29,13 +29,13 @@ public class HojaQuicklogRepository {
             """;
 
     private static final String TRAMOS = """
-            SELECT q.fecha, q.desde, q.hasta, q.longitud, lit.codigo AS lito,
-                   nullif(concat_ws('-', alt1.codigo, alt2.codigo), '') AS alteracion,
-                   nullif(concat_ws('-', aso1.codigo, aso2.codigo, aso3.codigo), '') AS ensamble,
-                   nullif(concat_ws('-', min1.codigo, min2.codigo, min3.codigo), '') AS mineralizacion,
+            SELECT q.fecha, q.desde, q.hasta, q.longitud, rtrim(lit.codigo) AS lito,
+                   nullif(concat_ws('-', rtrim(alt1.codigo), rtrim(alt2.codigo)), '') AS alteracion,
+                   nullif(concat_ws('-', rtrim(aso1.codigo), rtrim(aso2.codigo), rtrim(aso3.codigo)), '') AS ensamble,
+                   nullif(concat_ws('-', rtrim(min1.codigo), rtrim(min2.codigo), rtrim(min3.codigo)), '') AS mineralizacion,
                    q.pc_py, q.pc_cu, q.pc_mo,
-                   nullif(concat_ws('-', est1.codigo, est2.codigo, est3.codigo), '') AS estilo,
-                   zona.codigo AS zona, q.comentarios, q.geologo
+                   nullif(concat_ws('-', rtrim(est1.codigo), rtrim(est2.codigo), rtrim(est3.codigo)), '') AS estilo,
+                   rtrim(zona.codigo) AS zona, q.comentarios, q.geologo
               FROM logueo.iquicklog q
               LEFT JOIN geologia.lit_diccionario lit ON lit.id = q.lito_id
               LEFT JOIN geologia.alt_diccionario alt1 ON alt1.id = q.alt_tipo_1_id
