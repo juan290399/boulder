@@ -45,7 +45,8 @@ public class ReportePeriodoService {
 <span class="fc bfc" id="L45" title="All 2 branches covered.">        if (ChronoUnit.DAYS.between(inicio, fin) + 1 &gt; MAX_DIAS) {</span>
 <span class="fc" id="L46">            throw new IllegalArgumentException(&quot;El periodo pasa de &quot; + MAX_DIAS + &quot; días&quot;);</span>
         }
-<span class="fc" id="L48">        return ReportePeriodo.de(inicio, fin, repositorio.porSondaje(inicio, fin), repositorio.porDia(inicio, fin));</span>
+<span class="fc" id="L48">        return ReportePeriodo.de(inicio, fin, repositorio.porSondaje(inicio, fin), repositorio.porDia(inicio, fin),</span>
+<span class="fc" id="L49">                repositorio.desvios(inicio, fin));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

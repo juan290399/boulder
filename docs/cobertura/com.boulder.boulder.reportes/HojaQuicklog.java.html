@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HojaQuicklog.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.reportes</a> &gt; <span class="el_source">HojaQuicklog.java</span></div><h1>HojaQuicklog.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.reportes;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+
+import com.google.common.collect.ImmutableList;
+
+/**
+ * Hoja de registro de quicklog de un sondaje: cabecera del sondaje y un renglón por tramo.
+ *
+ * @param cabecera datos del sondaje
+ * @param tramos   tramos por profundidad
+ */
+<span class="fc" id="L17">public record HojaQuicklog(Cabecera cabecera, List&lt;Tramo&gt; tramos) {</span>
+
+    /** Datos del sondaje que encabezan la hoja. */
+<span class="fc" id="L20">    public record Cabecera(String sondaje, String ubicacion, String maquina, Double azimut, Double dip,</span>
+            Double norte, Double este, Double cota, Double profundidadProgramada) {
+    }
+
+    /** Un tramo logueado; los códigos múltiples van unidos con guion. */
+<span class="fc" id="L25">    public record Tramo(LocalDate fecha, BigDecimal desde, BigDecimal hasta, BigDecimal longitud, String lito,</span>
+            String alteracion, String ensambleAlteracion, String mineralizacion, BigDecimal pcPy, BigDecimal pcCu,
+            BigDecimal pcMo, String estilo, String zona, String comentario, String geologo) {
+    }
+
+    /**
+     * @param cabecera datos del sondaje
+     * @param tramos   tramos en cualquier orden
+     * @return la hoja con los tramos ordenados por profundidad
+     */
+    public static HojaQuicklog de(Cabecera cabecera, List&lt;Tramo&gt; tramos) {
+<span class="fc" id="L36">        return new HojaQuicklog(cabecera, tramos.stream()</span>
+<span class="fc" id="L37">                .sorted(Comparator.comparing(Tramo::desde))</span>
+<span class="fc" id="L38">                .collect(ImmutableList.toImmutableList()));</span>
+    }
+
+    /** Geólogos que loguearon el sondaje, en el orden en que aparecen. */
+    public List&lt;String&gt; geologos() {
+<span class="fc" id="L43">        return tramos.stream().map(Tramo::geologo).filter(Objects::nonNull).distinct().toList();</span>
+    }
+
+    public BigDecimal metrosLogueados() {
+<span class="fc" id="L47">        return tramos.stream().map(Tramo::longitud).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

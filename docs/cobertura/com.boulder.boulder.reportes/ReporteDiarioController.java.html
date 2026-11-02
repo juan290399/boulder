@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.boulder.boulder.services.FrenteAvanceService;
+
 /**
  * Reporte diario consolidado (pantalla P11). Lo consulta cualquier usuario
  * autenticado, incluida la gerencia con el rol VISITANTE.
@@ -21,31 +23,33 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(&quot;/api/reportes/diario&quot;)
 public class ReporteDiarioController {
 
-<span class="fc" id="L24">    private static final MediaType XLSX =</span>
-<span class="fc" id="L25">            MediaType.parseMediaType(&quot;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&quot;);</span>
+<span class="fc" id="L26">    private static final MediaType XLSX =</span>
+<span class="fc" id="L27">            MediaType.parseMediaType(&quot;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&quot;);</span>
 
     private final ReporteDiarioService servicio;
+    private final FrenteAvanceService frente;
 
-<span class="fc" id="L29">    public ReporteDiarioController(ReporteDiarioService servicio) {</span>
-<span class="fc" id="L30">        this.servicio = servicio;</span>
-<span class="fc" id="L31">    }</span>
+<span class="fc" id="L32">    public ReporteDiarioController(ReporteDiarioService servicio, FrenteAvanceService frente) {</span>
+<span class="fc" id="L33">        this.servicio = servicio;</span>
+<span class="fc" id="L34">        this.frente = frente;</span>
+<span class="fc" id="L35">    }</span>
 
     /** @param fecha día en formato ISO ({@code 2026-09-07}); hoy si se omite */
     @GetMapping
     public ReporteDiario ver(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
-<span class="fc" id="L36">        return servicio.generar(fecha);</span>
+<span class="fc" id="L40">        return servicio.generar(fecha);</span>
     }
 
     /** El mismo reporte como libro de Excel para descargar. */
     @GetMapping(&quot;/excel&quot;)
     public ResponseEntity&lt;byte[]&gt; excel(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha)
             throws IOException {
-<span class="fc" id="L43">        ReporteDiario r = servicio.generar(fecha);</span>
-<span class="fc" id="L44">        return ResponseEntity.ok()</span>
-<span class="fc" id="L45">                .contentType(XLSX)</span>
-<span class="fc" id="L46">                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()</span>
-<span class="fc" id="L47">                        .filename(&quot;reporte_diario_&quot; + r.fecha() + &quot;.xlsx&quot;).build().toString())</span>
-<span class="fc" id="L48">                .body(ReporteDiarioExcel.generar(r));</span>
+<span class="fc" id="L47">        ReporteDiario r = servicio.generar(fecha);</span>
+<span class="fc" id="L48">        return ResponseEntity.ok()</span>
+<span class="fc" id="L49">                .contentType(XLSX)</span>
+<span class="fc" id="L50">                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()</span>
+<span class="fc" id="L51">                        .filename(&quot;reporte_diario_&quot; + r.fecha() + &quot;.xlsx&quot;).build().toString())</span>
+<span class="fc" id="L52">                .body(ReporteDiarioExcel.generar(r, frente.consultar(false)));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
