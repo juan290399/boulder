@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReportePeriodo.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.reportes</a> &gt; <span class="el_source">ReportePeriodo.java</span></div><h1>ReportePeriodo.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.reportes;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import com.boulder.boulder.reportes.ReporteDiario.FilaSondaje;
+import com.google.common.collect.ImmutableList;
+
+/**
+ * Reporte consolidado de un periodo (semanal, mensual o cualquier rango).
+ *
+ * @param desde          primer día, incluido
+ * @param hasta          último día, incluido
+ * @param sondajes       actividad acumulada por sondaje, ordenada por código
+ * @param dias           una fila por día del periodo, también los días sin actividad
+ * @param totalPerforado metros perforados en el periodo
+ * @param totalLogueado  metros con logueo geológico
+ * @param totalCajas     cajas recibidas en el almacén
+ * @param totalMuestras  muestras registradas
+ */
+<span class="fc" id="L27">public record ReportePeriodo(LocalDate desde, LocalDate hasta, List&lt;FilaSondaje&gt; sondajes, List&lt;FilaDia&gt; dias,</span>
+        BigDecimal totalPerforado, BigDecimal totalLogueado, int totalCajas, int totalMuestras) {
+
+    /** Actividad de la campaña en un día. */
+<span class="fc" id="L31">    public record FilaDia(LocalDate fecha, BigDecimal perforado, BigDecimal logueado, int cajas, int muestras) {</span>
+
+        static FilaDia vacia(LocalDate fecha) {
+<span class="fc" id="L34">            return new FilaDia(fecha, BigDecimal.ZERO, BigDecimal.ZERO, 0, 0);</span>
+        }
+    }
+
+    /**
+     * Ordena los sondajes por código, completa los días sin actividad y calcula los totales.
+     *
+     * @param desde primer día, incluido
+     * @param hasta último día, incluido
+     * @param sondajes actividad por sondaje, en cualquier orden
+     * @param dias actividad por día; los días que faltan quedan en cero
+     * @return el reporte inmutable
+     */
+    public static ReportePeriodo de(LocalDate desde, LocalDate hasta, List&lt;FilaSondaje&gt; sondajes, List&lt;FilaDia&gt; dias) {
+<span class="fc" id="L48">        List&lt;FilaSondaje&gt; ordenadas = sondajes.stream()</span>
+<span class="fc" id="L49">                .sorted(Comparator.comparing(FilaSondaje::codigo))</span>
+<span class="fc" id="L50">                .collect(ImmutableList.toImmutableList());</span>
+<span class="fc" id="L51">        Map&lt;LocalDate, FilaDia&gt; porFecha = dias.stream()</span>
+<span class="pc" id="L52">                .collect(Collectors.toMap(FilaDia::fecha, Function.identity(), (a, b) -&gt; a));</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">        List&lt;FilaDia&gt; completos = Stream.iterate(desde, d -&gt; !d.isAfter(hasta), d -&gt; d.plusDays(1))</span>
+<span class="fc" id="L54">                .map(d -&gt; porFecha.getOrDefault(d, FilaDia.vacia(d)))</span>
+<span class="fc" id="L55">                .collect(ImmutableList.toImmutableList());</span>
+<span class="fc" id="L56">        return new ReportePeriodo(desde, hasta, ordenadas, completos,</span>
+<span class="fc" id="L57">                ordenadas.stream().map(FilaSondaje::perforado).reduce(BigDecimal.ZERO, BigDecimal::add),</span>
+<span class="fc" id="L58">                ordenadas.stream().map(FilaSondaje::logueado).reduce(BigDecimal.ZERO, BigDecimal::add),</span>
+<span class="fc" id="L59">                ordenadas.stream().mapToInt(FilaSondaje::cajas).sum(),</span>
+<span class="fc" id="L60">                ordenadas.stream().mapToInt(FilaSondaje::muestras).sum());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

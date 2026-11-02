@@ -98,7 +98,7 @@ import jakarta.persistence.PersistenceContext;
     /** Cabecera común a las seis hojas: sondaje, fecha y turno. */
     private UUID cabecera(Fila f, AvanceOperativo e) {
 <span class="fc" id="L100">        UUID sondajeId = f.sondajeOVarios(&quot;sondaje_codigo&quot;);</span>
-<span class="fc" id="L101">        e.setSondajeCodigo(f.texto(&quot;sondaje_codigo&quot;, 30));</span>
+<span class="fc" id="L101">        e.setSondajeCodigo(f.codigoSondaje(sondajeId, &quot;sondaje_codigo&quot;));</span>
 <span class="fc" id="L102">        e.setFecha(f.fechaReq(&quot;fecha&quot;));</span>
 <span class="fc" id="L103">        e.setTurno(f.opcion(&quot;turno&quot;, false, &quot;dia&quot;, &quot;noche&quot;));</span>
 <span class="fc" id="L104">        e.setObservaciones(f.texto(&quot;observaciones&quot;));</span>

@@ -100,7 +100,7 @@ El detalle por paquete está en el Javadoc.
 
 ## Pruebas (TDD)
 
-192 pruebas en 25 clases: unitarias con JUnit y Mockito, de la capa web con MockMvc
+282 pruebas en 34 clases (199 unitarias, 21 web y 62 de integración): unitarias con JUnit y Mockito, de la capa web con MockMvc
 y de integración contra PostgreSQL (cada una se deshace al terminar). El historial
 muestra el ciclo: un commit `test(…) (rojo)` con la prueba que falla y el siguiente
 `feat(…) (verde)` con lo que la hace pasar.
@@ -109,10 +109,10 @@ muestra el ciclo: un commit `test(…) (rojo)` con la prueba que falla y el sigu
 
 | Cobertura (JaCoCo) | |
 |---|---|
-| Líneas | 55.7 % |
-| Ramas | 45.4 % |
-| Métodos | 57.7 % |
-| Clases | 94.5 % |
+| Líneas | 64.5 % |
+| Ramas | 58.2 % |
+| Métodos | 64.2 % |
+| Clases | 96.6 % |
 
 ```bash
 ./gradlew test jacocoTestReport
