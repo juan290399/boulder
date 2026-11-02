@@ -87,6 +87,22 @@
     </div>
   </div>
 
+  @if (r.porMaquina.length) {
+    <div class="panel">
+      <div class="panel__head"><h2 class="panel__title">Perforado por máquina</h2></div>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Máquina</th><th class="num">Perforado (m)</th></tr></thead>
+          <tbody>
+            @for (m of r.porMaquina; track m.maquina) {
+              <tr><td class="mono">{{ m.maquina ?? 'Sin máquina' }}</td><td class="num">{{ m.metros | number:'1.2-2' }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
   <div class="panel">
     <div class="panel__head"><h2 class="panel__title">Campaña al {{ r.fecha }}</h2></div>
     @if (!r.campania.length) {
@@ -119,4 +135,31 @@
       </div>
     }
   </div>
+
+  @if (r.mensual.meses.length) {
+    <div class="panel">
+      <div class="panel__head"><h2 class="panel__title">Metros perforados por mes</h2></div>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr><th>Sondaje</th>
+              @for (mes of r.mensual.meses; track mes) { <th class="num">{{ mes }}</th> }
+            </tr>
+          </thead>
+          <tbody>
+            @for (f of r.mensual.filas; track f.codigo) {
+              <tr>
+                <td class="mono">{{ f.codigo }}</td>
+                @for (m of f.metros; track $index) { <td class="num">{{ m ? (m | number:'1.1-1') : '' }}</td> }
+              </tr>
+            }
+            <tr class="total">
+              <td>Total</td>
+              @for (t of r.mensual.totales; track $index) { <td class="num">{{ t | number:'1.1-1' }}</td> }
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
 }
