@@ -39,6 +39,9 @@ export class ReporteDiarioPage implements OnInit {
     return serie.map(p => ({ ...p, alto: (p.metros / max) * 100 }));
   });
 
+  readonly totalCampania = computed(() =>
+    (this.reporte()?.campania ?? []).reduce((suma, c) => suma + c.avance, 0));
+
   ngOnInit(): void {
     this.cargar();
   }
