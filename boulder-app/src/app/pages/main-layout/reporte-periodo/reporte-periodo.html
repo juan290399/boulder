@@ -91,6 +91,34 @@
   </div>
 
   <div class="panel">
+    <div class="panel__head"><h2 class="panel__title">Desvíos del periodo</h2></div>
+    @if (!r.desvios.length) {
+      <div class="empty-state"><i class="bi bi-compass"></i><p>Sin mediciones de desvío en el periodo.</p></div>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr><th>Fecha</th><th>Sondaje</th><th class="num">Profundidad (m)</th>
+              <th class="num">Desvío total (°)</th><th class="num">Separación (m)</th><th>Decisión</th></tr>
+          </thead>
+          <tbody>
+            @for (d of r.desvios; track $index) {
+              <tr>
+                <td class="mono">{{ d.fecha }}</td>
+                <td class="mono">{{ d.sondaje }}</td>
+                <td class="num">{{ d.profundidad | number:'1.1-1' }}</td>
+                <td class="num">{{ d.desvTotal | number:'1.2-2' }}</td>
+                <td class="num" [class.fuera]="(d.desvMetros ?? 0) > toleranciaMetros">{{ d.desvMetros | number:'1.2-2' }}</td>
+                <td>{{ d.decision }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  <div class="panel">
     <div class="panel__head"><h2 class="panel__title">Por día</h2></div>
     <div class="table-scroll">
       <table class="data-table">

@@ -36,12 +36,22 @@ export interface FilaDiaReporte {
   muestras: number;
 }
 
+export interface FilaDesvioReporte {
+  sondaje: string;
+  profundidad: number | null;
+  fecha: string;
+  desvTotal: number | null;
+  desvMetros: number | null;
+  decision: string | null;
+}
+
 /** Espejo del record `ReportePeriodo` del backend. */
 export interface ReportePeriodo {
   desde: string;
   hasta: string;
   sondajes: FilaSondajeReporte[];
   dias: FilaDiaReporte[];
+  desvios: FilaDesvioReporte[];
   totalPerforado: number;
   totalLogueado: number;
   totalCajas: number;
