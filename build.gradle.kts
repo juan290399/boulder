@@ -45,7 +45,7 @@ dependencies {
 	implementation("org.apache.commons:commons-lang3:3.18.0")
 	implementation("commons-io:commons-io:2.21.0")
 
-	implementation("org.postgresql:postgresql:42.6.0")
+	implementation("org.postgresql:postgresql")
     implementation("jakarta.validation:jakarta.validation-api:3.0.2")
 
 	compileOnly("org.projectlombok:lombok")
