@@ -3,6 +3,8 @@
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,7 +12,11 @@ import java.util.Map;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.boulder.boulder.reportes.ReporteDiario.CeldaMensual;
+import com.boulder.boulder.reportes.ReporteDiario.FilaCampania;
+import com.boulder.boulder.reportes.ReporteDiario.FilaMaquina;
 import com.boulder.boulder.reportes.ReporteDiario.FilaSondaje;
+import com.boulder.boulder.reportes.ReportePeriodo.FilaDesvio;
 import com.boulder.boulder.reportes.ReportePeriodo.FilaDia;
 
 /**
@@ -65,16 +71,16 @@ public class ReporteDiarioRepository {
 
     private final JdbcTemplate jdbc;
 
-<span class="fc" id="L68">    public ReporteDiarioRepository(JdbcTemplate jdbc) {</span>
-<span class="fc" id="L69">        this.jdbc = jdbc;</span>
-<span class="fc" id="L70">    }</span>
+<span class="fc" id="L74">    public ReporteDiarioRepository(JdbcTemplate jdbc) {</span>
+<span class="fc" id="L75">        this.jdbc = jdbc;</span>
+<span class="fc" id="L76">    }</span>
 
     /**
      * @param fecha día consultado
      * @return actividad por sondaje en el día, sin orden garantizado
      */
     public List&lt;FilaSondaje&gt; porSondaje(LocalDate fecha) {
-<span class="fc" id="L77">        return porSondaje(fecha, fecha);</span>
+<span class="fc" id="L83">        return porSondaje(fecha, fecha);</span>
     }
 
     /**
@@ -83,12 +89,12 @@ public class ReporteDiarioRepository {
      * @return actividad acumulada por sondaje en el periodo, sin orden garantizado
      */
     public List&lt;FilaSondaje&gt; porSondaje(LocalDate desde, LocalDate hasta) {
-<span class="fc" id="L86">        return jdbc.query(POR_SONDAJE, (rs, i) -&gt; new FilaSondaje(</span>
-<span class="fc" id="L87">                rs.getString(&quot;codigo&quot;),</span>
-<span class="fc" id="L88">                rs.getBigDecimal(&quot;perforado&quot;),</span>
-<span class="fc" id="L89">                rs.getBigDecimal(&quot;logueado&quot;),</span>
-<span class="fc" id="L90">                rs.getInt(&quot;cajas&quot;),</span>
-<span class="fc" id="L91">                rs.getInt(&quot;muestras&quot;)), rango(desde, hasta));</span>
+<span class="fc" id="L92">        return jdbc.query(POR_SONDAJE, (rs, i) -&gt; new FilaSondaje(</span>
+<span class="fc" id="L93">                rs.getString(&quot;codigo&quot;),</span>
+<span class="fc" id="L94">                rs.getBigDecimal(&quot;perforado&quot;),</span>
+<span class="fc" id="L95">                rs.getBigDecimal(&quot;logueado&quot;),</span>
+<span class="fc" id="L96">                rs.getInt(&quot;cajas&quot;),</span>
+<span class="fc" id="L97">                rs.getInt(&quot;muestras&quot;)), rango(desde, hasta));</span>
     }
 
     /**
@@ -97,19 +103,94 @@ public class ReporteDiarioRepository {
      * @return actividad por día; los días sin partes no aparecen
      */
     public List&lt;FilaDia&gt; porDia(LocalDate desde, LocalDate hasta) {
-<span class="fc" id="L100">        return jdbc.query(POR_DIA, (rs, i) -&gt; new FilaDia(</span>
-<span class="fc" id="L101">                rs.getDate(&quot;fecha&quot;).toLocalDate(),</span>
-<span class="fc" id="L102">                rs.getBigDecimal(&quot;perforado&quot;),</span>
-<span class="fc" id="L103">                rs.getBigDecimal(&quot;logueado&quot;),</span>
-<span class="fc" id="L104">                rs.getInt(&quot;cajas&quot;),</span>
-<span class="fc" id="L105">                rs.getInt(&quot;muestras&quot;)), rango(desde, hasta));</span>
+<span class="fc" id="L106">        return jdbc.query(POR_DIA, (rs, i) -&gt; new FilaDia(</span>
+<span class="fc" id="L107">                rs.getDate(&quot;fecha&quot;).toLocalDate(),</span>
+<span class="fc" id="L108">                rs.getBigDecimal(&quot;perforado&quot;),</span>
+<span class="fc" id="L109">                rs.getBigDecimal(&quot;logueado&quot;),</span>
+<span class="fc" id="L110">                rs.getInt(&quot;cajas&quot;),</span>
+<span class="fc" id="L111">                rs.getInt(&quot;muestras&quot;)), rango(desde, hasta));</span>
+    }
+
+    /**
+     * @param desde primer día, incluido
+     * @param hasta último día, incluido
+     * @return mediciones de desvío con fecha en el periodo
+     */
+    public List&lt;FilaDesvio&gt; desvios(LocalDate desde, LocalDate hasta) {
+<span class="fc" id="L120">        return jdbc.query(&quot;&quot;&quot;</span>
+                SELECT sondaje_codigo, profundidad, fecha_medicion, desv_total, desv_metros, decision
+                  FROM operacional.vw_desviacion_por_sondaje
+                 WHERE fecha_medicion BETWEEN ? AND ?
+<span class="fc" id="L124">                &quot;&quot;&quot;, (rs, i) -&gt; new FilaDesvio(</span>
+<span class="fc" id="L125">                rs.getString(&quot;sondaje_codigo&quot;),</span>
+<span class="fc" id="L126">                rs.getBigDecimal(&quot;profundidad&quot;),</span>
+<span class="fc" id="L127">                rs.getDate(&quot;fecha_medicion&quot;).toLocalDate(),</span>
+<span class="fc" id="L128">                rs.getObject(&quot;desv_total&quot;, Double.class),</span>
+<span class="fc" id="L129">                rs.getObject(&quot;desv_metros&quot;, Double.class),</span>
+<span class="fc" id="L130">                rs.getString(&quot;decision&quot;)), Date.valueOf(desde), Date.valueOf(hasta));</span>
+    }
+
+    /**
+     * @param fecha último día considerado
+     * @return sondajes con partes de perforación hasta {@code fecha}, sin orden garantizado
+     */
+    public List&lt;FilaCampania&gt; campania(LocalDate fecha) {
+<span class="fc" id="L138">        return jdbc.query(&quot;&quot;&quot;</span>
+                SELECT s.codigo, rtrim(m.codigo) AS maquina,
+                       coalesce(s.fecha_inicio, min(a.fecha)) AS inicio,
+                       CASE WHEN s.fecha_fin &lt;= ? THEN s.fecha_fin ELSE max(a.fecha) END AS fin,
+                       sum(a.avance) AS avance,
+                       CASE WHEN s.fecha_fin &lt;= ? THEN 'Finalizado' ELSE 'En proceso' END AS estado
+                  FROM operacional.prf_avance a
+                  JOIN operacional.prf_sondaje s ON s.id = a.sondaje_id
+                  LEFT JOIN operacional.prf_maquina m ON m.id = s.maquina_id
+                 WHERE a.fecha &lt;= ?
+                 GROUP BY s.id, s.codigo, m.codigo, s.fecha_inicio, s.fecha_fin
+                &quot;&quot;&quot;, (rs, i) -&gt; {
+<span class="fc" id="L150">            LocalDate inicio = rs.getDate(&quot;inicio&quot;).toLocalDate();</span>
+<span class="fc" id="L151">            LocalDate fin = rs.getDate(&quot;fin&quot;).toLocalDate();</span>
+<span class="fc" id="L152">            return new FilaCampania(rs.getString(&quot;codigo&quot;), rs.getString(&quot;maquina&quot;), inicio, fin,</span>
+<span class="fc" id="L153">                    ChronoUnit.DAYS.between(inicio, fin), rs.getBigDecimal(&quot;avance&quot;),</span>
+<span class="fc" id="L154">                    rs.getString(&quot;estado&quot;));</span>
+<span class="fc" id="L155">        }, Date.valueOf(fecha), Date.valueOf(fecha), Date.valueOf(fecha));</span>
+    }
+
+    /**
+     * @param fecha día consultado
+     * @return metros perforados en el día por máquina, sin orden garantizado
+     */
+    public List&lt;FilaMaquina&gt; porMaquina(LocalDate fecha) {
+<span class="fc" id="L163">        return jdbc.query(&quot;&quot;&quot;</span>
+                SELECT coalesce(rtrim(m.codigo), a.maquina_codigo) AS maquina, sum(a.avance) AS metros
+                  FROM operacional.prf_avance a
+                  LEFT JOIN operacional.prf_maquina m ON m.id = a.maquina_id
+                 WHERE a.fecha = ?
+                 GROUP BY 1
+<span class="fc" id="L169">                &quot;&quot;&quot;, (rs, i) -&gt; new FilaMaquina(rs.getString(&quot;maquina&quot;), rs.getBigDecimal(&quot;metros&quot;)),</span>
+<span class="fc" id="L170">                Date.valueOf(fecha));</span>
+    }
+
+    /**
+     * @param fecha último día considerado
+     * @return metros perforados por sondaje y por mes hasta {@code fecha}
+     */
+    public List&lt;CeldaMensual&gt; mensual(LocalDate fecha) {
+<span class="fc" id="L178">        return jdbc.query(&quot;&quot;&quot;</span>
+                SELECT s.codigo, date_trunc('month', a.fecha)::date AS mes, sum(a.avance) AS metros
+                  FROM operacional.prf_avance a
+                  JOIN operacional.prf_sondaje s ON s.id = a.sondaje_id
+                 WHERE a.fecha &lt;= ?
+                 GROUP BY s.codigo, 2
+<span class="fc" id="L184">                &quot;&quot;&quot;, (rs, i) -&gt; new CeldaMensual(rs.getString(&quot;codigo&quot;),</span>
+<span class="fc" id="L185">                YearMonth.from(rs.getDate(&quot;mes&quot;).toLocalDate()), rs.getBigDecimal(&quot;metros&quot;)),</span>
+<span class="fc" id="L186">                Date.valueOf(fecha));</span>
     }
 
     /** Los cuatro pares (desde, hasta) de las consultas por rango. */
     private static Object[] rango(LocalDate desde, LocalDate hasta) {
-<span class="fc" id="L110">        Date d = Date.valueOf(desde);</span>
-<span class="fc" id="L111">        Date h = Date.valueOf(hasta);</span>
-<span class="fc" id="L112">        return new Object[] {d, h, d, h, d, h, d, h};</span>
+<span class="fc" id="L191">        Date d = Date.valueOf(desde);</span>
+<span class="fc" id="L192">        Date h = Date.valueOf(hasta);</span>
+<span class="fc" id="L193">        return new Object[] {d, h, d, h, d, h, d, h};</span>
     }
 
     /**
@@ -118,14 +199,14 @@ public class ReporteDiarioRepository {
      * @return metros perforados por día; los días sin partes no aparecen
      */
     public Map&lt;LocalDate, BigDecimal&gt; perforadoPorDia(LocalDate desde, LocalDate hasta) {
-<span class="fc" id="L121">        Map&lt;LocalDate, BigDecimal&gt; r = new LinkedHashMap&lt;&gt;();</span>
-<span class="fc" id="L122">        jdbc.query(&quot;SELECT fecha, sum(avance) AS m FROM operacional.prf_avance &quot;</span>
+<span class="fc" id="L202">        Map&lt;LocalDate, BigDecimal&gt; r = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L203">        jdbc.query(&quot;SELECT fecha, sum(avance) AS m FROM operacional.prf_avance &quot;</span>
                         + &quot;WHERE fecha BETWEEN ? AND ? GROUP BY fecha ORDER BY fecha&quot;,
                 rs -&gt; {
-<span class="fc" id="L125">                    r.put(rs.getDate(&quot;fecha&quot;).toLocalDate(), rs.getBigDecimal(&quot;m&quot;));</span>
-<span class="fc" id="L126">                },</span>
-<span class="fc" id="L127">                Date.valueOf(desde), Date.valueOf(hasta));</span>
-<span class="fc" id="L128">        return r;</span>
+<span class="fc" id="L206">                    r.put(rs.getDate(&quot;fecha&quot;).toLocalDate(), rs.getBigDecimal(&quot;m&quot;));</span>
+<span class="fc" id="L207">                },</span>
+<span class="fc" id="L208">                Date.valueOf(desde), Date.valueOf(hasta));</span>
+<span class="fc" id="L209">        return r;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

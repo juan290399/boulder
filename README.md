@@ -39,7 +39,9 @@ El alcance comprometido en el APF2 está implementado: 15 requisitos funcionales
 | RF14 | Cargar datos desde plantillas Excel | CU21 | P10 |
 | RF15 | Generar reporte diario consolidado (Excel y PDF) | CU22 | P11 |
 
-Además: reporte de periodo (por sondaje y por día, hasta 92 días, Excel y PDF) y
+Reportes: el diario incluye el avance por máquina, el resumen de campaña, la matriz
+mensual y el estado de cada etapa de geología; el de periodo (hasta 92 días) suma
+los desvíos; la hoja de registro de quicklog sale por sondaje en Excel. Además,
 subida de logueo desde GeoLog fila por fila (204 si entra completa; 422 con las
 filas rechazadas, las demás quedan guardadas).
 
@@ -93,14 +95,14 @@ El detalle por paquete está en el Javadoc.
 | Librería | Dónde y para qué |
 |---|---|
 | Google Guava | Caché de intentos fallidos con expiración (`LimiteIntentosLogin`), caché de cuentas activas (`CuentasActivas`), estructura de catálogos memorizada, colecciones inmutables, `Preconditions` |
-| Apache POI | Importador de plantillas `.xlsx` y exportación de los reportes diario y de periodo a Excel |
+| Apache POI | Importador de plantillas `.xlsx` y exportación a Excel de los reportes diario y de periodo y de la hoja de registro de quicklog |
 | Apache Commons Lang | Normalización de códigos de sondaje en el importador (`CodigoSondaje`) y textos (`StringUtils`) |
 | Apache Commons IO | Nombre de archivo seguro de las fotos (`FilenameUtils`) |
 | Logback | Bitácora general y bitácora de seguridad separada |
 
 ## Pruebas (TDD)
 
-282 pruebas en 34 clases (199 unitarias, 21 web y 62 de integración): unitarias con JUnit y Mockito, de la capa web con MockMvc
+301 pruebas en 37 clases (214 unitarias, 21 web y 66 de integración): unitarias con JUnit y Mockito, de la capa web con MockMvc
 y de integración contra PostgreSQL (cada una se deshace al terminar). El historial
 muestra el ciclo: un commit `test(…) (rojo)` con la prueba que falla y el siguiente
 `feat(…) (verde)` con lo que la hace pasar.
@@ -109,10 +111,10 @@ muestra el ciclo: un commit `test(…) (rojo)` con la prueba que falla y el sigu
 
 | Cobertura (JaCoCo) | |
 |---|---|
-| Líneas | 64.5 % |
-| Ramas | 58.2 % |
-| Métodos | 64.2 % |
-| Clases | 96.6 % |
+| Líneas | 67.2 % |
+| Ramas | 60.4 % |
+| Métodos | 66.2 % |
+| Clases | 96.9 % |
 
 ```bash
 ./gradlew test jacocoTestReport
@@ -181,7 +183,7 @@ src/main/java/com/boulder/boulder/
   repositories/  DAO
   entities/ dto/ modelo
   dominio/       reglas puras
-  reportes/      reportes diario y de periodo (consulta, armado, Excel, API)
+  reportes/      reportes diario y de periodo, hoja de quicklog (consulta, armado, Excel, API)
   fotos/ eventos/
 src/test/java/   pruebas unitarias, web e integración
 boulder-app/     frontend Angular
