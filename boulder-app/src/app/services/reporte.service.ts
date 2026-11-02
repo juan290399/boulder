@@ -27,12 +27,25 @@ export interface FilaCampania {
   estado: string;
 }
 
+export interface FilaMaquina {
+  maquina: string | null;
+  metros: number;
+}
+
+export interface Mensual {
+  meses: string[];
+  filas: { codigo: string; metros: number[] }[];
+  totales: number[];
+}
+
 /** Espejo del record `ReporteDiario` del backend. */
 export interface ReporteDiario {
   fecha: string;
   sondajes: FilaSondajeReporte[];
   ultimosDias: PuntoSerie[];
   campania: FilaCampania[];
+  porMaquina: FilaMaquina[];
+  mensual: Mensual;
   totalPerforado: number;
   totalLogueado: number;
   totalCajas: number;
