@@ -5,6 +5,6 @@
  */
 export const environment = {
   production: true,
-  /** Base común de la API REST del backend Boulder. */
-  apiBase: 'http://localhost:8080/api',
+  /** Mismo origen: el jar de producción sirve la aplicación y el API. */
+  apiBase: '/api',
 };

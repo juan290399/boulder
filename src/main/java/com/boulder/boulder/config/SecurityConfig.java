@@ -154,6 +154,11 @@ public class SecurityConfig {
                 .requestMatchers("/api/operacional/**", "/api/logueo/**", "/api/importacion/**", "/api/fotos/**")
                     .access(SecurityConfig::escrituraPorRol)
 
+                // La aplicación Angular empaquetada en el jar (AplicacionWebConfig):
+                // el HTML y los archivos estáticos no llevan datos; los datos los
+                // pide la aplicación al API con su token.
+                .requestMatchers(SecurityConfig::esAplicacionWeb).permitAll()
+
                 .anyRequest().authenticated()
             )
             
@@ -162,6 +167,12 @@ public class SecurityConfig {
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
  
         return http.build();
+    }
+
+    /** Un GET que no va al API ni al monitoreo: la aplicación web o uno de sus archivos. */
+    private static boolean esAplicacionWeb(HttpServletRequest peticion) {
+        String ruta = peticion.getRequestURI().substring(peticion.getContextPath().length());
+        return "GET".equals(peticion.getMethod()) && !ruta.startsWith("/api/") && !ruta.startsWith("/actuator");
     }
 
     private static AuthorizationDecision escrituraPorRol(Supplier<? extends Authentication> autenticacion,
