@@ -3,6 +3,7 @@ package com.boulder.boulder.reportes;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.List;
 
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
@@ -12,6 +13,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import com.boulder.boulder.dto.FrenteAvanceDTO;
 import com.boulder.boulder.reportes.ReporteDiario.FilaCampania;
 import com.boulder.boulder.reportes.ReporteDiario.FilaSondaje;
 
@@ -38,6 +40,10 @@ public final class ReporteDiarioExcel {
      * @return el libro .xlsx listo para descargar
      * @throws IOException si no se puede escribir el libro
      */
+    public static byte[] generar(ReporteDiario r, List<FrenteAvanceDTO> frente) throws IOException {
+        return generar(r);
+    }
+
     public static byte[] generar(ReporteDiario r) throws IOException {
         try (XSSFWorkbook libro = new XSSFWorkbook(); ByteArrayOutputStream salida = new ByteArrayOutputStream()) {
             Sheet hoja = libro.createSheet(r.fecha().toString());
