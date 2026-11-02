@@ -37,11 +37,11 @@ class HojaQuicklogExcelTest {
     }
 
     @Test
-    @DisplayName("Los tramos salen por profundidad y la cabecera lista a los geólogos")
+    @DisplayName("Los tramos salen por profundidad y los geólogos en el orden en que aparecen")
     void orden() {
         HojaQuicklog h = hoja("x");
         assertThat(h.tramos().getFirst().desde()).isEqualByComparingTo("0");
-        assertThat(h.geologos()).containsExactly("Jimmy Velazco", "Yanely Roque");
+        assertThat(h.geologos()).containsExactly("Yanely Roque", "Jimmy Velazco");
         assertThat(h.metrosLogueados()).isEqualByComparingTo("15.00");
     }
 

@@ -2,7 +2,11 @@ package com.boulder.boulder.reportes;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * Hoja de registro de quicklog de un sondaje: cabecera del sondaje y un renglón por tramo.
@@ -23,15 +27,23 @@ public record HojaQuicklog(Cabecera cabecera, List<Tramo> tramos) {
             BigDecimal pcMo, String estilo, String zona, String comentario, String geologo) {
     }
 
+    /**
+     * @param cabecera datos del sondaje
+     * @param tramos   tramos en cualquier orden
+     * @return la hoja con los tramos ordenados por profundidad
+     */
     public static HojaQuicklog de(Cabecera cabecera, List<Tramo> tramos) {
-        return new HojaQuicklog(cabecera, tramos);
+        return new HojaQuicklog(cabecera, tramos.stream()
+                .sorted(Comparator.comparing(Tramo::desde))
+                .collect(ImmutableList.toImmutableList()));
     }
 
+    /** Geólogos que loguearon el sondaje, en el orden en que aparecen. */
     public List<String> geologos() {
-        return List.of();
+        return tramos.stream().map(Tramo::geologo).filter(Objects::nonNull).distinct().toList();
     }
 
     public BigDecimal metrosLogueados() {
-        return BigDecimal.ZERO;
+        return tramos.stream().map(Tramo::longitud).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
