@@ -131,44 +131,61 @@ public class SecurityConfig {
                 // Login (atendido por JwtAuthenticationFilter) y auto-registro.
 <span class="fc" id="L132">                .requestMatchers(&quot;/api/auth/**&quot;).permitAll()</span>
 
+                // Monitoreo: la salud la consulta el balanceador o el script de
+                // vigilancia sin sesión; el detalle y las métricas, solo ADMIN.
+<span class="fc" id="L136">                .requestMatchers(HttpMethod.GET, &quot;/actuator/health&quot;, &quot;/actuator/info&quot;).permitAll()</span>
+<span class="fc" id="L137">                .requestMatchers(&quot;/actuator/**&quot;).hasRole(&quot;ADMIN&quot;)</span>
+
                 // El catálogo de personal se lee desde los partes de perforación
                 // y de logueo para poblar sus desplegables, así que la lectura
                 // queda abierta a cualquier sesión. Va ANTES de la regla general
                 // porque la primera coincidencia es la que manda. Las escrituras
                 // caen en la regla de abajo y además llevan @PreAuthorize.
-<span class="fc" id="L139">                .requestMatchers(HttpMethod.GET, &quot;/api/base/empleados&quot;).authenticated()</span>
-<span class="fc" id="L140">                .requestMatchers(HttpMethod.GET, &quot;/api/base/empleados/**&quot;).authenticated()</span>
+<span class="fc" id="L144">                .requestMatchers(HttpMethod.GET, &quot;/api/base/empleados&quot;).authenticated()</span>
+<span class="fc" id="L145">                .requestMatchers(HttpMethod.GET, &quot;/api/base/empleados/**&quot;).authenticated()</span>
 
                 // Administración de cuentas, roles y datos maestros del esquema
                 // `base`. Con `authenticated()` a secas cualquier VISITANTE con
                 // token válido podía listar usuarios y desactivar cuentas: el
                 // guard del frontend no protege nada, la puerta real es esta.
-<span class="fc" id="L146">                .requestMatchers(&quot;/api/base/**&quot;).hasRole(&quot;ADMIN&quot;)</span>
+<span class="fc" id="L151">                .requestMatchers(&quot;/api/base/**&quot;).hasRole(&quot;ADMIN&quot;)</span>
 
                 // Lectura con cualquier sesión; escritura según el rol (PermisosEscritura).
-<span class="fc" id="L149">                .requestMatchers(&quot;/api/operacional/**&quot;, &quot;/api/logueo/**&quot;, &quot;/api/importacion/**&quot;, &quot;/api/fotos/**&quot;)</span>
-<span class="fc" id="L150">                    .access(SecurityConfig::escrituraPorRol)</span>
+<span class="fc" id="L154">                .requestMatchers(&quot;/api/operacional/**&quot;, &quot;/api/logueo/**&quot;, &quot;/api/importacion/**&quot;, &quot;/api/fotos/**&quot;)</span>
+<span class="fc" id="L155">                    .access(SecurityConfig::escrituraPorRol)</span>
 
-<span class="fc" id="L152">                .anyRequest().authenticated()</span>
+                // La aplicación Angular empaquetada en el jar (AplicacionWebConfig):
+                // el HTML y los archivos estáticos no llevan datos; los datos los
+                // pide la aplicación al API con su token.
+<span class="fc" id="L160">                .requestMatchers(SecurityConfig::esAplicacionWeb).permitAll()</span>
+
+<span class="fc" id="L162">                .anyRequest().authenticated()</span>
             )
             
-<span class="fc" id="L155">            .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)</span>
+<span class="fc" id="L165">            .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)</span>
             
-<span class="fc" id="L157">            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);</span>
+<span class="fc" id="L167">            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);</span>
  
-<span class="fc" id="L159">        return http.build();</span>
+<span class="fc" id="L169">        return http.build();</span>
+    }
+
+    /** Un GET o HEAD que no va al API ni al monitoreo: la aplicación web o uno de sus archivos. */
+    private static boolean esAplicacionWeb(HttpServletRequest peticion) {
+<span class="fc" id="L174">        String ruta = peticion.getRequestURI().substring(peticion.getContextPath().length());</span>
+<span class="fc bfc" id="L175" title="All 4 branches covered.">        boolean lectura = &quot;GET&quot;.equals(peticion.getMethod()) || &quot;HEAD&quot;.equals(peticion.getMethod());</span>
+<span class="pc bpc" id="L176" title="1 of 6 branches missed.">        return lectura &amp;&amp; !ruta.startsWith(&quot;/api/&quot;) &amp;&amp; !ruta.startsWith(&quot;/actuator&quot;);</span>
     }
 
     private static AuthorizationDecision escrituraPorRol(Supplier&lt;? extends Authentication&gt; autenticacion,
                                                          RequestAuthorizationContext contexto) {
-<span class="fc" id="L164">        Authentication a = autenticacion.get();</span>
-<span class="pc bpc" id="L165" title="2 of 6 branches missed.">        if (a == null || !a.isAuthenticated() || a instanceof AnonymousAuthenticationToken) {</span>
-<span class="fc" id="L166">            return new AuthorizationDecision(false);</span>
+<span class="fc" id="L181">        Authentication a = autenticacion.get();</span>
+<span class="pc bpc" id="L182" title="2 of 6 branches missed.">        if (a == null || !a.isAuthenticated() || a instanceof AnonymousAuthenticationToken) {</span>
+<span class="fc" id="L183">            return new AuthorizationDecision(false);</span>
         }
-<span class="fc" id="L168">        HttpServletRequest peticion = contexto.getRequest();</span>
-<span class="fc" id="L169">        String ruta = peticion.getRequestURI().substring(peticion.getContextPath().length());</span>
-<span class="fc" id="L170">        Set&lt;String&gt; roles = a.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toSet());</span>
-<span class="fc" id="L171">        return new AuthorizationDecision(PermisosEscritura.permite(peticion.getMethod(), ruta, roles));</span>
+<span class="fc" id="L185">        HttpServletRequest peticion = contexto.getRequest();</span>
+<span class="fc" id="L186">        String ruta = peticion.getRequestURI().substring(peticion.getContextPath().length());</span>
+<span class="fc" id="L187">        Set&lt;String&gt; roles = a.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toSet());</span>
+<span class="fc" id="L188">        return new AuthorizationDecision(PermisosEscritura.permite(peticion.getMethod(), ruta, roles));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

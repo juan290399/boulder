@@ -132,9 +132,7 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#handleAccessDenied(org.springframework.security.access.AccessDeniedException)" class="member-name-link">handleAccessDenied</a><wbr>(org.springframework.security.access.AccessDeniedException&nbsp;ex)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Falta de permisos -&gt; 403.</div>
-</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>org.springframework.http.ResponseEntity<wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;&gt;</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#handleBadRequest(java.lang.RuntimeException,org.springframework.web.context.request.WebRequest)" class="member-name-link">handleBadRequest</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/RuntimeException.html" title="class or interface in java.lang" class="external-link">RuntimeException</a>&nbsp;ex,
  org.springframework.web.context.request.WebRequest&nbsp;request)</code></div>
@@ -154,15 +152,21 @@ loadScripts(document, 'script');</script>
 <div class="block">Violación de integridad (FK, unique, check) -&gt; 409.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>org.springframework.http.ResponseEntity<wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#handleNotFound(jakarta.persistence.EntityNotFoundException,org.springframework.web.context.request.WebRequest)" class="member-name-link">handleNotFound</a><wbr>(jakarta.persistence.EntityNotFoundException&nbsp;ex,
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#handleNoLegible(org.springframework.http.converter.HttpMessageNotReadableException,org.springframework.web.context.request.WebRequest)" class="member-name-link">handleNoLegible</a><wbr>(org.springframework.http.converter.HttpMessageNotReadableException&nbsp;ex,
  org.springframework.web.context.request.WebRequest&nbsp;request)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Entidad no encontrada -&gt; 404.</div>
+<div class="block">Cuerpo que no se puede leer (JSON roto, tipo equivocado) -&gt; 400.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>org.springframework.http.ResponseEntity<wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#handleValidation(org.springframework.web.bind.MethodArgumentNotValidException,org.springframework.web.context.request.WebRequest)" class="member-name-link">handleValidation</a><wbr>(org.springframework.web.bind.MethodArgumentNotValidException&nbsp;ex,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#handleNotFound(jakarta.persistence.EntityNotFoundException,org.springframework.web.context.request.WebRequest)" class="member-name-link">handleNotFound</a><wbr>(jakarta.persistence.EntityNotFoundException&nbsp;ex,
  org.springframework.web.context.request.WebRequest&nbsp;request)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Entidad no encontrada -&gt; 404.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>org.springframework.http.ResponseEntity<wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#handleValidation(org.springframework.web.bind.MethodArgumentNotValidException,org.springframework.web.context.request.WebRequest)" class="member-name-link">handleValidation</a><wbr>(org.springframework.web.bind.MethodArgumentNotValidException&nbsp;ex,
+ org.springframework.web.context.request.WebRequest&nbsp;request)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Fallo de validación de <code>@Valid</code> sobre el cuerpo -&gt; 400.</div>
 </div>
 </div>
@@ -233,20 +237,21 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
+<section class="detail" id="handleNoLegible(org.springframework.http.converter.HttpMessageNotReadableException,org.springframework.web.context.request.WebRequest)">
+<h3>handleNoLegible</h3>
+<div class="member-signature"><span class="annotations">@ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+</span><span class="modifiers">public</span>&nbsp;<span class="return-type">org.springframework.http.ResponseEntity&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;&gt;</span>&nbsp;<span class="element-name">handleNoLegible</span><wbr><span class="parameters">(org.springframework.http.converter.HttpMessageNotReadableException&nbsp;ex,
+ org.springframework.web.context.request.WebRequest&nbsp;request)</span></div>
+<div class="block">Cuerpo que no se puede leer (JSON roto, tipo equivocado) -&gt; 400. El
+ mensaje del parser nombra clases internas, así que no se devuelve.</div>
+</section>
+</li>
+<li>
 <section class="detail" id="handleAccessDenied(org.springframework.security.access.AccessDeniedException)">
 <h3>handleAccessDenied</h3>
 <div class="member-signature"><span class="annotations">@ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
 </span><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">handleAccessDenied</span><wbr><span class="parameters">(org.springframework.security.access.AccessDeniedException&nbsp;ex)</span>
                         throws <span class="exceptions">org.springframework.security.access.AccessDeniedException</span></div>
-<div class="block">Falta de permisos -&gt; 403.
-
- <p>
- Debe declararse aparte: el resolutor de excepciones de MVC corre
- <em>antes</em> que el <code>ExceptionTranslationFilter</code> de Spring
- Security, así que sin este método el catch-all de abajo se tragaría el
- rechazo de <code>@PreAuthorize</code> y lo devolvería como 500. Relanzarla
- deja que la cadena de filtros la traduzca al 403 que corresponde.
- </p></div>
 <dl class="notes">
 <dt>Throws:</dt>
 <dd><code>org.springframework.security.access.AccessDeniedException</code></dd>
