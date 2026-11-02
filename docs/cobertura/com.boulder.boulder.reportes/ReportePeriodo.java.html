@@ -23,16 +23,31 @@ import com.google.common.collect.ImmutableList;
  * @param totalLogueado  metros con logueo geológico
  * @param totalCajas     cajas recibidas en el almacén
  * @param totalMuestras  muestras registradas
+ * @param desvios        mediciones de desvío del periodo, por fecha, sondaje y profundidad
  */
-<span class="fc" id="L27">public record ReportePeriodo(LocalDate desde, LocalDate hasta, List&lt;FilaSondaje&gt; sondajes, List&lt;FilaDia&gt; dias,</span>
-        BigDecimal totalPerforado, BigDecimal totalLogueado, int totalCajas, int totalMuestras) {
+<span class="fc" id="L28">public record ReportePeriodo(LocalDate desde, LocalDate hasta, List&lt;FilaSondaje&gt; sondajes, List&lt;FilaDia&gt; dias,</span>
+        BigDecimal totalPerforado, BigDecimal totalLogueado, int totalCajas, int totalMuestras,
+        List&lt;FilaDesvio&gt; desvios) {
 
     /** Actividad de la campaña en un día. */
-<span class="fc" id="L31">    public record FilaDia(LocalDate fecha, BigDecimal perforado, BigDecimal logueado, int cajas, int muestras) {</span>
+<span class="fc" id="L33">    public record FilaDia(LocalDate fecha, BigDecimal perforado, BigDecimal logueado, int cajas, int muestras) {</span>
 
         static FilaDia vacia(LocalDate fecha) {
-<span class="fc" id="L34">            return new FilaDia(fecha, BigDecimal.ZERO, BigDecimal.ZERO, 0, 0);</span>
+<span class="fc" id="L36">            return new FilaDia(fecha, BigDecimal.ZERO, BigDecimal.ZERO, 0, 0);</span>
         }
+    }
+
+    /** Medición de desvío: separación estimada contra el plan y decisión tomada. */
+<span class="fc" id="L41">    public record FilaDesvio(String sondaje, BigDecimal profundidad, LocalDate fecha, Double desvTotal,</span>
+            Double desvMetros, String decision) {
+    }
+
+    /** Separación en metros a partir de la cual el desvío pide atención (mismo corte que la pantalla P07). */
+    public static final double TOLERANCIA_METROS = 3.0;
+
+    /** Mediciones con más separación que la tolerancia de aviso. */
+    public long desviosFueraTolerancia() {
+<span class="pc bpc" id="L50" title="1 of 4 branches missed.">        return desvios.stream().filter(d -&gt; d.desvMetros() != null &amp;&amp; d.desvMetros() &gt; TOLERANCIA_METROS).count();</span>
     }
 
     /**
@@ -42,22 +57,29 @@ import com.google.common.collect.ImmutableList;
      * @param hasta último día, incluido
      * @param sondajes actividad por sondaje, en cualquier orden
      * @param dias actividad por día; los días que faltan quedan en cero
+     * @param desvios mediciones de desvío del periodo
      * @return el reporte inmutable
      */
-    public static ReportePeriodo de(LocalDate desde, LocalDate hasta, List&lt;FilaSondaje&gt; sondajes, List&lt;FilaDia&gt; dias) {
-<span class="fc" id="L48">        List&lt;FilaSondaje&gt; ordenadas = sondajes.stream()</span>
-<span class="fc" id="L49">                .sorted(Comparator.comparing(FilaSondaje::codigo))</span>
-<span class="fc" id="L50">                .collect(ImmutableList.toImmutableList());</span>
-<span class="fc" id="L51">        Map&lt;LocalDate, FilaDia&gt; porFecha = dias.stream()</span>
-<span class="pc" id="L52">                .collect(Collectors.toMap(FilaDia::fecha, Function.identity(), (a, b) -&gt; a));</span>
-<span class="fc bfc" id="L53" title="All 2 branches covered.">        List&lt;FilaDia&gt; completos = Stream.iterate(desde, d -&gt; !d.isAfter(hasta), d -&gt; d.plusDays(1))</span>
-<span class="fc" id="L54">                .map(d -&gt; porFecha.getOrDefault(d, FilaDia.vacia(d)))</span>
-<span class="fc" id="L55">                .collect(ImmutableList.toImmutableList());</span>
-<span class="fc" id="L56">        return new ReportePeriodo(desde, hasta, ordenadas, completos,</span>
-<span class="fc" id="L57">                ordenadas.stream().map(FilaSondaje::perforado).reduce(BigDecimal.ZERO, BigDecimal::add),</span>
-<span class="fc" id="L58">                ordenadas.stream().map(FilaSondaje::logueado).reduce(BigDecimal.ZERO, BigDecimal::add),</span>
-<span class="fc" id="L59">                ordenadas.stream().mapToInt(FilaSondaje::cajas).sum(),</span>
-<span class="fc" id="L60">                ordenadas.stream().mapToInt(FilaSondaje::muestras).sum());</span>
+    public static ReportePeriodo de(LocalDate desde, LocalDate hasta, List&lt;FilaSondaje&gt; sondajes, List&lt;FilaDia&gt; dias,
+                                    List&lt;FilaDesvio&gt; desvios) {
+<span class="fc" id="L65">        List&lt;FilaSondaje&gt; ordenadas = sondajes.stream()</span>
+<span class="fc" id="L66">                .sorted(Comparator.comparing(FilaSondaje::codigo))</span>
+<span class="fc" id="L67">                .collect(ImmutableList.toImmutableList());</span>
+<span class="fc" id="L68">        Map&lt;LocalDate, FilaDia&gt; porFecha = dias.stream()</span>
+<span class="pc" id="L69">                .collect(Collectors.toMap(FilaDia::fecha, Function.identity(), (a, b) -&gt; a));</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">        List&lt;FilaDia&gt; completos = Stream.iterate(desde, d -&gt; !d.isAfter(hasta), d -&gt; d.plusDays(1))</span>
+<span class="fc" id="L71">                .map(d -&gt; porFecha.getOrDefault(d, FilaDia.vacia(d)))</span>
+<span class="fc" id="L72">                .collect(ImmutableList.toImmutableList());</span>
+<span class="fc" id="L73">        return new ReportePeriodo(desde, hasta, ordenadas, completos,</span>
+<span class="fc" id="L74">                ordenadas.stream().map(FilaSondaje::perforado).reduce(BigDecimal.ZERO, BigDecimal::add),</span>
+<span class="fc" id="L75">                ordenadas.stream().map(FilaSondaje::logueado).reduce(BigDecimal.ZERO, BigDecimal::add),</span>
+<span class="fc" id="L76">                ordenadas.stream().mapToInt(FilaSondaje::cajas).sum(),</span>
+<span class="fc" id="L77">                ordenadas.stream().mapToInt(FilaSondaje::muestras).sum(),</span>
+<span class="fc" id="L78">                desvios.stream()</span>
+<span class="fc" id="L79">                        .sorted(Comparator.comparing(FilaDesvio::fecha, Comparator.nullsLast(Comparator.naturalOrder()))</span>
+<span class="fc" id="L80">                                .thenComparing(FilaDesvio::sondaje)</span>
+<span class="fc" id="L81">                                .thenComparing(FilaDesvio::profundidad, Comparator.nullsLast(Comparator.naturalOrder())))</span>
+<span class="fc" id="L82">                        .collect(ImmutableList.toImmutableList()));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
