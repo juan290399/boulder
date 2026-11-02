@@ -69,7 +69,7 @@ public class FotoService {
     private final ApplicationEventPublisher eventos;
 
     /** Los datos de la foto que no salen del propio archivo. */
-<span class="nc" id="L72">    public record Metadatos(UUID sondajeId, Integer cajaDesde, Integer cajaHasta, BigDecimal desde,</span>
+<span class="fc" id="L72">    public record Metadatos(UUID sondajeId, Integer cajaDesde, Integer cajaHasta, BigDecimal desde,</span>
             BigDecimal hasta, String condicion, OffsetDateTime tomadaEn, String observaciones) {
     }
 
@@ -77,62 +77,62 @@ public class FotoService {
     public Foto subir(UUID id, Metadatos m, byte[] contenido, String nombreArchivo,
             String autor, String dispositivo) throws IOException {
 
-<span class="nc" id="L80">        String tipo = tipoPorContenido(contenido);</span>
-<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (tipo == null) {</span>
-<span class="nc" id="L82">            throw new IllegalArgumentException(&quot;El archivo no es una imagen JPEG ni PNG.&quot;);</span>
+<span class="fc" id="L80">        String tipo = tipoPorContenido(contenido);</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">        if (tipo == null) {</span>
+<span class="fc" id="L82">            throw new IllegalArgumentException(&quot;El archivo no es una imagen JPEG ni PNG.&quot;);</span>
         }
-<span class="nc" id="L84">        validar(m);</span>
-<span class="nc" id="L85">        Sondaje sondaje = sondajes.findById(m.sondajeId())</span>
-<span class="nc" id="L86">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;El sondaje indicado no existe.&quot;));</span>
+<span class="fc" id="L84">        validar(m);</span>
+<span class="fc" id="L85">        Sondaje sondaje = sondajes.findById(m.sondajeId())</span>
+<span class="fc" id="L86">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;El sondaje indicado no existe.&quot;));</span>
 
-<span class="nc" id="L88">        String hash = sha256(contenido);</span>
-<span class="nc bnc" id="L89" title="All 2 branches missed.">        UUID idFoto = id != null ? id : UUID.randomUUID();</span>
+<span class="fc" id="L88">        String hash = sha256(contenido);</span>
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">        UUID idFoto = id != null ? id : UUID.randomUUID();</span>
 
-<span class="nc" id="L91">        Foto existente = fotos.findById(idFoto).orElse(null);</span>
-<span class="nc bnc" id="L92" title="All 6 branches missed.">        if (existente != null &amp;&amp; hash.equals(existente.getSha256()) &amp;&amp; existente.getEliminadoEn() == null) {</span>
-<span class="nc" id="L93">            log.info(&quot;Foto {} ya estaba subida con el mismo contenido; no se repite&quot;, idFoto);</span>
-<span class="nc" id="L94">            return existente;</span>
+<span class="fc" id="L91">        Foto existente = fotos.findById(idFoto).orElse(null);</span>
+<span class="pc bpc" id="L92" title="2 of 6 branches missed.">        if (existente != null &amp;&amp; hash.equals(existente.getSha256()) &amp;&amp; existente.getEliminadoEn() == null) {</span>
+<span class="fc" id="L93">            log.info(&quot;Foto {} ya estaba subida con el mismo contenido; no se repite&quot;, idFoto);</span>
+<span class="fc" id="L94">            return existente;</span>
         }
 
-<span class="nc" id="L97">        BufferedImage imagen = ImageIO.read(new ByteArrayInputStream(contenido));</span>
-<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (imagen == null) {</span>
+<span class="fc" id="L97">        BufferedImage imagen = ImageIO.read(new ByteArrayInputStream(contenido));</span>
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">        if (imagen == null) {</span>
 <span class="nc" id="L99">            throw new IllegalArgumentException(&quot;No se pudo leer la imagen: el archivo parece dañado.&quot;);</span>
         }
 
-<span class="nc bnc" id="L102" title="All 2 branches missed.">        String extension = &quot;image/png&quot;.equals(tipo) ? &quot;png&quot; : &quot;jpg&quot;;</span>
-<span class="nc" id="L103">        String carpeta = sondaje.getCodigo().replaceAll(&quot;[^A-Za-z0-9._-]&quot;, &quot;_&quot;);</span>
-<span class="nc" id="L104">        String clave = carpeta + &quot;/&quot; + idFoto + &quot;.&quot; + extension;</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        String extension = &quot;image/png&quot;.equals(tipo) ? &quot;png&quot; : &quot;jpg&quot;;</span>
+<span class="fc" id="L103">        String carpeta = sondaje.getCodigo().replaceAll(&quot;[^A-Za-z0-9._-]&quot;, &quot;_&quot;);</span>
+<span class="fc" id="L104">        String clave = carpeta + &quot;/&quot; + idFoto + &quot;.&quot; + extension;</span>
 
-<span class="nc" id="L106">        almacen.guardar(clave, contenido);</span>
-<span class="nc" id="L107">        almacen.guardar(claveMiniatura(clave), miniatura(imagen));</span>
+<span class="fc" id="L106">        almacen.guardar(clave, contenido);</span>
+<span class="fc" id="L107">        almacen.guardar(claveMiniatura(clave), miniatura(imagen));</span>
 
-<span class="nc bnc" id="L109" title="All 2 branches missed.">        Foto f = existente != null ? existente : new Foto();</span>
-<span class="nc" id="L110">        f.setId(idFoto);</span>
-<span class="nc" id="L111">        f.setSondajeId(m.sondajeId());</span>
-<span class="nc" id="L112">        f.setCajaDesde(m.cajaDesde());</span>
-<span class="nc" id="L113">        f.setCajaHasta(m.cajaHasta());</span>
-<span class="nc" id="L114">        f.setDesde(m.desde());</span>
-<span class="nc" id="L115">        f.setHasta(m.hasta());</span>
-<span class="nc" id="L116">        f.setCondicion(m.condicion());</span>
-<span class="nc" id="L117">        f.setTomadaEn(m.tomadaEn());</span>
-<span class="nc" id="L118">        f.setObservaciones(m.observaciones());</span>
-<span class="nc" id="L119">        f.setAutor(recortar(autor, 80));</span>
-<span class="nc" id="L120">        f.setDispositivo(recortar(dispositivo, 64));</span>
-<span class="nc" id="L121">        f.setArchivoOriginal(nombreArchivoSeguro(nombreArchivo));</span>
-<span class="nc" id="L122">        f.setTipoMime(tipo);</span>
-<span class="nc" id="L123">        f.setBytes((long) contenido.length);</span>
-<span class="nc" id="L124">        f.setAncho(imagen.getWidth());</span>
-<span class="nc" id="L125">        f.setAlto(imagen.getHeight());</span>
-<span class="nc" id="L126">        f.setSha256(hash);</span>
-<span class="nc" id="L127">        f.setClaveAlmacen(clave);</span>
-<span class="nc" id="L128">        f.setEliminadoEn(null);</span>
-<span class="nc" id="L129">        Foto guardada = fotos.save(f);</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">        Foto f = existente != null ? existente : new Foto();</span>
+<span class="fc" id="L110">        f.setId(idFoto);</span>
+<span class="fc" id="L111">        f.setSondajeId(m.sondajeId());</span>
+<span class="fc" id="L112">        f.setCajaDesde(m.cajaDesde());</span>
+<span class="fc" id="L113">        f.setCajaHasta(m.cajaHasta());</span>
+<span class="fc" id="L114">        f.setDesde(m.desde());</span>
+<span class="fc" id="L115">        f.setHasta(m.hasta());</span>
+<span class="fc" id="L116">        f.setCondicion(m.condicion());</span>
+<span class="fc" id="L117">        f.setTomadaEn(m.tomadaEn());</span>
+<span class="fc" id="L118">        f.setObservaciones(m.observaciones());</span>
+<span class="fc" id="L119">        f.setAutor(recortar(autor, 80));</span>
+<span class="fc" id="L120">        f.setDispositivo(recortar(dispositivo, 64));</span>
+<span class="fc" id="L121">        f.setArchivoOriginal(nombreArchivoSeguro(nombreArchivo));</span>
+<span class="fc" id="L122">        f.setTipoMime(tipo);</span>
+<span class="fc" id="L123">        f.setBytes((long) contenido.length);</span>
+<span class="fc" id="L124">        f.setAncho(imagen.getWidth());</span>
+<span class="fc" id="L125">        f.setAlto(imagen.getHeight());</span>
+<span class="fc" id="L126">        f.setSha256(hash);</span>
+<span class="fc" id="L127">        f.setClaveAlmacen(clave);</span>
+<span class="fc" id="L128">        f.setEliminadoEn(null);</span>
+<span class="fc" id="L129">        Foto guardada = fotos.save(f);</span>
 
-<span class="nc" id="L131">        eventos.publishEvent(CambioDatos.de(&quot;foto&quot;, Set.of(m.sondajeId()),</span>
-<span class="nc bnc" id="L132" title="All 2 branches missed.">                dispositivo != null ? &quot;tablet&quot; : &quot;web&quot;, 1));</span>
-<span class="nc" id="L133">        log.info(&quot;Foto {} de {} guardada ({} bytes, {}x{})&quot;, idFoto, sondaje.getCodigo(),</span>
-<span class="nc" id="L134">                contenido.length, imagen.getWidth(), imagen.getHeight());</span>
-<span class="nc" id="L135">        return guardada;</span>
+<span class="fc" id="L131">        eventos.publishEvent(CambioDatos.de(&quot;foto&quot;, Set.of(m.sondajeId()),</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">                dispositivo != null ? &quot;tablet&quot; : &quot;web&quot;, 1));</span>
+<span class="fc" id="L133">        log.info(&quot;Foto {} de {} guardada ({} bytes, {}x{})&quot;, idFoto, sondaje.getCodigo(),</span>
+<span class="fc" id="L134">                contenido.length, imagen.getWidth(), imagen.getHeight());</span>
+<span class="fc" id="L135">        return guardada;</span>
     }
 
     @Transactional(readOnly = true)
@@ -142,19 +142,19 @@ public class FotoService {
 
     @Transactional(readOnly = true)
     public Foto obtener(UUID id) {
-<span class="nc" id="L145">        Foto f = fotos.findById(id).orElseThrow(() -&gt; new EntityNotFoundException(&quot;Foto no encontrada: &quot; + id));</span>
-<span class="nc bnc" id="L146" title="All 2 branches missed.">        if (f.getEliminadoEn() != null) {</span>
-<span class="nc" id="L147">            throw new EntityNotFoundException(&quot;Foto eliminada: &quot; + id);</span>
+<span class="pc" id="L145">        Foto f = fotos.findById(id).orElseThrow(() -&gt; new EntityNotFoundException(&quot;Foto no encontrada: &quot; + id));</span>
+<span class="fc bfc" id="L146" title="All 2 branches covered.">        if (f.getEliminadoEn() != null) {</span>
+<span class="fc" id="L147">            throw new EntityNotFoundException(&quot;Foto eliminada: &quot; + id);</span>
         }
-<span class="nc" id="L149">        return f;</span>
+<span class="fc" id="L149">        return f;</span>
     }
 
     public InputStream contenido(Foto f, boolean miniatura) throws IOException {
-<span class="nc bnc" id="L153" title="All 2 branches missed.">        String clave = miniatura ? claveMiniatura(f.getClaveAlmacen()) : f.getClaveAlmacen();</span>
-<span class="nc bnc" id="L154" title="All 4 branches missed.">        if (miniatura &amp;&amp; !almacen.existe(clave)) {</span>
-<span class="nc" id="L155">            clave = f.getClaveAlmacen();</span>
+<span class="pc bpc" id="L153" title="1 of 2 branches missed.">        String clave = miniatura ? claveMiniatura(f.getClaveAlmacen()) : f.getClaveAlmacen();</span>
+<span class="pc bpc" id="L154" title="2 of 4 branches missed.">        if (miniatura &amp;&amp; !almacen.existe(clave)) {</span>
+<span class="fc" id="L155">            clave = f.getClaveAlmacen();</span>
         }
-<span class="nc" id="L157">        return almacen.abrir(clave);</span>
+<span class="fc" id="L157">        return almacen.abrir(clave);</span>
     }
 
     /**
@@ -163,66 +163,66 @@ public class FotoService {
      */
     @Transactional
     public void eliminar(UUID id) {
-<span class="nc" id="L166">        Foto f = obtener(id);</span>
-<span class="nc" id="L167">        f.setEliminadoEn(OffsetDateTime.now());</span>
-<span class="nc" id="L168">        fotos.save(f);</span>
-<span class="nc" id="L169">        eventos.publishEvent(CambioDatos.de(&quot;foto&quot;, Set.of(f.getSondajeId()), &quot;web&quot;, 1));</span>
-<span class="nc" id="L170">    }</span>
+<span class="fc" id="L166">        Foto f = obtener(id);</span>
+<span class="fc" id="L167">        f.setEliminadoEn(OffsetDateTime.now());</span>
+<span class="fc" id="L168">        fotos.save(f);</span>
+<span class="fc" id="L169">        eventos.publishEvent(CambioDatos.de(&quot;foto&quot;, Set.of(f.getSondajeId()), &quot;web&quot;, 1));</span>
+<span class="fc" id="L170">    }</span>
 
     // ------------------------------------------------------------------
 
     private void validar(Metadatos m) {
-<span class="nc bnc" id="L175" title="All 2 branches missed.">        if (m.sondajeId() == null) {</span>
+<span class="pc bpc" id="L175" title="1 of 2 branches missed.">        if (m.sondajeId() == null) {</span>
 <span class="nc" id="L176">            throw new IllegalArgumentException(&quot;Falta el sondaje de la foto.&quot;);</span>
         }
-<span class="nc bnc" id="L178" title="All 4 branches missed.">        if (m.condicion() != null &amp;&amp; !m.condicion().isBlank()</span>
-<span class="nc bnc" id="L179" title="All 4 branches missed.">                &amp;&amp; !m.condicion().equals(&quot;seco&quot;) &amp;&amp; !m.condicion().equals(&quot;humedo&quot;)) {</span>
-<span class="nc" id="L180">            throw new IllegalArgumentException(&quot;La condición tiene que ser «seco» o «humedo».&quot;);</span>
+<span class="pc bpc" id="L178" title="1 of 4 branches missed.">        if (m.condicion() != null &amp;&amp; !m.condicion().isBlank()</span>
+<span class="pc bpc" id="L179" title="1 of 4 branches missed.">                &amp;&amp; !m.condicion().equals(&quot;seco&quot;) &amp;&amp; !m.condicion().equals(&quot;humedo&quot;)) {</span>
+<span class="fc" id="L180">            throw new IllegalArgumentException(&quot;La condición tiene que ser «seco» o «humedo».&quot;);</span>
         }
-<span class="nc bnc" id="L182" title="All 6 branches missed.">        if (m.desde() != null &amp;&amp; m.hasta() != null &amp;&amp; m.hasta().compareTo(m.desde()) &lt; 0) {</span>
-<span class="nc" id="L183">            throw new IllegalArgumentException(&quot;El tramo está invertido: «hasta» es menor que «desde».&quot;);</span>
+<span class="pc bpc" id="L182" title="1 of 6 branches missed.">        if (m.desde() != null &amp;&amp; m.hasta() != null &amp;&amp; m.hasta().compareTo(m.desde()) &lt; 0) {</span>
+<span class="fc" id="L183">            throw new IllegalArgumentException(&quot;El tramo está invertido: «hasta» es menor que «desde».&quot;);</span>
         }
-<span class="nc bnc" id="L185" title="All 6 branches missed.">        if (m.cajaDesde() != null &amp;&amp; m.cajaHasta() != null &amp;&amp; m.cajaHasta() &lt; m.cajaDesde()) {</span>
-<span class="nc" id="L186">            throw new IllegalArgumentException(&quot;Las cajas están invertidas.&quot;);</span>
+<span class="pc bpc" id="L185" title="1 of 6 branches missed.">        if (m.cajaDesde() != null &amp;&amp; m.cajaHasta() != null &amp;&amp; m.cajaHasta() &lt; m.cajaDesde()) {</span>
+<span class="fc" id="L186">            throw new IllegalArgumentException(&quot;Las cajas están invertidas.&quot;);</span>
         }
-<span class="nc" id="L188">    }</span>
+<span class="fc" id="L188">    }</span>
 
     /** JPEG empieza con FF D8 FF; PNG con 89 50 4E 47. */
     static String tipoPorContenido(byte[] b) {
-<span class="nc bnc" id="L192" title="All 8 branches missed.">        if (b.length &gt; 3 &amp;&amp; (b[0] &amp; 0xFF) == 0xFF &amp;&amp; (b[1] &amp; 0xFF) == 0xD8 &amp;&amp; (b[2] &amp; 0xFF) == 0xFF) {</span>
-<span class="nc" id="L193">            return &quot;image/jpeg&quot;;</span>
+<span class="pc bpc" id="L192" title="3 of 8 branches missed.">        if (b.length &gt; 3 &amp;&amp; (b[0] &amp; 0xFF) == 0xFF &amp;&amp; (b[1] &amp; 0xFF) == 0xD8 &amp;&amp; (b[2] &amp; 0xFF) == 0xFF) {</span>
+<span class="fc" id="L193">            return &quot;image/jpeg&quot;;</span>
         }
-<span class="nc bnc" id="L195" title="All 10 branches missed.">        if (b.length &gt; 4 &amp;&amp; (b[0] &amp; 0xFF) == 0x89 &amp;&amp; b[1] == 'P' &amp;&amp; b[2] == 'N' &amp;&amp; b[3] == 'G') {</span>
-<span class="nc" id="L196">            return &quot;image/png&quot;;</span>
+<span class="pc bpc" id="L195" title="4 of 10 branches missed.">        if (b.length &gt; 4 &amp;&amp; (b[0] &amp; 0xFF) == 0x89 &amp;&amp; b[1] == 'P' &amp;&amp; b[2] == 'N' &amp;&amp; b[3] == 'G') {</span>
+<span class="fc" id="L196">            return &quot;image/png&quot;;</span>
         }
-<span class="nc" id="L198">        return null;</span>
+<span class="fc" id="L198">        return null;</span>
     }
 
     private static String claveMiniatura(String clave) {
-<span class="nc" id="L202">        int punto = clave.lastIndexOf('.');</span>
-<span class="nc bnc" id="L203" title="All 2 branches missed.">        return (punto &gt; 0 ? clave.substring(0, punto) : clave) + &quot;_min.jpg&quot;;</span>
+<span class="fc" id="L202">        int punto = clave.lastIndexOf('.');</span>
+<span class="pc bpc" id="L203" title="1 of 2 branches missed.">        return (punto &gt; 0 ? clave.substring(0, punto) : clave) + &quot;_min.jpg&quot;;</span>
     }
 
     private static byte[] miniatura(BufferedImage original) throws IOException {
-<span class="nc" id="L207">        int ancho = Math.min(ANCHO_MINIATURA, original.getWidth());</span>
-<span class="nc" id="L208">        int alto = Math.max(1, Math.round(original.getHeight() * (ancho / (float) original.getWidth())));</span>
-<span class="nc" id="L209">        BufferedImage chica = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);</span>
-<span class="nc" id="L210">        Graphics2D g = chica.createGraphics();</span>
+<span class="fc" id="L207">        int ancho = Math.min(ANCHO_MINIATURA, original.getWidth());</span>
+<span class="fc" id="L208">        int alto = Math.max(1, Math.round(original.getHeight() * (ancho / (float) original.getWidth())));</span>
+<span class="fc" id="L209">        BufferedImage chica = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);</span>
+<span class="fc" id="L210">        Graphics2D g = chica.createGraphics();</span>
         try {
-<span class="nc" id="L212">            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);</span>
-<span class="nc" id="L213">            g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);</span>
-<span class="nc" id="L214">            g.drawImage(original, 0, 0, ancho, alto, null);</span>
+<span class="fc" id="L212">            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);</span>
+<span class="fc" id="L213">            g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);</span>
+<span class="fc" id="L214">            g.drawImage(original, 0, 0, ancho, alto, null);</span>
         } finally {
-<span class="nc" id="L216">            g.dispose();</span>
+<span class="fc" id="L216">            g.dispose();</span>
         }
-<span class="nc" id="L218">        ByteArrayOutputStream salida = new ByteArrayOutputStream();</span>
-<span class="nc" id="L219">        ImageIO.write(chica, &quot;jpg&quot;, salida);</span>
-<span class="nc" id="L220">        return salida.toByteArray();</span>
+<span class="fc" id="L218">        ByteArrayOutputStream salida = new ByteArrayOutputStream();</span>
+<span class="fc" id="L219">        ImageIO.write(chica, &quot;jpg&quot;, salida);</span>
+<span class="fc" id="L220">        return salida.toByteArray();</span>
     }
 
     private static String sha256(byte[] datos) {
         try {
-<span class="nc" id="L225">            return HexFormat.of().formatHex(MessageDigest.getInstance(&quot;SHA-256&quot;).digest(datos));</span>
+<span class="fc" id="L225">            return HexFormat.of().formatHex(MessageDigest.getInstance(&quot;SHA-256&quot;).digest(datos));</span>
 <span class="nc" id="L226">        } catch (NoSuchAlgorithmException e) {</span>
 <span class="nc" id="L227">            throw new IllegalStateException(e);</span>
         }
@@ -247,7 +247,7 @@ public class FotoService {
     }
 
     private static String recortar(String s, int max) {
-<span class="nc bnc" id="L250" title="All 4 branches missed.">        return s == null ? null : (s.length() &gt; max ? s.substring(0, max) : s);</span>
+<span class="pc bpc" id="L250" title="1 of 4 branches missed.">        return s == null ? null : (s.length() &gt; max ? s.substring(0, max) : s);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

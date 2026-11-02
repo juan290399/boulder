@@ -2,6 +2,7 @@
   <div class="panel panel__body">
     <h1 class="page-head__title mb-4">Sondajes (Perforaciones)</h1>
 
+    <ng-container *ngIf="puedeEditar">
     <div class="row g-2 mb-3">
       <div class="col-md-2">
         <input class="form-control" placeholder="Código (DDH-...)" [(ngModel)]="form.codigo" />
@@ -68,6 +69,7 @@
       </button>
       <button class="btn btn-secondary" (click)="limpiar()">Limpiar</button>
     </div>
+    </ng-container>
 
     <div *ngIf="mensaje" class="alert-inline alert-inline--info">{{ mensaje }}</div>
 
@@ -107,7 +109,7 @@
             <td>{{ s.profundidadActual ?? 0 }}</td>
             <td>{{ s.profundidadFinal ?? '—' }}</td>
             <td class="text-end">
-              <button class="btn btn-sm btn-outline-primary" (click)="editar(s)">Editar</button>
+              <button *ngIf="puedeEditar" class="btn btn-sm btn-outline-primary" (click)="editar(s)">Editar</button>
             </td>
           </tr>
         </tbody>

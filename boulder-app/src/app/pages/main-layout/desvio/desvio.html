@@ -4,10 +4,12 @@
   </div>
 
   <div class="page-head__actions">
+    @if (puedeRegistrar) {
     <button type="button" class="btn btn-sm btn-primary" (click)="avisoAlta.set(null); nuevaMedicion.set(true)"
             [disabled]="nuevaMedicion()">
       <i class="bi bi-plus-lg me-1"></i>Nueva medición
     </button>
+    }
     <div class="btn-group btn-group-sm" role="group" aria-label="Vista">
       <button type="button" class="btn"
               [class.btn-primary]="vista() === 'sondaje'"
@@ -433,7 +435,7 @@
 
         <div class="col-12 col-md-3 d-flex align-items-end">
           <button type="button" class="btn btn-primary w-100"
-                  (click)="guardarSeguimiento()" [disabled]="guardando()">
+                  (click)="guardarSeguimiento()" [disabled]="guardando() || !puedeRegistrar">
             <i class="bi bi-save me-1"></i>
             {{ guardando() ? 'Guardando…' : 'Guardar seguimiento' }}
           </button>

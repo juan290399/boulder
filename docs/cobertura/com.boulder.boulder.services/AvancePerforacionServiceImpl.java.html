@@ -121,7 +121,7 @@ public class AvancePerforacionServiceImpl implements AvancePerforacionService {
     @Override
     @Transactional
     public void eliminar(UUID id) {
-<span class="nc" id="L124">        log.warn(&quot;Eliminando parte de avance ID: {}&quot;, id);</span>
+<span class="fc" id="L124">        log.warn(&quot;Eliminando parte de avance ID: {}&quot;, id);</span>
 <span class="nc" id="L125">        avanceRepository.delete(buscar(id));</span>
 <span class="nc" id="L126">    }</span>
 
@@ -203,7 +203,7 @@ public class AvancePerforacionServiceImpl implements AvancePerforacionService {
 
     private AvancePerforacion buscar(UUID id) {
 <span class="fc" id="L205">        return avanceRepository.findById(id)</span>
-<span class="pc" id="L206">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Parte de avance de perforación no encontrado con ID: &quot; + id));</span>
+<span class="fc" id="L206">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Parte de avance de perforación no encontrado con ID: &quot; + id));</span>
     }
 
     private void aplicarCabecera(AvancePerforacionDTO dto, AvancePerforacion avance) {

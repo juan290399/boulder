@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { PlataformaService } from '../../../services/plataforma.service';
 import { ProyectoService } from '../../../services/proyecto.service';
 import { Plataforma as PlataformaModel, Proyecto } from '../../../models/operacional';
+import { AuthService } from '../../../services/auth.service';
 
 const FORM_VACIO = (): PlataformaModel => ({
   proyectoId: '',
@@ -29,6 +30,7 @@ const FORM_VACIO = (): PlataformaModel => ({
 })
 export class Plataforma implements OnInit {
   private readonly service = inject(PlataformaService);
+  readonly puedeEditar = inject(AuthService).puedeMantenerMaestros();
   private readonly proyectoService = inject(ProyectoService);
   private readonly cdr = inject(ChangeDetectorRef);
 

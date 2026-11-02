@@ -52,9 +52,9 @@ import jakarta.persistence.EntityNotFoundException;
     /** Entidad no encontrada -&gt; 404. */
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleNotFound(EntityNotFoundException ex, WebRequest request) {
-<span class="nc" id="L55">        log.warn(&quot;Recurso no encontrado: {}&quot;, ex.getMessage());</span>
-<span class="nc" id="L56">        return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
-<span class="nc" id="L57">                .body(body(HttpStatus.NOT_FOUND, ex.getMessage(), request));</span>
+<span class="fc" id="L55">        log.warn(&quot;Recurso no encontrado: {}&quot;, ex.getMessage());</span>
+<span class="fc" id="L56">        return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="fc" id="L57">                .body(body(HttpStatus.NOT_FOUND, ex.getMessage(), request));</span>
     }
 
     /** Argumentos inválidos de negocio -&gt; 400. */

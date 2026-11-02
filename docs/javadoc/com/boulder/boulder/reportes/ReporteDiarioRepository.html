@@ -128,8 +128,16 @@ loadScripts(document, 'script');</script>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#perforadoPorDia(java.time.LocalDate,java.time.LocalDate)" class="member-name-link">perforadoPorDia</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;desde,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;hasta)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="ReportePeriodo.FilaDia.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#porDia(java.time.LocalDate,java.time.LocalDate)" class="member-name-link">porDia</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;desde,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;hasta)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="ReporteDiario.FilaSondaje.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaSondaje</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#porSondaje(java.time.LocalDate)" class="member-name-link">porSondaje</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;fecha)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="ReporteDiario.FilaSondaje.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaSondaje</a>&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#porSondaje(java.time.LocalDate)" class="member-name-link">porSondaje</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;fecha)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#porSondaje(java.time.LocalDate,java.time.LocalDate)" class="member-name-link">porSondaje</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;desde,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;hasta)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
@@ -171,6 +179,34 @@ loadScripts(document, 'script');</script>
 <dd><code>fecha</code> - día consultado</dd>
 <dt>Returns:</dt>
 <dd>actividad por sondaje en el día, sin orden garantizado</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="porSondaje(java.time.LocalDate,java.time.LocalDate)">
+<h3>porSondaje</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaSondaje.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaSondaje</a>&gt;</span>&nbsp;<span class="element-name">porSondaje</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;desde,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;hasta)</span></div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>desde</code> - primer día, incluido</dd>
+<dd><code>hasta</code> - último día, incluido</dd>
+<dt>Returns:</dt>
+<dd>actividad acumulada por sondaje en el periodo, sin orden garantizado</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="porDia(java.time.LocalDate,java.time.LocalDate)">
+<h3>porDia</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReportePeriodo.FilaDia.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a>&gt;</span>&nbsp;<span class="element-name">porDia</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;desde,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;hasta)</span></div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>desde</code> - primer día, incluido</dd>
+<dd><code>hasta</code> - último día, incluido</dd>
+<dt>Returns:</dt>
+<dd>actividad por día; los días sin partes no aparecen</dd>
 </dl>
 </section>
 </li>

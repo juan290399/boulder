@@ -19,7 +19,8 @@
       <a *ngFor="let item of grupo.items"
          class="app-sidebar__link"
          [routerLink]="item.ruta"
-         routerLinkActive="active">
+         routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }">
         <i class="bi" [ngClass]="item.icono"></i>
         <span>{{ item.etiqueta }}</span>
       </a>

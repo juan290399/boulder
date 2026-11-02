@@ -3,6 +3,7 @@
     <h1 class="page-head__title">Reporte diario consolidado</h1>
   </div>
   <div class="page-head__actions no-print">
+    <a class="btn btn-sm btn-outline-secondary" routerLink="/reportes/periodo">Periodo</a>
     <input type="date" class="form-control form-control-sm fecha" [max]="hoyIso"
            aria-label="Fecha del reporte"
            [ngModel]="fecha()" (ngModelChange)="cambiarFecha($event)">
