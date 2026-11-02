@@ -89,6 +89,14 @@ export class ReporteService {
     return this.http.get(`${this.periodoUrl}/excel`, { params: this.rango(desde, hasta), responseType: 'blob' });
   }
 
+  /** Hoja de registro de quicklog de un sondaje (`/api/reportes/quicklog/excel`). */
+  hojaQuicklog(sondajeId: string): Observable<Blob> {
+    return this.http.get(`${environment.apiBase}/reportes/quicklog/excel`, {
+      params: new HttpParams().set('sondajeId', sondajeId),
+      responseType: 'blob',
+    });
+  }
+
   private rango(desde: string, hasta: string): HttpParams {
     return new HttpParams().set('desde', desde).set('hasta', hasta);
   }
