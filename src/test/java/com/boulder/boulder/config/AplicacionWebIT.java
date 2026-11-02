@@ -2,6 +2,7 @@ package com.boulder.boulder.config;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -44,6 +45,12 @@ class AplicacionWebIT {
         mvc.perform(get("/main-PRUEBA.js"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("boulder")));
+    }
+
+    @Test
+    @DisplayName("Un HEAD a un archivo estático responde como el GET (proxies y monitores)")
+    void cabeceraHead() throws Exception {
+        mvc.perform(head("/main-PRUEBA.js")).andExpect(status().isOk());
     }
 
     @Test

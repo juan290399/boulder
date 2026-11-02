@@ -115,8 +115,8 @@ import jakarta.persistence.PersistenceContext;
     @Transactional(readOnly = true)
     @SuppressWarnings(&quot;unchecked&quot;)
     public List&lt;DesviacionSondajeDTO&gt; evolucionPorSondaje(String sondajeCodigo) {
-<span class="nc" id="L118">        log.debug(&quot;Consultando vw_desviacion_por_sondaje. Filtro sondaje: {}&quot;, sondajeCodigo);</span>
-<span class="nc" id="L119">        List&lt;Object[]&gt; filas = em.createNativeQuery(</span>
+<span class="fc" id="L118">        log.debug(&quot;Consultando vw_desviacion_por_sondaje. Filtro sondaje: {}&quot;, sondajeCodigo);</span>
+<span class="fc" id="L119">        List&lt;Object[]&gt; filas = em.createNativeQuery(</span>
                 &quot;SELECT sondaje_codigo, sondaje_nombre, profundidad, nro_medicion, fecha_medicion, &quot;
               + &quot;maquina_codigo, perforista, desv_azimut, desv_azimut_sentido, desv_inclinacion, &quot;
               + &quot;desv_inclinacion_sentido, desv_metros, desv_total, decision, &quot;
@@ -125,11 +125,11 @@ import jakarta.persistence.PersistenceContext;
               + &quot;FROM operacional.vw_desviacion_por_sondaje &quot;
               + &quot;WHERE (CAST(:cod AS text) IS NULL OR sondaje_codigo = CAST(:cod AS text)) &quot;
               + &quot;ORDER BY sondaje_codigo, profundidad, nro_medicion&quot;)
-<span class="nc" id="L128">                .setParameter(&quot;cod&quot;, sondajeCodigo)</span>
-<span class="nc" id="L129">                .getResultList();</span>
+<span class="fc" id="L128">                .setParameter(&quot;cod&quot;, sondajeCodigo)</span>
+<span class="fc" id="L129">                .getResultList();</span>
 
-<span class="nc" id="L131">        List&lt;DesviacionSondajeDTO&gt; out = new ArrayList&lt;&gt;(filas.size());</span>
-<span class="nc bnc" id="L132" title="All 2 branches missed.">        for (Object[] r : filas) {</span>
+<span class="fc" id="L131">        List&lt;DesviacionSondajeDTO&gt; out = new ArrayList&lt;&gt;(filas.size());</span>
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">        for (Object[] r : filas) {</span>
 <span class="nc" id="L133">            DesviacionSondajeDTO d = new DesviacionSondajeDTO();</span>
 <span class="nc" id="L134">            d.setSondajeCodigo(str(r[0]));</span>
 <span class="nc" id="L135">            d.setSondajeNombre(str(r[1]));</span>
@@ -153,7 +153,7 @@ import jakarta.persistence.PersistenceContext;
 <span class="nc" id="L153">            d.setEstadoSeguimiento(str(r[19]));</span>
 <span class="nc" id="L154">            out.add(d);</span>
 <span class="nc" id="L155">        }</span>
-<span class="nc" id="L156">        return out;</span>
+<span class="fc" id="L156">        return out;</span>
     }
 
     // ---- helpers de mapeo defensivo desde JDBC ----

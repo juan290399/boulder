@@ -169,10 +169,11 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /** Un GET que no va al API ni al monitoreo: la aplicación web o uno de sus archivos. */
+    /** Un GET o HEAD que no va al API ni al monitoreo: la aplicación web o uno de sus archivos. */
     private static boolean esAplicacionWeb(HttpServletRequest peticion) {
         String ruta = peticion.getRequestURI().substring(peticion.getContextPath().length());
-        return "GET".equals(peticion.getMethod()) && !ruta.startsWith("/api/") && !ruta.startsWith("/actuator");
+        boolean lectura = "GET".equals(peticion.getMethod()) || "HEAD".equals(peticion.getMethod());
+        return lectura && !ruta.startsWith("/api/") && !ruta.startsWith("/actuator");
     }
 
     private static AuthorizationDecision escrituraPorRol(Supplier<? extends Authentication> autenticacion,
