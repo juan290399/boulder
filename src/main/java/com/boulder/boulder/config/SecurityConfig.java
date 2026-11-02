@@ -131,6 +131,11 @@ public class SecurityConfig {
                 // Login (atendido por JwtAuthenticationFilter) y auto-registro.
                 .requestMatchers("/api/auth/**").permitAll()
 
+                // Monitoreo: la salud la consulta el balanceador o el script de
+                // vigilancia sin sesión; el detalle y las métricas, solo ADMIN.
+                .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info").permitAll()
+                .requestMatchers("/actuator/**").hasRole("ADMIN")
+
                 // El catálogo de personal se lee desde los partes de perforación
                 // y de logueo para poblar sus desplegables, así que la lectura
                 // queda abierta a cualquier sesión. Va ANTES de la regla general

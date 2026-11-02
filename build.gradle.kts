@@ -26,6 +26,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6")
 
 	// Lectura de las plantillas .xlsx que alimentan el importador. Solo se usa
@@ -44,7 +45,7 @@ dependencies {
 	implementation("org.apache.commons:commons-lang3:3.18.0")
 	implementation("commons-io:commons-io:2.21.0")
 
-	implementation("org.postgresql:postgresql:42.6.0")
+	implementation("org.postgresql:postgresql")
     implementation("jakarta.validation:jakarta.validation-api:3.0.2")
 
 	compileOnly("org.projectlombok:lombok")
