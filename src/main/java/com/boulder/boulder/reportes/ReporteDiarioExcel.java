@@ -3,6 +3,7 @@ package com.boulder.boulder.reportes;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.List;
 
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
@@ -12,6 +13,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import com.boulder.boulder.dto.EtapaAvanceDTO;
+import com.boulder.boulder.dto.FrenteAvanceDTO;
 import com.boulder.boulder.reportes.ReporteDiario.FilaCampania;
 import com.boulder.boulder.reportes.ReporteDiario.FilaSondaje;
 
@@ -39,6 +42,16 @@ public final class ReporteDiarioExcel {
      * @throws IOException si no se puede escribir el libro
      */
     public static byte[] generar(ReporteDiario r) throws IOException {
+        return generar(r, List.of());
+    }
+
+    /**
+     * @param r      el reporte del día
+     * @param frente frente de avance actual, para la hoja de geología
+     * @return el libro .xlsx listo para descargar
+     * @throws IOException si no se puede escribir el libro
+     */
+    public static byte[] generar(ReporteDiario r, List<FrenteAvanceDTO> frente) throws IOException {
         try (XSSFWorkbook libro = new XSSFWorkbook(); ByteArrayOutputStream salida = new ByteArrayOutputStream()) {
             Sheet hoja = libro.createSheet(r.fecha().toString());
             CellStyle negrita = estiloNegrita(libro);
@@ -74,6 +87,7 @@ public final class ReporteDiarioExcel {
             }
 
             campania(libro, r, negrita, metros);
+            geologia(libro, frente, negrita);
             libro.write(salida);
             return salida.toByteArray();
         }
@@ -110,6 +124,32 @@ public final class ReporteDiarioExcel {
         texto(total, 0, "Total", negrita);
         numero(total, 5, r.totalCampania(), metros);
         for (int i = 0; i < CAB_CAMPANIA.length; i++) {
+            hoja.autoSizeColumn(i);
+        }
+    }
+
+    /** Hoja con el estado actual de cada etapa de geología por sondaje (la perforación va aparte). */
+    private static void geologia(XSSFWorkbook libro, List<FrenteAvanceDTO> frente, CellStyle negrita) {
+        Sheet hoja = libro.createSheet("Geología");
+        texto(hoja.createRow(0), 0, "Estado actual de las etapas por sondaje", negrita);
+        Row cab = hoja.createRow(2);
+        texto(cab, 0, "Sondaje", negrita);
+        int columnas = 1;
+        if (!frente.isEmpty()) {
+            List<EtapaAvanceDTO> etapas = frente.getFirst().getEtapas();
+            for (int i = 1; i < etapas.size(); i++) {
+                texto(cab, columnas++, etapas.get(i).getNombre(), negrita);
+            }
+        }
+        int fila = 3;
+        for (FrenteAvanceDTO f : frente) {
+            Row row = hoja.createRow(fila++);
+            texto(row, 0, f.getSondajeCodigo(), null);
+            for (int i = 1; i < f.getEtapas().size(); i++) {
+                texto(row, i, EstadoEtapa.de(f.getEtapas().get(i), f), null);
+            }
+        }
+        for (int i = 0; i < columnas; i++) {
             hoja.autoSizeColumn(i);
         }
     }
