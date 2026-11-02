@@ -10,6 +10,7 @@ import { EventosService } from '../../../services/eventos.service';
 import { Foto, FotoService } from '../../../services/foto.service';
 import { SondajeService } from '../../../services/sondaje.service';
 import { Sondaje } from '../../../models/operacional';
+import { ReporteService } from '../../../services/reporte.service';
 
 /**
  * Quicklog: el logueo rápido que sube la aplicación móvil desde el almacén de
@@ -33,6 +34,8 @@ export class Quicklog implements OnInit {
   private readonly sondajeService = inject(SondajeService);
   private readonly eventos = inject(EventosService);
   private readonly fotoService = inject(FotoService);
+  private readonly reporteService = inject(ReporteService);
+  readonly descargando = signal(false);
 
   /** Fotos del sondaje con tramo, para mostrar la del metro que se describe. */
   readonly fotos = signal<Foto[]>([]);
@@ -221,5 +224,26 @@ export class Quicklog implements OnInit {
     const e = this.catalogo().get(id);
     if (!e || e.colorR === null || e.colorR === undefined) { return null; }
     return `rgb(${e.colorR}, ${e.colorG ?? 0}, ${e.colorB ?? 0})`;
+  }
+
+  /** Descarga la hoja de registro del sondaje elegido, con el token del interceptor. */
+  descargarHoja(): void {
+    const sondaje = this.sondajes().find(s => s.id === this.sondajeId);
+    this.descargando.set(true);
+    this.reporteService.hojaQuicklog(this.sondajeId).subscribe({
+      next: blob => {
+        const url = URL.createObjectURL(blob);
+        const enlace = document.createElement('a');
+        enlace.href = url;
+        enlace.download = `quicklog_${sondaje?.codigo ?? this.sondajeId}.xlsx`;
+        enlace.click();
+        URL.revokeObjectURL(url);
+        this.descargando.set(false);
+      },
+      error: () => {
+        this.descargando.set(false);
+        this.error.set('No se pudo descargar la hoja de registro.');
+      },
+    });
   }
 }

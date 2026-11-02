@@ -3,6 +3,8 @@ package com.boulder.boulder.reportes;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,7 +12,11 @@ import java.util.Map;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.boulder.boulder.reportes.ReporteDiario.CeldaMensual;
+import com.boulder.boulder.reportes.ReporteDiario.FilaCampania;
+import com.boulder.boulder.reportes.ReporteDiario.FilaMaquina;
 import com.boulder.boulder.reportes.ReporteDiario.FilaSondaje;
+import com.boulder.boulder.reportes.ReportePeriodo.FilaDesvio;
 import com.boulder.boulder.reportes.ReportePeriodo.FilaDia;
 
 /**
@@ -103,6 +109,81 @@ public class ReporteDiarioRepository {
                 rs.getBigDecimal("logueado"),
                 rs.getInt("cajas"),
                 rs.getInt("muestras")), rango(desde, hasta));
+    }
+
+    /**
+     * @param desde primer día, incluido
+     * @param hasta último día, incluido
+     * @return mediciones de desvío con fecha en el periodo
+     */
+    public List<FilaDesvio> desvios(LocalDate desde, LocalDate hasta) {
+        return jdbc.query("""
+                SELECT sondaje_codigo, profundidad, fecha_medicion, desv_total, desv_metros, decision
+                  FROM operacional.vw_desviacion_por_sondaje
+                 WHERE fecha_medicion BETWEEN ? AND ?
+                """, (rs, i) -> new FilaDesvio(
+                rs.getString("sondaje_codigo"),
+                rs.getBigDecimal("profundidad"),
+                rs.getDate("fecha_medicion").toLocalDate(),
+                rs.getObject("desv_total", Double.class),
+                rs.getObject("desv_metros", Double.class),
+                rs.getString("decision")), Date.valueOf(desde), Date.valueOf(hasta));
+    }
+
+    /**
+     * @param fecha último día considerado
+     * @return sondajes con partes de perforación hasta {@code fecha}, sin orden garantizado
+     */
+    public List<FilaCampania> campania(LocalDate fecha) {
+        return jdbc.query("""
+                SELECT s.codigo, rtrim(m.codigo) AS maquina,
+                       coalesce(s.fecha_inicio, min(a.fecha)) AS inicio,
+                       CASE WHEN s.fecha_fin <= ? THEN s.fecha_fin ELSE max(a.fecha) END AS fin,
+                       sum(a.avance) AS avance,
+                       CASE WHEN s.fecha_fin <= ? THEN 'Finalizado' ELSE 'En proceso' END AS estado
+                  FROM operacional.prf_avance a
+                  JOIN operacional.prf_sondaje s ON s.id = a.sondaje_id
+                  LEFT JOIN operacional.prf_maquina m ON m.id = s.maquina_id
+                 WHERE a.fecha <= ?
+                 GROUP BY s.id, s.codigo, m.codigo, s.fecha_inicio, s.fecha_fin
+                """, (rs, i) -> {
+            LocalDate inicio = rs.getDate("inicio").toLocalDate();
+            LocalDate fin = rs.getDate("fin").toLocalDate();
+            return new FilaCampania(rs.getString("codigo"), rs.getString("maquina"), inicio, fin,
+                    ChronoUnit.DAYS.between(inicio, fin), rs.getBigDecimal("avance"),
+                    rs.getString("estado"));
+        }, Date.valueOf(fecha), Date.valueOf(fecha), Date.valueOf(fecha));
+    }
+
+    /**
+     * @param fecha día consultado
+     * @return metros perforados en el día por máquina, sin orden garantizado
+     */
+    public List<FilaMaquina> porMaquina(LocalDate fecha) {
+        return jdbc.query("""
+                SELECT coalesce(rtrim(m.codigo), a.maquina_codigo) AS maquina, sum(a.avance) AS metros
+                  FROM operacional.prf_avance a
+                  LEFT JOIN operacional.prf_maquina m ON m.id = a.maquina_id
+                 WHERE a.fecha = ?
+                 GROUP BY 1
+                """, (rs, i) -> new FilaMaquina(rs.getString("maquina"), rs.getBigDecimal("metros")),
+                Date.valueOf(fecha));
+    }
+
+    /**
+     * @param fecha último día considerado
+     * @return metros perforados por sondaje y por mes hasta {@code fecha}
+     */
+    public List<CeldaMensual> mensual(LocalDate fecha) {
+        return jdbc.query("""
+                SELECT s.codigo, date_trunc('month', a.fecha)::date AS mes, sum(a.avance) AS metros
+                  FROM operacional.prf_avance a
+                  JOIN operacional.prf_sondaje s ON s.id = a.sondaje_id
+                 WHERE a.fecha <= ?
+                 GROUP BY s.codigo, 2
+                """, (rs, i) -> new CeldaMensual(rs.getString("codigo"),
+                YearMonth.from(rs.getDate("mes").toLocalDate()), rs.getBigDecimal("metros")),
+                Date.valueOf(fecha));
     }
 
     /** Los cuatro pares (desde, hasta) de las consultas por rango. */

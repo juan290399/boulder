@@ -47,6 +47,7 @@
 .num { text-align: right; }
 .mono { font-family: var(--bo-mono); }
 tr.total td { font-weight: 700; border-top: 2px solid var(--bo-border-strong); }
+td.fuera { color: var(--bo-danger); font-weight: 600; }
 
 .solo-impresion { display: none; }
 

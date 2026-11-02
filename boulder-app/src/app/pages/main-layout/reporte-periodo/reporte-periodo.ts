@@ -18,6 +18,8 @@ export class ReportePeriodoPage implements OnInit {
 
   private readonly servicio = inject(ReporteService);
 
+  /** Mismo corte de aviso que ReportePeriodo.TOLERANCIA_METROS. */
+  readonly toleranciaMetros = 3;
   readonly hoyIso = ReportePeriodoPage.iso(new Date());
   readonly desde = signal(ReportePeriodoPage.iso(ReportePeriodoPage.diasAtras(6)));
   readonly hasta = signal(this.hoyIso);

@@ -20,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import com.boulder.boulder.reportes.ReporteDiario.FilaSondaje;
+import com.boulder.boulder.reportes.ReportePeriodo.FilaDesvio;
 import com.boulder.boulder.reportes.ReportePeriodo.FilaDia;
 
 @ExtendWith(MockitoExtension.class)
@@ -78,6 +79,19 @@ class ReportePeriodoServiceTest {
         assertThat(r.dias().getFirst().perforado()).isEqualByComparingTo("15.00");
         assertThat(r.dias().get(1).perforado()).isEqualByComparingTo("0");
         assertThat(r.dias().getLast().perforado()).isEqualByComparingTo("20.20");
+    }
+
+    @Test
+    @DisplayName("Trae las mediciones de desvío del periodo, por fecha y profundidad")
+    void desvios() {
+        when(repositorio.desvios(DESDE, HASTA)).thenReturn(List.of(
+                new FilaDesvio("DDH-VERO-S-040-26", new BigDecimal("150.0"), HASTA, 2.1, 5.5, "continuar"),
+                new FilaDesvio("DDH-VERO-S-038-26", new BigDecimal("90.0"), DESDE, 0.8, 1.3, "continuar")));
+
+        ReportePeriodo r = servicio.generar(DESDE, HASTA);
+
+        assertThat(r.desvios()).extracting(FilaDesvio::fecha).containsExactly(DESDE, HASTA);
+        assertThat(r.desviosFueraTolerancia()).isEqualTo(1);
     }
 
     @Test
