@@ -112,7 +112,17 @@ public class ReporteDiarioRepository {
      * @return mediciones de desvío con fecha en el periodo
      */
     public List<FilaDesvio> desvios(LocalDate desde, LocalDate hasta) {
-        return List.of();
+        return jdbc.query("""
+                SELECT sondaje_codigo, profundidad, fecha_medicion, desv_total, desv_metros, decision
+                  FROM operacional.vw_desviacion_por_sondaje
+                 WHERE fecha_medicion BETWEEN ? AND ?
+                """, (rs, i) -> new FilaDesvio(
+                rs.getString("sondaje_codigo"),
+                rs.getBigDecimal("profundidad"),
+                rs.getDate("fecha_medicion").toLocalDate(),
+                rs.getObject("desv_total", Double.class),
+                rs.getObject("desv_metros", Double.class),
+                rs.getString("decision")), Date.valueOf(desde), Date.valueOf(hasta));
     }
 
     /** Los cuatro pares (desde, hasta) de las consultas por rango. */

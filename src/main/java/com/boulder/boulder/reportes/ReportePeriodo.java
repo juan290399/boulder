@@ -42,9 +42,12 @@ public record ReportePeriodo(LocalDate desde, LocalDate hasta, List<FilaSondaje>
             Double desvMetros, String decision) {
     }
 
+    /** Separación en metros a partir de la cual el desvío pide atención (mismo corte que la pantalla P07). */
+    public static final double TOLERANCIA_METROS = 3.0;
+
     /** Mediciones con más separación que la tolerancia de aviso. */
     public long desviosFueraTolerancia() {
-        return 0;
+        return desvios.stream().filter(d -> d.desvMetros() != null && d.desvMetros() > TOLERANCIA_METROS).count();
     }
 
     /**
@@ -72,6 +75,10 @@ public record ReportePeriodo(LocalDate desde, LocalDate hasta, List<FilaSondaje>
                 ordenadas.stream().map(FilaSondaje::logueado).reduce(BigDecimal.ZERO, BigDecimal::add),
                 ordenadas.stream().mapToInt(FilaSondaje::cajas).sum(),
                 ordenadas.stream().mapToInt(FilaSondaje::muestras).sum(),
-                List.of());
+                desvios.stream()
+                        .sorted(Comparator.comparing(FilaDesvio::fecha, Comparator.nullsLast(Comparator.naturalOrder()))
+                                .thenComparing(FilaDesvio::sondaje)
+                                .thenComparing(FilaDesvio::profundidad, Comparator.nullsLast(Comparator.naturalOrder())))
+                        .collect(ImmutableList.toImmutableList()));
     }
 }

@@ -3,7 +3,6 @@ package com.boulder.boulder.reportes;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +46,6 @@ public class ReportePeriodoService {
             throw new IllegalArgumentException("El periodo pasa de " + MAX_DIAS + " días");
         }
         return ReportePeriodo.de(inicio, fin, repositorio.porSondaje(inicio, fin), repositorio.porDia(inicio, fin),
-                List.of());
+                repositorio.desvios(inicio, fin));
     }
 }
