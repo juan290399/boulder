@@ -3,6 +3,7 @@ package com.boulder.boulder.config;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.DisplayName;
@@ -23,12 +24,18 @@ class AplicacionWebIT {
     private MockMvc mvc;
 
     @ParameterizedTest(name = "GET {0}")
-    @ValueSource(strings = {"/", "/reportes", "/reportes/periodo", "/auth/login"})
+    @ValueSource(strings = {"/reportes", "/reportes/periodo", "/auth/login"})
     @DisplayName("Las rutas de Angular devuelven index.html sin sesión")
     void rutasDeAngular(String ruta) throws Exception {
         mvc.perform(get(ruta))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("<app-root>")));
+    }
+
+    @Test
+    @DisplayName("La raíz entrega la página de bienvenida index.html")
+    void raiz() throws Exception {
+        mvc.perform(get("/")).andExpect(status().isOk()).andExpect(forwardedUrl("index.html"));
     }
 
     @Test
