@@ -28,7 +28,7 @@ import com.boulder.boulder.services.AvancePerforacionService;
 /** Capa web del parte de perforación; el servicio es un mock. */
 @SpringBootTest
 @AutoConfigureMockMvc
-@WithMockUser
+@WithMockUser(roles = "ASISTENTE_GEOLOGIA")
 class AvancePerforacionControllerTest {
 
     private static final String URL = "/api/operacional/avances-perforacion";
