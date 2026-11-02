@@ -13,17 +13,20 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.boulder.boulder.reportes.ReporteDiario.FilaSondaje;
+import com.boulder.boulder.reportes.ReportePeriodo.FilaDesvio;
 import com.boulder.boulder.reportes.ReportePeriodo.FilaDia;
 
 /**
- * Exporta el reporte de un periodo a Excel con Apache POI: una hoja por sondaje
- * y otra por día. Números como números, fechas como fechas y textos siempre
+ * Exporta el reporte de un periodo a Excel con Apache POI: hojas por sondaje,
+ * por día y de desvíos. Números como números, fechas como fechas y textos siempre
  * como texto, nunca como fórmula (CWE-1236).
  */
 public final class ReportePeriodoExcel {
 
     private static final String[] CAB_SONDAJE = {"Sondaje", "Perforado (m)", "Logueado (m)", "Cajas", "Muestras"};
     private static final String[] CAB_DIA = {"Fecha", "Perforado (m)", "Logueado (m)", "Cajas", "Muestras"};
+    private static final String[] CAB_DESVIO = {"Fecha", "Sondaje", "Profundidad (m)", "Desvío total (°)",
+            "Separación (m)", "Decisión"};
 
     private ReportePeriodoExcel() {
     }
@@ -68,6 +71,31 @@ public final class ReportePeriodoExcel {
                 valores(row, d.perforado(), d.logueado(), d.cajas(), d.muestras(), metros);
             }
             ajustar(porDia, CAB_DIA.length);
+
+            Sheet desvios = libro.createSheet("Desvíos");
+            texto(desvios.createRow(0), 0, titulo, negrita);
+            cabecera(desvios.createRow(2), CAB_DESVIO, negrita);
+            fila = 3;
+            for (FilaDesvio d : r.desvios()) {
+                Row row = desvios.createRow(fila++);
+                Cell c = row.createCell(0);
+                c.setCellValue(d.fecha());
+                c.setCellStyle(fecha);
+                texto(row, 1, d.sondaje(), null);
+                if (d.profundidad() != null) {
+                    numero(row, 2, d.profundidad(), metros);
+                }
+                if (d.desvTotal() != null) {
+                    numero(row, 3, BigDecimal.valueOf(d.desvTotal()), metros);
+                }
+                if (d.desvMetros() != null) {
+                    numero(row, 4, BigDecimal.valueOf(d.desvMetros()), metros);
+                }
+                if (d.decision() != null) {
+                    texto(row, 5, d.decision(), null);
+                }
+            }
+            ajustar(desvios, CAB_DESVIO.length);
 
             libro.write(salida);
             return salida.toByteArray();

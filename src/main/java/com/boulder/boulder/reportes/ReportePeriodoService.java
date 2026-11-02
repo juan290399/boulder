@@ -45,6 +45,7 @@ public class ReportePeriodoService {
         if (ChronoUnit.DAYS.between(inicio, fin) + 1 > MAX_DIAS) {
             throw new IllegalArgumentException("El periodo pasa de " + MAX_DIAS + " días");
         }
-        return ReportePeriodo.de(inicio, fin, repositorio.porSondaje(inicio, fin), repositorio.porDia(inicio, fin));
+        return ReportePeriodo.de(inicio, fin, repositorio.porSondaje(inicio, fin), repositorio.porDia(inicio, fin),
+                repositorio.desvios(inicio, fin));
     }
 }
