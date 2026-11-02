@@ -52,3 +52,6 @@ out/
 
 # Construcción con Maven
 /target/
+
+# Variables de entorno reales del servidor
+/deploy/boulder.env
