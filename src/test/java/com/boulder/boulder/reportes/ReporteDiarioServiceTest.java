@@ -102,6 +102,23 @@ class ReporteDiarioServiceTest {
     }
 
     @Test
+    @DisplayName("El resumen de campaña llega hasta la fecha del reporte, con su total")
+    void campania() {
+        when(repositorio.porSondaje(DIA)).thenReturn(List.of());
+        when(repositorio.campania(DIA)).thenReturn(List.of(
+                new ReporteDiario.FilaCampania("DDH-VERO-S-040-26", "C8C", DIA.minusDays(3), DIA, 3,
+                        new BigDecimal("120.50"), "En proceso"),
+                new ReporteDiario.FilaCampania("DDH-VERO-S-038-26", "H-400", DIA.minusDays(20), DIA.minusDays(5), 15,
+                        new BigDecimal("300.00"), "Finalizado")));
+
+        ReporteDiario r = servicio.generar(DIA);
+
+        assertThat(r.campania()).extracting(ReporteDiario.FilaCampania::codigo)
+                .containsExactly("DDH-VERO-S-038-26", "DDH-VERO-S-040-26");
+        assertThat(r.totalCampania()).isEqualByComparingTo("420.50");
+    }
+
+    @Test
     @DisplayName("La serie trae los siete días que terminan en la fecha, también los que no tienen avance")
     void serie() {
         when(repositorio.porSondaje(DIA)).thenReturn(List.of());
