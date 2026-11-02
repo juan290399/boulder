@@ -16,6 +16,9 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import com.boulder.boulder.dto.EtapaAvanceDTO;
 import com.boulder.boulder.dto.FrenteAvanceDTO;
 import com.boulder.boulder.reportes.ReporteDiario.FilaCampania;
+import com.boulder.boulder.reportes.ReporteDiario.FilaMaquina;
+import com.boulder.boulder.reportes.ReporteDiario.FilaMensual;
+import com.boulder.boulder.reportes.ReporteDiario.Mensual;
 import com.boulder.boulder.reportes.ReporteDiario.FilaSondaje;
 
 /**
@@ -82,11 +85,24 @@ public final class ReporteDiarioExcel {
             total.createCell(3).setCellValue(r.totalCajas());
             total.createCell(4).setCellValue(r.totalMuestras());
 
+            if (!r.porMaquina().isEmpty()) {
+                fila += 2;
+                Row cabMaquina = hoja.createRow(fila++);
+                texto(cabMaquina, 0, "Máquina", negrita);
+                texto(cabMaquina, 1, "Perforado (m)", negrita);
+                for (FilaMaquina m : r.porMaquina()) {
+                    Row row = hoja.createRow(fila++);
+                    texto(row, 0, m.maquina() != null ? m.maquina() : "Sin máquina", null);
+                    numero(row, 1, m.metros(), metros);
+                }
+            }
+
             for (int i = 0; i < CABECERA.length; i++) {
                 hoja.autoSizeColumn(i);
             }
 
             campania(libro, r, negrita, metros);
+            mensual(libro, r, negrita, metros);
             geologia(libro, frente, negrita);
             libro.write(salida);
             return salida.toByteArray();
@@ -124,6 +140,34 @@ public final class ReporteDiarioExcel {
         texto(total, 0, "Total", negrita);
         numero(total, 5, r.totalCampania(), metros);
         for (int i = 0; i < CAB_CAMPANIA.length; i++) {
+            hoja.autoSizeColumn(i);
+        }
+    }
+
+    /** Hoja con los metros perforados por sondaje y por mes hasta la fecha del reporte. */
+    private static void mensual(XSSFWorkbook libro, ReporteDiario r, CellStyle negrita, CellStyle metros) {
+        Sheet hoja = libro.createSheet("Por mes");
+        Mensual m = r.mensual();
+        texto(hoja.createRow(0), 0, "Metros perforados por mes al " + r.fecha(), negrita);
+        Row cab = hoja.createRow(2);
+        texto(cab, 0, "Sondaje", negrita);
+        for (int i = 0; i < m.meses().size(); i++) {
+            texto(cab, i + 1, m.meses().get(i).toString(), negrita);
+        }
+        int fila = 3;
+        for (FilaMensual f : m.filas()) {
+            Row row = hoja.createRow(fila++);
+            texto(row, 0, f.codigo(), null);
+            for (int i = 0; i < f.metros().size(); i++) {
+                numero(row, i + 1, f.metros().get(i), metros);
+            }
+        }
+        Row total = hoja.createRow(fila);
+        texto(total, 0, "Total", negrita);
+        for (int i = 0; i < m.totales().size(); i++) {
+            numero(total, i + 1, m.totales().get(i), metros);
+        }
+        for (int i = 0; i <= m.meses().size(); i++) {
             hoja.autoSizeColumn(i);
         }
     }

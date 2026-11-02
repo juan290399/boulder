@@ -49,6 +49,7 @@ public class ReporteDiarioService {
         List<PuntoSerie> serie = Stream.iterate(desde, d -> !d.isAfter(dia), d -> d.plusDays(1))
                 .map(d -> new PuntoSerie(d, perforado.getOrDefault(d, BigDecimal.ZERO)))
                 .toList();
-        return ReporteDiario.de(dia, repositorio.porSondaje(dia), serie, repositorio.campania(dia));
+        return ReporteDiario.de(dia, repositorio.porSondaje(dia), serie, repositorio.campania(dia),
+                repositorio.porMaquina(dia), repositorio.mensual(dia));
     }
 }

@@ -55,6 +55,21 @@ class ReporteDiarioExcelTest {
     }
 
     @Test
+    @DisplayName("La hoja mensual pone los meses como columnas y una fila de total")
+    void hojaMensual() throws Exception {
+        ReporteDiario r = ReporteDiario.de(DIA, List.of(), List.of(), List.of(), List.of(new ReporteDiario.FilaMaquina("H-400", new BigDecimal("19.4"))),
+                List.of(new ReporteDiario.CeldaMensual("DDH-VERO-S-038-26", java.time.YearMonth.of(2026, 9), new BigDecimal("50"))));
+        try (Workbook libro = abrir(ReporteDiarioExcel.generar(r))) {
+            Sheet hoja = libro.getSheet("Por mes");
+            assertThat(hoja.getRow(2).getCell(1).getStringCellValue()).isEqualTo("2026-09");
+            assertThat(hoja.getRow(3).getCell(1).getNumericCellValue()).isEqualTo(50.0);
+            assertThat(hoja.getRow(4).getCell(0).getStringCellValue()).isEqualTo("Total");
+            Sheet dia = libro.getSheet("2026-09-07");
+            assertThat(dia.getRow(dia.getLastRowNum()).getCell(0).getStringCellValue()).isEqualTo("H-400");
+        }
+    }
+
+    @Test
     @DisplayName("La hoja de campaña lista cada sondaje con fechas, días, avance y estado, y el total")
     void hojaCampania() throws Exception {
         ReporteDiario r = ReporteDiario.de(DIA, List.of(), List.of(), List.of(
