@@ -38,7 +38,7 @@ loadScripts(document, 'script');</script>
 <p>Summary:</p>
 <ul>
 <li><a href="#nested-class-summary">Nested</a></li>
-<li>Field</li>
+<li><a href="#field-summary">Field</a></li>
 <li><a href="#constructor-summary">Constr</a></li>
 <li><a href="#method-summary">Method</a></li>
 </ul>
@@ -46,7 +46,7 @@ loadScripts(document, 'script');</script>
 <li>
 <p>Detail:</p>
 <ul>
-<li>Field</li>
+<li><a href="#field-detail">Field</a></li>
 <li><a href="#constructor-detail">Constr</a></li>
 <li><a href="#method-detail">Method</a></li>
 </ul>
@@ -58,13 +58,13 @@ loadScripts(document, 'script');</script>
 <ul class="sub-nav-list">
 <li>Summary:&nbsp;</li>
 <li><a href="#nested-class-summary">Nested</a>&nbsp;|&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field-summary">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor-summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method-summary">Method</a></li>
 </ul>
 <ul class="sub-nav-list">
 <li>Detail:&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field-detail">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor-detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method-detail">Method</a></li>
 </ul>
@@ -100,9 +100,10 @@ loadScripts(document, 'script');</script>
 <dd><code><span id="param-totalLogueado">totalLogueado</span></code> - metros con logueo geológico</dd>
 <dd><code><span id="param-totalCajas">totalCajas</span></code> - cajas recibidas en el almacén</dd>
 <dd><code><span id="param-totalMuestras">totalMuestras</span></code> - muestras registradas</dd>
+<dd><code><span id="param-desvios">desvios</span></code> - mediciones de desvío del periodo, por fecha, sondaje y profundidad</dd>
 </dl>
 <hr>
-<div class="type-signature"><span class="modifiers">public record </span><span class="element-name type-name-label">ReportePeriodo</span>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;desde, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;hasta, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaSondaje.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaSondaje</a>&gt;&nbsp;sondajes, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReportePeriodo.FilaDia.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a>&gt;&nbsp;dias, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a>&nbsp;totalPerforado, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a>&nbsp;totalLogueado, int&nbsp;totalCajas, int&nbsp;totalMuestras)
+<div class="type-signature"><span class="modifiers">public record </span><span class="element-name type-name-label">ReportePeriodo</span>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;desde, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;hasta, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaSondaje.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaSondaje</a>&gt;&nbsp;sondajes, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReportePeriodo.FilaDia.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a>&gt;&nbsp;dias, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a>&nbsp;totalPerforado, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a>&nbsp;totalLogueado, int&nbsp;totalCajas, int&nbsp;totalMuestras, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReportePeriodo.FilaDesvio.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDesvio</a>&gt;&nbsp;desvios)
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Record.html" title="class or interface in java.lang" class="external-link">Record</a></span></div>
 <div class="block">Reporte consolidado de un periodo (semanal, mensual o cualquier rango).</div>
 </section>
@@ -118,9 +119,31 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-second">Class</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color"><code>static final record&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="ReportePeriodo.FilaDia.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a></code></div>
+<div class="col-second even-row-color"><code><a href="ReportePeriodo.FilaDesvio.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDesvio</a></code></div>
 <div class="col-last even-row-color">
+<div class="block">Medición de desvío: separación estimada contra el plan y decisión tomada.</div>
+</div>
+<div class="col-first odd-row-color"><code>static final record&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="ReportePeriodo.FilaDia.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">Actividad de la campaña en un día.</div>
+</div>
+</div>
+</section>
+</li>
+<!-- =========== FIELD SUMMARY =========== -->
+<li>
+<section class="field-summary" id="field-summary">
+<h2>Field Summary</h2>
+<div class="caption"><span>Fields</span></div>
+<div class="summary-table three-column-summary">
+<div class="table-header col-first">Modifier and Type</div>
+<div class="table-header col-second">Field</div>
+<div class="table-header col-last">Description</div>
+<div class="col-first even-row-color"><code>static final double</code></div>
+<div class="col-second even-row-color"><code><a href="#TOLERANCIA_METROS" class="member-name-link">TOLERANCIA_METROS</a></code></div>
+<div class="col-last even-row-color">
+<div class="block">Separación en metros a partir de la cual el desvío pide atención (mismo corte que la pantalla P07).</div>
 </div>
 </div>
 </section>
@@ -133,14 +156,15 @@ loadScripts(document, 'script');</script>
 <div class="summary-table two-column-summary">
 <div class="table-header col-first">Constructor</div>
 <div class="table-header col-last">Description</div>
-<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(java.time.LocalDate,java.time.LocalDate,java.util.List,java.util.List,java.math.BigDecimal,java.math.BigDecimal,int,int)" class="member-name-link">ReportePeriodo</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;desde,
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(java.time.LocalDate,java.time.LocalDate,java.util.List,java.util.List,java.math.BigDecimal,java.math.BigDecimal,int,int,java.util.List)" class="member-name-link">ReportePeriodo</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;desde,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;hasta,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaSondaje.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaSondaje</a>&gt;&nbsp;sondajes,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReportePeriodo.FilaDia.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a>&gt;&nbsp;dias,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a>&nbsp;totalPerforado,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a>&nbsp;totalLogueado,
  int&nbsp;totalCajas,
- int&nbsp;totalMuestras)</code></div>
+ int&nbsp;totalMuestras,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReportePeriodo.FilaDesvio.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDesvio</a>&gt;&nbsp;desvios)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Creates an instance of a <code>ReportePeriodo</code> record class.</div>
 </div>
@@ -159,10 +183,11 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="ReportePeriodo.html" title="class in com.boulder.boulder.reportes">ReportePeriodo</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#de(java.time.LocalDate,java.time.LocalDate,java.util.List,java.util.List)" class="member-name-link">de</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;desde,
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#de(java.time.LocalDate,java.time.LocalDate,java.util.List,java.util.List,java.util.List)" class="member-name-link">de</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;desde,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;hasta,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaSondaje.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaSondaje</a>&gt;&nbsp;sondajes,
- <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReportePeriodo.FilaDia.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a>&gt;&nbsp;dias)</code></div>
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReportePeriodo.FilaDia.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a>&gt;&nbsp;dias,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReportePeriodo.FilaDesvio.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDesvio</a>&gt;&nbsp;desvios)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Ordena los sondajes por código, completa los días sin actividad y calcula los totales.</div>
 </div>
@@ -170,6 +195,16 @@ loadScripts(document, 'script');</script>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#desde()" class="member-name-link">desde</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <a href="#param-desde"><code>desde</code></a> record component.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="ReportePeriodo.FilaDesvio.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDesvio</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#desvios()" class="member-name-link">desvios</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Returns the value of the <a href="#param-desvios"><code>desvios</code></a> record component.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>long</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#desviosFueraTolerancia()" class="member-name-link">desviosFueraTolerancia</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Mediciones con más separación que la tolerancia de aviso.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="ReportePeriodo.FilaDia.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a>&gt;</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#dias()" class="member-name-link">dias</a>()</code></div>
@@ -233,13 +268,36 @@ loadScripts(document, 'script');</script>
 </section>
 <section class="details">
 <ul class="details-list">
+<!-- ============ FIELD DETAIL =========== -->
+<li>
+<section class="field-details" id="field-detail">
+<h2>Field Details</h2>
+<ul class="member-list">
+<li>
+<section class="detail" id="TOLERANCIA_METROS">
+<h3>TOLERANCIA_METROS</h3>
+<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">TOLERANCIA_METROS</span></div>
+<div class="block">Separación en metros a partir de la cual el desvío pide atención (mismo corte que la pantalla P07).</div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="../../../../constant-values.html#com.boulder.boulder.reportes.ReportePeriodo.TOLERANCIA_METROS">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</section>
+</li>
+</ul>
+</section>
+</li>
 <!-- ========= CONSTRUCTOR DETAIL ======== -->
 <li>
 <section class="constructor-details" id="constructor-detail">
 <h2>Constructor Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="&lt;init&gt;(java.time.LocalDate,java.time.LocalDate,java.util.List,java.util.List,java.math.BigDecimal,java.math.BigDecimal,int,int)">
+<section class="detail" id="&lt;init&gt;(java.time.LocalDate,java.time.LocalDate,java.util.List,java.util.List,java.math.BigDecimal,java.math.BigDecimal,int,int,java.util.List)">
 <h3>ReportePeriodo</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">ReportePeriodo</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;desde,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;hasta,
@@ -248,7 +306,8 @@ loadScripts(document, 'script');</script>
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a>&nbsp;totalPerforado,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a>&nbsp;totalLogueado,
  int&nbsp;totalCajas,
- int&nbsp;totalMuestras)</span></div>
+ int&nbsp;totalMuestras,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReportePeriodo.FilaDesvio.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDesvio</a>&gt;&nbsp;desvios)</span></div>
 <div class="block">Creates an instance of a <code>ReportePeriodo</code> record class.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
@@ -260,6 +319,7 @@ loadScripts(document, 'script');</script>
 <dd><code>totalLogueado</code> - the value for the <a href="#param-totalLogueado"><code>totalLogueado</code></a> record component</dd>
 <dd><code>totalCajas</code> - the value for the <a href="#param-totalCajas"><code>totalCajas</code></a> record component</dd>
 <dd><code>totalMuestras</code> - the value for the <a href="#param-totalMuestras"><code>totalMuestras</code></a> record component</dd>
+<dd><code>desvios</code> - the value for the <a href="#param-desvios"><code>desvios</code></a> record component</dd>
 </dl>
 </section>
 </li>
@@ -272,12 +332,20 @@ loadScripts(document, 'script');</script>
 <h2>Method Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="de(java.time.LocalDate,java.time.LocalDate,java.util.List,java.util.List)">
+<section class="detail" id="desviosFueraTolerancia()">
+<h3>desviosFueraTolerancia</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">long</span>&nbsp;<span class="element-name">desviosFueraTolerancia</span>()</div>
+<div class="block">Mediciones con más separación que la tolerancia de aviso.</div>
+</section>
+</li>
+<li>
+<section class="detail" id="de(java.time.LocalDate,java.time.LocalDate,java.util.List,java.util.List,java.util.List)">
 <h3>de</h3>
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="ReportePeriodo.html" title="class in com.boulder.boulder.reportes">ReportePeriodo</a></span>&nbsp;<span class="element-name">de</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;desde,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;hasta,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaSondaje.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaSondaje</a>&gt;&nbsp;sondajes,
- <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReportePeriodo.FilaDia.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a>&gt;&nbsp;dias)</span></div>
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReportePeriodo.FilaDia.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a>&gt;&nbsp;dias,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReportePeriodo.FilaDesvio.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDesvio</a>&gt;&nbsp;desvios)</span></div>
 <div class="block">Ordena los sondajes por código, completa los días sin actividad y calcula los totales.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
@@ -285,6 +353,7 @@ loadScripts(document, 'script');</script>
 <dd><code>hasta</code> - último día, incluido</dd>
 <dd><code>sondajes</code> - actividad por sondaje, en cualquier orden</dd>
 <dd><code>dias</code> - actividad por día; los días que faltan quedan en cero</dd>
+<dd><code>desvios</code> - mediciones de desvío del periodo</dd>
 <dt>Returns:</dt>
 <dd>el reporte inmutable</dd>
 </dl>
@@ -416,6 +485,17 @@ loadScripts(document, 'script');</script>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>the value of the <a href="#param-totalMuestras"><code>totalMuestras</code></a> record component</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="desvios()">
+<h3>desvios</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReportePeriodo.FilaDesvio.html" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDesvio</a>&gt;</span>&nbsp;<span class="element-name">desvios</span>()</div>
+<div class="block">Returns the value of the <a href="#param-desvios"><code>desvios</code></a> record component.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>the value of the <a href="#param-desvios"><code>desvios</code></a> record component</dd>
 </dl>
 </section>
 </li>

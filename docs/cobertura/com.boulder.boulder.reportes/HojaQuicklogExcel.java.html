@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HojaQuicklogExcel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.reportes</a> &gt; <span class="el_source">HojaQuicklogExcel.java</span></div><h1>HojaQuicklogExcel.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.reportes;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.math.BigDecimal;
+
+import org.apache.poi.ss.usermodel.BorderStyle;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import com.boulder.boulder.reportes.HojaQuicklog.Cabecera;
+import com.boulder.boulder.reportes.HojaQuicklog.Tramo;
+
+/**
+ * Exporta la hoja de registro de quicklog a Excel con Apache POI, con la
+ * disposición de la hoja de campo: cabecera del sondaje y un renglón por tramo.
+ * Textos siempre como texto, nunca como fórmula (CWE-1236).
+ */
+public final class HojaQuicklogExcel {
+
+<span class="fc" id="L25">    private static final String[] COLUMNAS = {&quot;Fecha&quot;, &quot;Desde&quot;, &quot;Hasta&quot;, &quot;Avance&quot;, &quot;Lito&quot;, &quot;Alteración&quot;,</span>
+            &quot;Ensamble alt.&quot;, &quot;Mineralización&quot;, &quot;Py %&quot;, &quot;Cu %&quot;, &quot;Mo %&quot;, &quot;Estilo&quot;, &quot;Zona mineral&quot;, &quot;Comentario&quot;,
+            &quot;Responsable&quot;};
+    private static final int FILA_COLUMNAS = 6;
+
+    private HojaQuicklogExcel() {
+    }
+
+    /**
+     * @param h la hoja del sondaje
+     * @return el libro .xlsx
+     * @throws IOException si no se puede escribir el libro
+     */
+    public static byte[] generar(HojaQuicklog h) throws IOException {
+<span class="fc" id="L39">        try (XSSFWorkbook libro = new XSSFWorkbook(); ByteArrayOutputStream salida = new ByteArrayOutputStream()) {</span>
+<span class="fc" id="L40">            CellStyle negrita = estiloNegrita(libro);</span>
+<span class="fc" id="L41">            CellStyle metros = libro.createCellStyle();</span>
+<span class="fc" id="L42">            metros.setDataFormat(libro.createDataFormat().getFormat(&quot;#,##0.00&quot;));</span>
+<span class="fc" id="L43">            CellStyle fecha = libro.createCellStyle();</span>
+<span class="fc" id="L44">            fecha.setDataFormat(libro.createDataFormat().getFormat(&quot;yyyy-mm-dd&quot;));</span>
+
+<span class="fc" id="L46">            Sheet s = libro.createSheet(&quot;Hoja de registro&quot;);</span>
+<span class="fc" id="L47">            Cabecera c = h.cabecera();</span>
+<span class="fc" id="L48">            texto(s.createRow(0), 0, &quot;HOJA DE REGISTRO QUICKLOG&quot;, negrita);</span>
+
+<span class="fc" id="L50">            Row r1 = s.createRow(1);</span>
+<span class="fc" id="L51">            texto(r1, 0, &quot;Taladro:&quot;, negrita);</span>
+<span class="fc" id="L52">            texto(r1, 1, c.sondaje(), null);</span>
+<span class="fc" id="L53">            texto(r1, 2, &quot;Ubicación:&quot;, negrita);</span>
+<span class="fc" id="L54">            texto(r1, 3, c.ubicacion(), null);</span>
+
+<span class="fc" id="L56">            Row r2 = s.createRow(2);</span>
+<span class="fc" id="L57">            texto(r2, 0, &quot;Máquina:&quot;, negrita);</span>
+<span class="fc" id="L58">            texto(r2, 1, c.maquina(), null);</span>
+<span class="fc" id="L59">            texto(r2, 2, &quot;Azimut:&quot;, negrita);</span>
+<span class="fc" id="L60">            numero(r2, 3, c.azimut(), null);</span>
+<span class="fc" id="L61">            texto(r2, 4, &quot;Dip:&quot;, negrita);</span>
+<span class="fc" id="L62">            numero(r2, 5, c.dip(), null);</span>
+
+<span class="fc" id="L64">            Row r3 = s.createRow(3);</span>
+<span class="fc" id="L65">            texto(r3, 0, &quot;Norte:&quot;, negrita);</span>
+<span class="fc" id="L66">            numero(r3, 1, c.norte(), metros);</span>
+<span class="fc" id="L67">            texto(r3, 2, &quot;Este:&quot;, negrita);</span>
+<span class="fc" id="L68">            numero(r3, 3, c.este(), metros);</span>
+<span class="fc" id="L69">            texto(r3, 4, &quot;Cota:&quot;, negrita);</span>
+<span class="fc" id="L70">            numero(r3, 5, c.cota(), metros);</span>
+
+<span class="fc" id="L72">            Row r4 = s.createRow(4);</span>
+<span class="fc" id="L73">            texto(r4, 0, &quot;Geólogo:&quot;, negrita);</span>
+<span class="fc" id="L74">            texto(r4, 1, String.join(&quot;, &quot;, h.geologos()), null);</span>
+<span class="fc" id="L75">            texto(r4, 2, &quot;Prof. programada:&quot;, negrita);</span>
+<span class="fc" id="L76">            numero(r4, 3, c.profundidadProgramada(), metros);</span>
+<span class="fc" id="L77">            texto(r4, 4, &quot;Logueado (m):&quot;, negrita);</span>
+<span class="fc" id="L78">            numero(r4, 5, h.metrosLogueados().doubleValue(), metros);</span>
+
+<span class="fc" id="L80">            Row cab = s.createRow(FILA_COLUMNAS);</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">            for (int i = 0; i &lt; COLUMNAS.length; i++) {</span>
+<span class="fc" id="L82">                texto(cab, i, COLUMNAS[i], negrita);</span>
+            }
+<span class="fc" id="L84">            int fila = FILA_COLUMNAS + 1;</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">            for (Tramo t : h.tramos()) {</span>
+<span class="fc" id="L86">                Row row = s.createRow(fila++);</span>
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">                if (t.fecha() != null) {</span>
+<span class="fc" id="L88">                    Cell f = row.createCell(0);</span>
+<span class="fc" id="L89">                    f.setCellValue(t.fecha());</span>
+<span class="fc" id="L90">                    f.setCellStyle(fecha);</span>
+                }
+<span class="fc" id="L92">                decimal(row, 1, t.desde(), metros);</span>
+<span class="fc" id="L93">                decimal(row, 2, t.hasta(), metros);</span>
+<span class="fc" id="L94">                decimal(row, 3, t.longitud(), metros);</span>
+<span class="fc" id="L95">                texto(row, 4, t.lito(), null);</span>
+<span class="fc" id="L96">                texto(row, 5, t.alteracion(), null);</span>
+<span class="fc" id="L97">                texto(row, 6, t.ensambleAlteracion(), null);</span>
+<span class="fc" id="L98">                texto(row, 7, t.mineralizacion(), null);</span>
+<span class="fc" id="L99">                decimal(row, 8, t.pcPy(), null);</span>
+<span class="fc" id="L100">                decimal(row, 9, t.pcCu(), null);</span>
+<span class="fc" id="L101">                decimal(row, 10, t.pcMo(), null);</span>
+<span class="fc" id="L102">                texto(row, 11, t.estilo(), null);</span>
+<span class="fc" id="L103">                texto(row, 12, t.zona(), null);</span>
+<span class="fc" id="L104">                texto(row, 13, t.comentario(), null);</span>
+<span class="fc" id="L105">                texto(row, 14, t.geologo(), null);</span>
+<span class="fc" id="L106">            }</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">            for (int i = 0; i &lt; COLUMNAS.length - 2; i++) {</span>
+<span class="fc" id="L108">                s.autoSizeColumn(i);</span>
+            }
+<span class="fc" id="L110">            s.setColumnWidth(13, 60 * 256);</span>
+<span class="fc" id="L111">            s.setColumnWidth(14, 22 * 256);</span>
+<span class="fc" id="L112">            s.createFreezePane(0, FILA_COLUMNAS + 1);</span>
+
+<span class="fc" id="L114">            libro.write(salida);</span>
+<span class="fc" id="L115">            return salida.toByteArray();</span>
+        }
+    }
+
+    private static void texto(Row fila, int col, String valor, CellStyle estilo) {
+<span class="fc bfc" id="L120" title="All 2 branches covered.">        if (valor == null) {</span>
+<span class="fc" id="L121">            return;</span>
+        }
+<span class="fc" id="L123">        Cell c = fila.createCell(col);</span>
+<span class="fc" id="L124">        c.setCellValue(valor);</span>
+<span class="fc bfc" id="L125" title="All 2 branches covered.">        if (estilo != null) {</span>
+<span class="fc" id="L126">            c.setCellStyle(estilo);</span>
+        }
+<span class="fc" id="L128">    }</span>
+
+    private static void numero(Row fila, int col, Double valor, CellStyle estilo) {
+<span class="fc bfc" id="L131" title="All 2 branches covered.">        if (valor == null) {</span>
+<span class="fc" id="L132">            return;</span>
+        }
+<span class="fc" id="L134">        Cell c = fila.createCell(col);</span>
+<span class="fc" id="L135">        c.setCellValue(valor);</span>
+<span class="fc bfc" id="L136" title="All 2 branches covered.">        if (estilo != null) {</span>
+<span class="fc" id="L137">            c.setCellStyle(estilo);</span>
+        }
+<span class="fc" id="L139">    }</span>
+
+    private static void decimal(Row fila, int col, BigDecimal valor, CellStyle estilo) {
+<span class="fc bfc" id="L142" title="All 2 branches covered.">        numero(fila, col, valor == null ? null : valor.doubleValue(), estilo);</span>
+<span class="fc" id="L143">    }</span>
+
+    private static CellStyle estiloNegrita(XSSFWorkbook libro) {
+<span class="fc" id="L146">        Font f = libro.createFont();</span>
+<span class="fc" id="L147">        f.setBold(true);</span>
+<span class="fc" id="L148">        CellStyle s = libro.createCellStyle();</span>
+<span class="fc" id="L149">        s.setFont(f);</span>
+<span class="fc" id="L150">        s.setBorderBottom(BorderStyle.THIN);</span>
+<span class="fc" id="L151">        return s;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
