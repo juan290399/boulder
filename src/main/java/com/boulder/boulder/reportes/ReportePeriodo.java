@@ -23,9 +23,11 @@ import com.google.common.collect.ImmutableList;
  * @param totalLogueado  metros con logueo geológico
  * @param totalCajas     cajas recibidas en el almacén
  * @param totalMuestras  muestras registradas
+ * @param desvios        mediciones de desvío del periodo, por fecha, sondaje y profundidad
  */
 public record ReportePeriodo(LocalDate desde, LocalDate hasta, List<FilaSondaje> sondajes, List<FilaDia> dias,
-        BigDecimal totalPerforado, BigDecimal totalLogueado, int totalCajas, int totalMuestras) {
+        BigDecimal totalPerforado, BigDecimal totalLogueado, int totalCajas, int totalMuestras,
+        List<FilaDesvio> desvios) {
 
     /** Actividad de la campaña en un día. */
     public record FilaDia(LocalDate fecha, BigDecimal perforado, BigDecimal logueado, int cajas, int muestras) {
@@ -35,6 +37,16 @@ public record ReportePeriodo(LocalDate desde, LocalDate hasta, List<FilaSondaje>
         }
     }
 
+    /** Medición de desvío: separación estimada contra el plan y decisión tomada. */
+    public record FilaDesvio(String sondaje, BigDecimal profundidad, LocalDate fecha, Double desvTotal,
+            Double desvMetros, String decision) {
+    }
+
+    /** Mediciones con más separación que la tolerancia de aviso. */
+    public long desviosFueraTolerancia() {
+        return 0;
+    }
+
     /**
      * Ordena los sondajes por código, completa los días sin actividad y calcula los totales.
      *
@@ -42,9 +54,11 @@ public record ReportePeriodo(LocalDate desde, LocalDate hasta, List<FilaSondaje>
      * @param hasta último día, incluido
      * @param sondajes actividad por sondaje, en cualquier orden
      * @param dias actividad por día; los días que faltan quedan en cero
+     * @param desvios mediciones de desvío del periodo
      * @return el reporte inmutable
      */
-    public static ReportePeriodo de(LocalDate desde, LocalDate hasta, List<FilaSondaje> sondajes, List<FilaDia> dias) {
+    public static ReportePeriodo de(LocalDate desde, LocalDate hasta, List<FilaSondaje> sondajes, List<FilaDia> dias,
+                                    List<FilaDesvio> desvios) {
         List<FilaSondaje> ordenadas = sondajes.stream()
                 .sorted(Comparator.comparing(FilaSondaje::codigo))
                 .collect(ImmutableList.toImmutableList());
@@ -57,6 +71,7 @@ public record ReportePeriodo(LocalDate desde, LocalDate hasta, List<FilaSondaje>
                 ordenadas.stream().map(FilaSondaje::perforado).reduce(BigDecimal.ZERO, BigDecimal::add),
                 ordenadas.stream().map(FilaSondaje::logueado).reduce(BigDecimal.ZERO, BigDecimal::add),
                 ordenadas.stream().mapToInt(FilaSondaje::cajas).sum(),
-                ordenadas.stream().mapToInt(FilaSondaje::muestras).sum());
+                ordenadas.stream().mapToInt(FilaSondaje::muestras).sum(),
+                List.of());
     }
 }

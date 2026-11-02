@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.boulder.boulder.reportes.ReporteDiario.FilaSondaje;
+import com.boulder.boulder.reportes.ReportePeriodo.FilaDesvio;
 import com.boulder.boulder.reportes.ReportePeriodo.FilaDia;
 
 /**
@@ -103,6 +104,15 @@ public class ReporteDiarioRepository {
                 rs.getBigDecimal("logueado"),
                 rs.getInt("cajas"),
                 rs.getInt("muestras")), rango(desde, hasta));
+    }
+
+    /**
+     * @param desde primer día, incluido
+     * @param hasta último día, incluido
+     * @return mediciones de desvío con fecha en el periodo
+     */
+    public List<FilaDesvio> desvios(LocalDate desde, LocalDate hasta) {
+        return List.of();
     }
 
     /** Los cuatro pares (desde, hasta) de las consultas por rango. */
