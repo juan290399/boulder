@@ -3,6 +3,7 @@ package com.boulder.boulder.reportes;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -159,7 +160,14 @@ public class ReporteDiarioRepository {
      * @return metros perforados en el día por máquina, sin orden garantizado
      */
     public List<FilaMaquina> porMaquina(LocalDate fecha) {
-        return List.of();
+        return jdbc.query("""
+                SELECT coalesce(rtrim(m.codigo), a.maquina_codigo) AS maquina, sum(a.avance) AS metros
+                  FROM operacional.prf_avance a
+                  LEFT JOIN operacional.prf_maquina m ON m.id = a.maquina_id
+                 WHERE a.fecha = ?
+                 GROUP BY 1
+                """, (rs, i) -> new FilaMaquina(rs.getString("maquina"), rs.getBigDecimal("metros")),
+                Date.valueOf(fecha));
     }
 
     /**
@@ -167,7 +175,15 @@ public class ReporteDiarioRepository {
      * @return metros perforados por sondaje y por mes hasta {@code fecha}
      */
     public List<CeldaMensual> mensual(LocalDate fecha) {
-        return List.of();
+        return jdbc.query("""
+                SELECT s.codigo, date_trunc('month', a.fecha)::date AS mes, sum(a.avance) AS metros
+                  FROM operacional.prf_avance a
+                  JOIN operacional.prf_sondaje s ON s.id = a.sondaje_id
+                 WHERE a.fecha <= ?
+                 GROUP BY s.codigo, 2
+                """, (rs, i) -> new CeldaMensual(rs.getString("codigo"),
+                YearMonth.from(rs.getDate("mes").toLocalDate()), rs.getBigDecimal("metros")),
+                Date.valueOf(fecha));
     }
 
     /** Los cuatro pares (desde, hasta) de las consultas por rango. */
