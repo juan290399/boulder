@@ -10,6 +10,7 @@ import java.util.Map;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.boulder.boulder.reportes.ReporteDiario.FilaCampania;
 import com.boulder.boulder.reportes.ReporteDiario.FilaSondaje;
 import com.boulder.boulder.reportes.ReportePeriodo.FilaDesvio;
 import com.boulder.boulder.reportes.ReportePeriodo.FilaDia;
@@ -123,6 +124,14 @@ public class ReporteDiarioRepository {
                 rs.getObject("desv_total", Double.class),
                 rs.getObject("desv_metros", Double.class),
                 rs.getString("decision")), Date.valueOf(desde), Date.valueOf(hasta));
+    }
+
+    /**
+     * @param fecha último día considerado
+     * @return sondajes con partes de perforación hasta {@code fecha}, sin orden garantizado
+     */
+    public List<FilaCampania> campania(LocalDate fecha) {
+        return List.of();
     }
 
     /** Los cuatro pares (desde, hasta) de las consultas por rango. */

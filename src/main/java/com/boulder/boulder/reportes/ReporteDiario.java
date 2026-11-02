@@ -21,9 +21,21 @@ import com.google.common.collect.ImmutableList;
  * @param totalLogueado  metros con logueo geológico en el día
  * @param totalCajas     cajas de testigo recibidas en el almacén
  * @param totalMuestras  muestras registradas en el muestreo
+ * @param campania       resumen de la campaña hasta {@code fecha}, por sondaje
  */
 public record ReporteDiario(LocalDate fecha, List<FilaSondaje> sondajes, List<PuntoSerie> ultimosDias,
-        BigDecimal totalPerforado, BigDecimal totalLogueado, int totalCajas, int totalMuestras) {
+        BigDecimal totalPerforado, BigDecimal totalLogueado, int totalCajas, int totalMuestras,
+        List<FilaCampania> campania) {
+
+    /** Un sondaje de la campaña: máquina, fechas de perforación, días, avance total y estado. */
+    public record FilaCampania(String codigo, String maquina, LocalDate inicio, LocalDate fin, long dias,
+            BigDecimal avance, String estado) {
+    }
+
+    /** Metros perforados en la campaña hasta la fecha del reporte. */
+    public BigDecimal totalCampania() {
+        return BigDecimal.ZERO;
+    }
 
     /** Actividad de un sondaje en el día. */
     public record FilaSondaje(String codigo, BigDecimal perforado, BigDecimal logueado, int cajas, int muestras) {
@@ -42,6 +54,17 @@ public record ReporteDiario(LocalDate fecha, List<FilaSondaje> sondajes, List<Pu
      * @return el reporte inmutable
      */
     public static ReporteDiario de(LocalDate fecha, List<FilaSondaje> filas, List<PuntoSerie> serie) {
+        return de(fecha, filas, serie, List.of());
+    }
+
+    /**
+     * Igual que {@link #de(LocalDate, List, List)} con el resumen de campaña.
+     *
+     * @param campania sondajes de la campaña, en cualquier orden
+     * @return el reporte inmutable
+     */
+    public static ReporteDiario de(LocalDate fecha, List<FilaSondaje> filas, List<PuntoSerie> serie,
+                                   List<FilaCampania> campania) {
         List<FilaSondaje> ordenadas = filas.stream()
                 .sorted(Comparator.comparing(FilaSondaje::codigo))
                 .collect(ImmutableList.toImmutableList());
@@ -49,6 +72,7 @@ public record ReporteDiario(LocalDate fecha, List<FilaSondaje> sondajes, List<Pu
                 ordenadas.stream().map(FilaSondaje::perforado).reduce(BigDecimal.ZERO, BigDecimal::add),
                 ordenadas.stream().map(FilaSondaje::logueado).reduce(BigDecimal.ZERO, BigDecimal::add),
                 ordenadas.stream().mapToInt(FilaSondaje::cajas).sum(),
-                ordenadas.stream().mapToInt(FilaSondaje::muestras).sum());
+                ordenadas.stream().mapToInt(FilaSondaje::muestras).sum(),
+                List.of());
     }
 }
