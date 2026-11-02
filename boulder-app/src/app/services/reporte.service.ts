@@ -17,11 +17,22 @@ export interface PuntoSerie {
   metros: number;
 }
 
+export interface FilaCampania {
+  codigo: string;
+  maquina: string | null;
+  inicio: string;
+  fin: string;
+  dias: number;
+  avance: number;
+  estado: string;
+}
+
 /** Espejo del record `ReporteDiario` del backend. */
 export interface ReporteDiario {
   fecha: string;
   sondajes: FilaSondajeReporte[];
   ultimosDias: PuntoSerie[];
+  campania: FilaCampania[];
   totalPerforado: number;
   totalLogueado: number;
   totalCajas: number;

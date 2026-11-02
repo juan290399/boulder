@@ -86,4 +86,37 @@
       }
     </div>
   </div>
+
+  <div class="panel">
+    <div class="panel__head"><h2 class="panel__title">Campaña al {{ r.fecha }}</h2></div>
+    @if (!r.campania.length) {
+      <div class="empty-state"><i class="bi bi-calendar-x"></i><p>Sin partes de perforación hasta esa fecha.</p></div>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr><th>Sondaje</th><th>Máquina</th><th>Inicio</th><th>Fin</th><th class="num">Días</th>
+              <th class="num">Avance total (m)</th><th>Estado</th></tr>
+          </thead>
+          <tbody>
+            @for (c of r.campania; track c.codigo) {
+              <tr>
+                <td class="mono">{{ c.codigo }}</td>
+                <td>{{ c.maquina }}</td>
+                <td class="mono">{{ c.inicio }}</td>
+                <td class="mono">{{ c.fin }}</td>
+                <td class="num">{{ c.dias }}</td>
+                <td class="num">{{ c.avance | number:'1.2-2' }}</td>
+                <td><span class="chip" [class.chip--brand]="c.estado === 'En proceso'">{{ c.estado }}</span></td>
+              </tr>
+            }
+            <tr class="total">
+              <td>Total</td><td></td><td></td><td></td><td></td>
+              <td class="num">{{ totalCampania() | number:'1.2-2' }}</td><td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
 }
