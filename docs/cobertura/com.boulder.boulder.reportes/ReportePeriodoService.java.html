@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReportePeriodoService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.reportes</a> &gt; <span class="el_source">ReportePeriodoService.java</span></div><h1>ReportePeriodoService.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.reportes;
+
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Arma el reporte de un periodo con los mismos registros que el reporte diario.
+ */
+@Service
+public class ReportePeriodoService {
+
+    /** Un trimestre: más que eso ya no es un reporte de seguimiento. */
+    static final int MAX_DIAS = 92;
+    private static final int DIAS_POR_DEFECTO = 7;
+
+    private final ReporteDiarioRepository repositorio;
+    private final Clock reloj;
+
+<span class="fc" id="L23">    public ReportePeriodoService(ReporteDiarioRepository repositorio, Clock reloj) {</span>
+<span class="fc" id="L24">        this.repositorio = repositorio;</span>
+<span class="fc" id="L25">        this.reloj = reloj;</span>
+<span class="fc" id="L26">    }</span>
+
+    /**
+     * @param desde primer día; {@code null} para seis días antes de {@code hasta}
+     * @param hasta último día; {@code null} para hoy
+     * @return el reporte del periodo
+     * @throws IllegalArgumentException si el periodo está invertido, termina en el futuro o pasa de 92 días
+     */
+    @Transactional(readOnly = true)
+    public ReportePeriodo generar(LocalDate desde, LocalDate hasta) {
+<span class="fc" id="L36">        LocalDate hoy = LocalDate.now(reloj);</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        LocalDate fin = hasta != null ? hasta : hoy;</span>
+<span class="fc bfc" id="L38" title="All 2 branches covered.">        LocalDate inicio = desde != null ? desde : fin.minusDays(DIAS_POR_DEFECTO - 1L);</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        if (inicio.isAfter(fin)) {</span>
+<span class="fc" id="L40">            throw new IllegalArgumentException(&quot;El periodo empieza después de terminar: &quot; + inicio + &quot; &gt; &quot; + fin);</span>
+        }
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        if (fin.isAfter(hoy)) {</span>
+<span class="fc" id="L43">            throw new IllegalArgumentException(&quot;El periodo no puede terminar en el futuro: &quot; + fin);</span>
+        }
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        if (ChronoUnit.DAYS.between(inicio, fin) + 1 &gt; MAX_DIAS) {</span>
+<span class="fc" id="L46">            throw new IllegalArgumentException(&quot;El periodo pasa de &quot; + MAX_DIAS + &quot; días&quot;);</span>
+        }
+<span class="fc" id="L48">        return ReportePeriodo.de(inicio, fin, repositorio.porSondaje(inicio, fin), repositorio.porDia(inicio, fin));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -96,7 +96,7 @@ import jakarta.persistence.PersistenceContext;
 <span class="fc" id="L96">                    f.decimal(&quot;casing_desde&quot;), f.decimal(&quot;casing_hasta&quot;)).forEach(f::error);</span>
 
 <span class="fc" id="L98">            AvancePerforacion e = new AvancePerforacion();</span>
-<span class="fc" id="L99">            e.setSondajeCodigo(f.texto(&quot;sondaje_codigo&quot;, 30));</span>
+<span class="fc" id="L99">            e.setSondajeCodigo(f.codigoSondaje(sondajeId, &quot;sondaje_codigo&quot;));</span>
 <span class="fc" id="L100">            e.setFecha(fecha);</span>
 <span class="fc" id="L101">            e.setTurno(turno);</span>
 <span class="fc" id="L102">            e.setResponsable(f.texto(&quot;responsable&quot;, 80));</span>

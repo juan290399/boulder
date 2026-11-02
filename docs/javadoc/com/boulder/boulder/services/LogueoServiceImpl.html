@@ -122,7 +122,14 @@ implements <a href="LogueoService.html" title="interface in com.boulder.boulder.
 <div class="summary-table two-column-summary">
 <div class="table-header col-first">Constructor</div>
 <div class="table-header col-last">Description</div>
-<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E()" class="member-name-link">LogueoServiceImpl</a>()</code></div>
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(com.boulder.boulder.repositories.LitologiaRepository,com.boulder.boulder.repositories.AlteracionRepository,com.boulder.boulder.repositories.MineralizacionRepository,com.boulder.boulder.repositories.EstructuralRepository,com.boulder.boulder.repositories.QuicklogRepository,org.springframework.context.ApplicationEventPublisher,org.springframework.jdbc.core.JdbcTemplate,org.springframework.transaction.support.TransactionOperations)" class="member-name-link">LogueoServiceImpl</a><wbr>(<a href="../repositories/LitologiaRepository.html" title="interface in com.boulder.boulder.repositories">LitologiaRepository</a>&nbsp;litologiaRepository,
+ <a href="../repositories/AlteracionRepository.html" title="interface in com.boulder.boulder.repositories">AlteracionRepository</a>&nbsp;alteracionRepository,
+ <a href="../repositories/MineralizacionRepository.html" title="interface in com.boulder.boulder.repositories">MineralizacionRepository</a>&nbsp;mineralizacionRepository,
+ <a href="../repositories/EstructuralRepository.html" title="interface in com.boulder.boulder.repositories">EstructuralRepository</a>&nbsp;estructuralRepository,
+ <a href="../repositories/QuicklogRepository.html" title="interface in com.boulder.boulder.repositories">QuicklogRepository</a>&nbsp;quicklogRepository,
+ org.springframework.context.ApplicationEventPublisher&nbsp;eventos,
+ org.springframework.jdbc.core.JdbcTemplate&nbsp;jdbc,
+ org.springframework.transaction.support.TransactionOperations&nbsp;transacciones)</code></div>
 <div class="col-last even-row-color">&nbsp;</div>
 </div>
 </section>
@@ -143,31 +150,31 @@ implements <a href="LogueoService.html" title="interface in com.boulder.boulder.
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Última sincronización de cada tablet, la más reciente primero.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../dto/ResultadoSubidaDTO.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#guardarAlteracion(java.util.List,java.lang.String,java.lang.String,java.lang.String)" class="member-name-link">guardarAlteracion</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../entities/Alteracion.html" title="class in com.boulder.boulder.entities">Alteracion</a>&gt;&nbsp;items,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;dispositivo,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;usuario,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;versionApp)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../dto/ResultadoSubidaDTO.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#guardarEstructural(java.util.List,java.lang.String,java.lang.String,java.lang.String)" class="member-name-link">guardarEstructural</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../entities/Estructural.html" title="class in com.boulder.boulder.entities">Estructural</a>&gt;&nbsp;items,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;dispositivo,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;usuario,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;versionApp)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../dto/ResultadoSubidaDTO.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#guardarLitologia(java.util.List,java.lang.String,java.lang.String,java.lang.String)" class="member-name-link">guardarLitologia</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../entities/Litologia.html" title="class in com.boulder.boulder.entities">Litologia</a>&gt;&nbsp;items,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;dispositivo,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;usuario,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;versionApp)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../dto/ResultadoSubidaDTO.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#guardarMineralizacion(java.util.List,java.lang.String,java.lang.String,java.lang.String)" class="member-name-link">guardarMineralizacion</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../entities/Mineralizacion.html" title="class in com.boulder.boulder.entities">Mineralizacion</a>&gt;&nbsp;items,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;dispositivo,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;usuario,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;versionApp)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../dto/ResultadoSubidaDTO.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#guardarQuicklog(java.util.List,java.lang.String,java.lang.String,java.lang.String)" class="member-name-link">guardarQuicklog</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../entities/Quicklog.html" title="class in com.boulder.boulder.entities">Quicklog</a>&gt;&nbsp;items,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;dispositivo,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;usuario,
@@ -211,9 +218,16 @@ implements <a href="LogueoService.html" title="interface in com.boulder.boulder.
 <h2>Constructor Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="&lt;init&gt;()">
+<section class="detail" id="&lt;init&gt;(com.boulder.boulder.repositories.LitologiaRepository,com.boulder.boulder.repositories.AlteracionRepository,com.boulder.boulder.repositories.MineralizacionRepository,com.boulder.boulder.repositories.EstructuralRepository,com.boulder.boulder.repositories.QuicklogRepository,org.springframework.context.ApplicationEventPublisher,org.springframework.jdbc.core.JdbcTemplate,org.springframework.transaction.support.TransactionOperations)">
 <h3>LogueoServiceImpl</h3>
-<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">LogueoServiceImpl</span>()</div>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">LogueoServiceImpl</span><wbr><span class="parameters">(<a href="../repositories/LitologiaRepository.html" title="interface in com.boulder.boulder.repositories">LitologiaRepository</a>&nbsp;litologiaRepository,
+ <a href="../repositories/AlteracionRepository.html" title="interface in com.boulder.boulder.repositories">AlteracionRepository</a>&nbsp;alteracionRepository,
+ <a href="../repositories/MineralizacionRepository.html" title="interface in com.boulder.boulder.repositories">MineralizacionRepository</a>&nbsp;mineralizacionRepository,
+ <a href="../repositories/EstructuralRepository.html" title="interface in com.boulder.boulder.repositories">EstructuralRepository</a>&nbsp;estructuralRepository,
+ <a href="../repositories/QuicklogRepository.html" title="interface in com.boulder.boulder.repositories">QuicklogRepository</a>&nbsp;quicklogRepository,
+ org.springframework.context.ApplicationEventPublisher&nbsp;eventos,
+ org.springframework.jdbc.core.JdbcTemplate&nbsp;jdbc,
+ org.springframework.transaction.support.TransactionOperations&nbsp;transacciones)</span></div>
 </section>
 </li>
 </ul>
@@ -287,8 +301,7 @@ implements <a href="LogueoService.html" title="interface in com.boulder.boulder.
 <li>
 <section class="detail" id="guardarLitologia(java.util.List,java.lang.String,java.lang.String,java.lang.String)">
 <h3>guardarLitologia</h3>
-<div class="member-signature"><span class="annotations">@Transactional
-</span><span class="modifiers">public</span>&nbsp;<span class="return-type">int</span>&nbsp;<span class="element-name">guardarLitologia</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../entities/Litologia.html" title="class in com.boulder.boulder.entities">Litologia</a>&gt;&nbsp;items,
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../dto/ResultadoSubidaDTO.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO</a></span>&nbsp;<span class="element-name">guardarLitologia</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../entities/Litologia.html" title="class in com.boulder.boulder.entities">Litologia</a>&gt;&nbsp;items,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;dispositivo,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;usuario,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;versionApp)</span></div>
@@ -301,8 +314,7 @@ implements <a href="LogueoService.html" title="interface in com.boulder.boulder.
 <li>
 <section class="detail" id="guardarAlteracion(java.util.List,java.lang.String,java.lang.String,java.lang.String)">
 <h3>guardarAlteracion</h3>
-<div class="member-signature"><span class="annotations">@Transactional
-</span><span class="modifiers">public</span>&nbsp;<span class="return-type">int</span>&nbsp;<span class="element-name">guardarAlteracion</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../entities/Alteracion.html" title="class in com.boulder.boulder.entities">Alteracion</a>&gt;&nbsp;items,
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../dto/ResultadoSubidaDTO.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO</a></span>&nbsp;<span class="element-name">guardarAlteracion</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../entities/Alteracion.html" title="class in com.boulder.boulder.entities">Alteracion</a>&gt;&nbsp;items,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;dispositivo,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;usuario,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;versionApp)</span></div>
@@ -315,8 +327,7 @@ implements <a href="LogueoService.html" title="interface in com.boulder.boulder.
 <li>
 <section class="detail" id="guardarMineralizacion(java.util.List,java.lang.String,java.lang.String,java.lang.String)">
 <h3>guardarMineralizacion</h3>
-<div class="member-signature"><span class="annotations">@Transactional
-</span><span class="modifiers">public</span>&nbsp;<span class="return-type">int</span>&nbsp;<span class="element-name">guardarMineralizacion</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../entities/Mineralizacion.html" title="class in com.boulder.boulder.entities">Mineralizacion</a>&gt;&nbsp;items,
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../dto/ResultadoSubidaDTO.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO</a></span>&nbsp;<span class="element-name">guardarMineralizacion</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../entities/Mineralizacion.html" title="class in com.boulder.boulder.entities">Mineralizacion</a>&gt;&nbsp;items,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;dispositivo,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;usuario,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;versionApp)</span></div>
@@ -329,8 +340,7 @@ implements <a href="LogueoService.html" title="interface in com.boulder.boulder.
 <li>
 <section class="detail" id="guardarEstructural(java.util.List,java.lang.String,java.lang.String,java.lang.String)">
 <h3>guardarEstructural</h3>
-<div class="member-signature"><span class="annotations">@Transactional
-</span><span class="modifiers">public</span>&nbsp;<span class="return-type">int</span>&nbsp;<span class="element-name">guardarEstructural</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../entities/Estructural.html" title="class in com.boulder.boulder.entities">Estructural</a>&gt;&nbsp;items,
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../dto/ResultadoSubidaDTO.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO</a></span>&nbsp;<span class="element-name">guardarEstructural</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../entities/Estructural.html" title="class in com.boulder.boulder.entities">Estructural</a>&gt;&nbsp;items,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;dispositivo,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;usuario,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;versionApp)</span></div>
@@ -343,8 +353,7 @@ implements <a href="LogueoService.html" title="interface in com.boulder.boulder.
 <li>
 <section class="detail" id="guardarQuicklog(java.util.List,java.lang.String,java.lang.String,java.lang.String)">
 <h3>guardarQuicklog</h3>
-<div class="member-signature"><span class="annotations">@Transactional
-</span><span class="modifiers">public</span>&nbsp;<span class="return-type">int</span>&nbsp;<span class="element-name">guardarQuicklog</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../entities/Quicklog.html" title="class in com.boulder.boulder.entities">Quicklog</a>&gt;&nbsp;items,
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../dto/ResultadoSubidaDTO.html" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO</a></span>&nbsp;<span class="element-name">guardarQuicklog</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../entities/Quicklog.html" title="class in com.boulder.boulder.entities">Quicklog</a>&gt;&nbsp;items,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;dispositivo,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;usuario,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;versionApp)</span></div>
