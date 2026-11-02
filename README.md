@@ -89,6 +89,8 @@ El detalle por paquete está en el Javadoc.
 - Una sola política CORS; el usuario de una operación sale del token, nunca del cuerpo.
 - Excel exportado sin fórmulas (texto siempre como texto); nombres de archivo de las
   fotos saneados con Commons IO; nombres de tabla contra una lista blanca.
+- Monitoreo con Spring Boot Actuator: `/actuator/health` público solo con el
+  estado; detalle y métricas para ADMIN. Ver [docs/monitoreo.md](docs/monitoreo.md).
 
 ## Librerías de apoyo
 
@@ -102,7 +104,7 @@ El detalle por paquete está en el Javadoc.
 
 ## Pruebas (TDD)
 
-301 pruebas en 37 clases (214 unitarias, 21 web y 66 de integración): unitarias con JUnit y Mockito, de la capa web con MockMvc
+324 pruebas en 40 clases (214 unitarias, 21 web y 89 de integración) más 25 del frontend con Vitest: unitarias con JUnit y Mockito, de la capa web con MockMvc
 y de integración contra PostgreSQL (cada una se deshace al terminar). El historial
 muestra el ciclo: un commit `test(…) (rojo)` con la prueba que falla y el siguiente
 `feat(…) (verde)` con lo que la hace pasar.
@@ -111,10 +113,10 @@ muestra el ciclo: un commit `test(…) (rojo)` con la prueba que falla y el sigu
 
 | Cobertura (JaCoCo) | |
 |---|---|
-| Líneas | 67.2 % |
-| Ramas | 60.4 % |
-| Métodos | 66.2 % |
-| Clases | 96.9 % |
+| Líneas | 67.8 % |
+| Ramas | 60.9 % |
+| Métodos | 66.8 % |
+| Clases | 97.0 % |
 
 ```bash
 ./gradlew test jacocoTestReport
@@ -125,6 +127,11 @@ muestra el ciclo: un commit `test(…) (rojo)` con la prueba que falla y el sigu
 - [Javadoc](docs/javadoc/index.html): arquitectura, MVC/DAO y SOLID explicados por paquete.
 - [Reporte de cobertura](docs/cobertura/index.html).
 - [Diagramas de arquitectura](docs/arquitectura/).
+- [Plan y resultados de las pruebas](docs/pruebas.md).
+- [Reporte de pruebas de seguridad](docs/seguridad.md).
+- [Despliegue](docs/despliegue.md): un jar con el API y Angular, systemd, Nginx con HTTPS.
+- [Plan de monitoreo](docs/monitoreo.md): Actuator, bitácoras y verificación de salud.
+- [Plan de mantenimiento](docs/mantenimiento.md): respaldos, restauración y tareas programadas.
 
 ## Control de versiones
 
@@ -145,8 +152,9 @@ Los mensajes siguen *Conventional Commits* en español: `feat`, `fix`, `test`,
 
 ## Puesta en marcha
 
-Requisitos: Java 21, Node.js 20 o superior y PostgreSQL 16 o superior. El Gradle
-Wrapper viene incluido.
+Requisitos: Java 21, Node.js 20 o superior y PostgreSQL 16 o superior. Vienen
+incluidos los wrappers de Gradle y de Maven; el despliegue en producción está en
+[docs/despliegue.md](docs/despliegue.md).
 
 1. **Base de datos.**
 
@@ -177,7 +185,7 @@ Wrapper viene incluido.
 
 ```
 src/main/java/com/boulder/boulder/
-  config/        seguridad, CORS, manejo de errores, reloj
+  config/        seguridad, CORS, manejo de errores, reloj, aplicación web
   controllers/   API REST
   services/      reglas de negocio (+ importacion/ con Apache POI)
   repositories/  DAO
@@ -187,6 +195,9 @@ src/main/java/com/boulder/boulder/
   fotos/ eventos/
 src/test/java/   pruebas unitarias, web e integración
 boulder-app/     frontend Angular
-docs/            arquitectura, Javadoc y cobertura
+docs/            arquitectura, Javadoc, cobertura, pruebas, seguridad, despliegue, monitoreo, mantenimiento
 db/              esquema físico de PostgreSQL
+deploy/          servicio systemd, variables de entorno, Nginx, arranque en Windows
+scripts/         pruebas de extremo a extremo y mantenimiento (respaldo, restauración, salud)
+pom.xml          construcción con Maven (perfil produccion: jar con Angular)
 ```
