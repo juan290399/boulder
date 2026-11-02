@@ -2,7 +2,7 @@
 
 <configuration>
 
-    <property name="LOG_PATH" value="logs"/>
+    <springProperty name="LOG_PATH" source="boulder.logs.directorio" defaultValue="logs"/>
 
     <appender name="CONSOLE"
               class="ch.qos.logback.core.ConsoleAppender">
