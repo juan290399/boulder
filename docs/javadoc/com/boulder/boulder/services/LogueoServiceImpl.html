@@ -122,14 +122,15 @@ implements <a href="LogueoService.html" title="interface in com.boulder.boulder.
 <div class="summary-table two-column-summary">
 <div class="table-header col-first">Constructor</div>
 <div class="table-header col-last">Description</div>
-<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(com.boulder.boulder.repositories.LitologiaRepository,com.boulder.boulder.repositories.AlteracionRepository,com.boulder.boulder.repositories.MineralizacionRepository,com.boulder.boulder.repositories.EstructuralRepository,com.boulder.boulder.repositories.QuicklogRepository,org.springframework.context.ApplicationEventPublisher,org.springframework.jdbc.core.JdbcTemplate,org.springframework.transaction.support.TransactionOperations)" class="member-name-link">LogueoServiceImpl</a><wbr>(<a href="../repositories/LitologiaRepository.html" title="interface in com.boulder.boulder.repositories">LitologiaRepository</a>&nbsp;litologiaRepository,
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(com.boulder.boulder.repositories.LitologiaRepository,com.boulder.boulder.repositories.AlteracionRepository,com.boulder.boulder.repositories.MineralizacionRepository,com.boulder.boulder.repositories.EstructuralRepository,com.boulder.boulder.repositories.QuicklogRepository,org.springframework.context.ApplicationEventPublisher,org.springframework.jdbc.core.JdbcTemplate,org.springframework.transaction.support.TransactionOperations,com.boulder.boulder.monitoreo.MetricasNegocio)" class="member-name-link">LogueoServiceImpl</a><wbr>(<a href="../repositories/LitologiaRepository.html" title="interface in com.boulder.boulder.repositories">LitologiaRepository</a>&nbsp;litologiaRepository,
  <a href="../repositories/AlteracionRepository.html" title="interface in com.boulder.boulder.repositories">AlteracionRepository</a>&nbsp;alteracionRepository,
  <a href="../repositories/MineralizacionRepository.html" title="interface in com.boulder.boulder.repositories">MineralizacionRepository</a>&nbsp;mineralizacionRepository,
  <a href="../repositories/EstructuralRepository.html" title="interface in com.boulder.boulder.repositories">EstructuralRepository</a>&nbsp;estructuralRepository,
  <a href="../repositories/QuicklogRepository.html" title="interface in com.boulder.boulder.repositories">QuicklogRepository</a>&nbsp;quicklogRepository,
  org.springframework.context.ApplicationEventPublisher&nbsp;eventos,
  org.springframework.jdbc.core.JdbcTemplate&nbsp;jdbc,
- org.springframework.transaction.support.TransactionOperations&nbsp;transacciones)</code></div>
+ org.springframework.transaction.support.TransactionOperations&nbsp;transacciones,
+ <a href="../monitoreo/MetricasNegocio.html" title="class in com.boulder.boulder.monitoreo">MetricasNegocio</a>&nbsp;metricas)</code></div>
 <div class="col-last even-row-color">&nbsp;</div>
 </div>
 </section>
@@ -218,7 +219,7 @@ implements <a href="LogueoService.html" title="interface in com.boulder.boulder.
 <h2>Constructor Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="&lt;init&gt;(com.boulder.boulder.repositories.LitologiaRepository,com.boulder.boulder.repositories.AlteracionRepository,com.boulder.boulder.repositories.MineralizacionRepository,com.boulder.boulder.repositories.EstructuralRepository,com.boulder.boulder.repositories.QuicklogRepository,org.springframework.context.ApplicationEventPublisher,org.springframework.jdbc.core.JdbcTemplate,org.springframework.transaction.support.TransactionOperations)">
+<section class="detail" id="&lt;init&gt;(com.boulder.boulder.repositories.LitologiaRepository,com.boulder.boulder.repositories.AlteracionRepository,com.boulder.boulder.repositories.MineralizacionRepository,com.boulder.boulder.repositories.EstructuralRepository,com.boulder.boulder.repositories.QuicklogRepository,org.springframework.context.ApplicationEventPublisher,org.springframework.jdbc.core.JdbcTemplate,org.springframework.transaction.support.TransactionOperations,com.boulder.boulder.monitoreo.MetricasNegocio)">
 <h3>LogueoServiceImpl</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">LogueoServiceImpl</span><wbr><span class="parameters">(<a href="../repositories/LitologiaRepository.html" title="interface in com.boulder.boulder.repositories">LitologiaRepository</a>&nbsp;litologiaRepository,
  <a href="../repositories/AlteracionRepository.html" title="interface in com.boulder.boulder.repositories">AlteracionRepository</a>&nbsp;alteracionRepository,
@@ -227,7 +228,8 @@ implements <a href="LogueoService.html" title="interface in com.boulder.boulder.
  <a href="../repositories/QuicklogRepository.html" title="interface in com.boulder.boulder.repositories">QuicklogRepository</a>&nbsp;quicklogRepository,
  org.springframework.context.ApplicationEventPublisher&nbsp;eventos,
  org.springframework.jdbc.core.JdbcTemplate&nbsp;jdbc,
- org.springframework.transaction.support.TransactionOperations&nbsp;transacciones)</span></div>
+ org.springframework.transaction.support.TransactionOperations&nbsp;transacciones,
+ <a href="../monitoreo/MetricasNegocio.html" title="class in com.boulder.boulder.monitoreo">MetricasNegocio</a>&nbsp;metricas)</span></div>
 </section>
 </li>
 </ul>
