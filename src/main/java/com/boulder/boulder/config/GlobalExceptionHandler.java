@@ -78,14 +78,39 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(map);
     }
 
-    /** Violación de integridad (FK, unique, check) -> 409. */
+    /**
+     * Violación de integridad (FK, unique, check) -> 409.
+     *
+     * <p>
+     * El mensaje de PostgreSQL nombra tablas, columnas y restricciones, así que
+     * solo va al log; al cliente se le responde según el SQLState.
+     * </p>
+     */
     @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleIntegrity(
             org.springframework.dao.DataIntegrityViolationException ex, WebRequest request) {
-        String causa = ex.getMostSpecificCause().getMessage();
-        log.warn("Violación de integridad de datos: {}", causa);
+        log.warn("Violación de integridad de datos: {}", ex.getMostSpecificCause().getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(body(HttpStatus.CONFLICT, causa, request));
+                .body(body(HttpStatus.CONFLICT, mensajeIntegridad(sqlState(ex)), request));
+    }
+
+    private static String sqlState(Throwable ex) {
+        for (Throwable t = ex; t != null && t.getCause() != t; t = t.getCause()) {
+            if (t instanceof java.sql.SQLException sql && sql.getSQLState() != null) {
+                return sql.getSQLState();
+            }
+        }
+        return "";
+    }
+
+    private static String mensajeIntegridad(String sqlState) {
+        return switch (sqlState) {
+            case "23505", "23P01" -> "Ya existe un registro con esos datos";
+            case "23503" -> "Hace referencia a un registro que no existe o que está en uso";
+            case "23514" -> "Un valor no cumple las reglas del registro";
+            case "23502" -> "Falta un dato obligatorio";
+            default -> "Los datos no cumplen las reglas de integridad";
+        };
     }
 
     /**
