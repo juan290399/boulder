@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionOperations;
 
 import com.boulder.boulder.dto.ResultadoSubidaDTO;
+import com.boulder.boulder.monitoreo.MetricasNegocio;
 import com.boulder.boulder.entities.Alteracion;
 import com.boulder.boulder.entities.Estructural;
 import com.boulder.boulder.entities.Litologia;
@@ -60,11 +61,12 @@ public class LogueoServiceImpl implements LogueoService {
     private final ApplicationEventPublisher eventos;
     private final JdbcTemplate jdbc;
     private final TransactionOperations transacciones;
+    private final MetricasNegocio metricas;
 
     public LogueoServiceImpl(LitologiaRepository litologiaRepository, AlteracionRepository alteracionRepository,
                              MineralizacionRepository mineralizacionRepository, EstructuralRepository estructuralRepository,
                              QuicklogRepository quicklogRepository, ApplicationEventPublisher eventos, JdbcTemplate jdbc,
-                             TransactionOperations transacciones) {
+                             TransactionOperations transacciones, MetricasNegocio metricas) {
         this.litologiaRepository = litologiaRepository;
         this.alteracionRepository = alteracionRepository;
         this.mineralizacionRepository = mineralizacionRepository;
@@ -73,6 +75,7 @@ public class LogueoServiceImpl implements LogueoService {
         this.eventos = eventos;
         this.jdbc = jdbc;
         this.transacciones = transacciones;
+        this.metricas = metricas;
     }
 
     // ------------------------------------------------------------------
@@ -208,6 +211,7 @@ public class LogueoServiceImpl implements LogueoService {
         }
         rechazadas.sort(Comparator.comparingInt(ResultadoSubidaDTO.Rechazo::indice));
         log.info("Subida de {}: {} guardadas, {} rechazadas", plantilla, guardadas, rechazadas.size());
+        metricas.rechazosLogueo(recursoDe(plantilla), rechazadas.size());
 
         if (guardadas > 0) {
             eventos.publishEvent(CambioDatos.de(recursoDe(plantilla), sondajes,

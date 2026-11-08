@@ -27,6 +27,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	implementation("io.micrometer:micrometer-registry-prometheus")
 	implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6")
 
 	// Lectura de las plantillas .xlsx que alimentan el importador. Solo se usa

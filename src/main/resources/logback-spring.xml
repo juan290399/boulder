@@ -9,7 +9,7 @@
 
         <encoder>
             <pattern>
-                %d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+                %d{yyyy-MM-dd HH:mm:ss} [%thread] [%X{peticion:--}] %-5level %logger{36} - %msg%n
             </pattern>
         </encoder>
 
@@ -35,8 +35,33 @@
 
         <encoder>
             <pattern>
-                %d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+                %d{yyyy-MM-dd HH:mm:ss} [%thread] [%X{peticion:--}] %-5level %logger{36} - %msg%n
             </pattern>
+        </encoder>
+
+    </appender>
+
+    <!--
+        Bitácora estructurada: la misma información en JSON (formato ECS), una
+        línea por evento, con nivel, logger, hilo y el id de la petición del MDC.
+        Es la que leen las herramientas (jq, Filebeat, Loki) sin expresiones
+        regulares; boulder.log queda para leerla a ojo.
+    -->
+    <appender name="JSON"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+
+        <file>${LOG_PATH}/boulder.json</file>
+
+        <rollingPolicy
+            class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/boulder-%d{yyyy-MM-dd}.%i.json</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+
+        <encoder class="org.springframework.boot.logging.logback.StructuredLogEncoder">
+            <format>ecs</format>
+            <charset>UTF-8</charset>
         </encoder>
 
     </appender>
@@ -59,7 +84,7 @@
         </rollingPolicy>
 
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%X{peticion:--}] %-5level %msg%n</pattern>
         </encoder>
 
     </appender>
@@ -67,6 +92,7 @@
     <logger name="com.boulder.boulder.seguridad" level="INFO" additivity="false">
         <appender-ref ref="SEGURIDAD"/>
         <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="JSON"/>
     </logger>
 
     <root level="INFO">
@@ -74,6 +100,8 @@
         <appender-ref ref="CONSOLE"/>
 
         <appender-ref ref="FILE"/>
+
+        <appender-ref ref="JSON"/>
 
     </root>
 

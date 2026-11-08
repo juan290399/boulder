@@ -1,5 +1,6 @@
 package com.boulder.boulder.config;
 
+import com.boulder.boulder.monitoreo.MetricasNegocio;
 import java.io.IOException;
 import java.util.Map;
 
@@ -38,13 +39,15 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
     private final LimiteIntentosLogin limite;
+    private final MetricasNegocio metricas;
     private final ObjectMapper json = new ObjectMapper();
 
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager, JwtUtils jwtUtils,
-                                   LimiteIntentosLogin limite) {
+                                   LimiteIntentosLogin limite, MetricasNegocio metricas) {
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
         this.limite = limite;
+        this.metricas = metricas;
     }
 
     @Override
@@ -62,6 +65,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         if (limite.bloqueado(usuario)) {
             AUDITORIA.warn("login bloqueado usuario={} ip={}", seguro(usuario), request.getRemoteAddr());
+            metricas.login(MetricasNegocio.ResultadoLogin.BLOQUEADO);
             throw new CuentaBloqueadaException();
         }
         try {
@@ -69,6 +73,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                     new UsernamePasswordAuthenticationToken(usuario, credenciales.getContrasenia()));
         } catch (AuthenticationException e) {
             limite.registrarFallo(usuario);
+            metricas.login(MetricasNegocio.ResultadoLogin.FALLIDO);
             AUDITORIA.warn("login fallido usuario={} ip={} motivo={}",
                     seguro(usuario), request.getRemoteAddr(), e.getClass().getSimpleName());
             throw e;
@@ -83,6 +88,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             Authentication authResult
     ) throws IOException, ServletException {
         limite.registrarExito(authResult.getName());
+        metricas.login(MetricasNegocio.ResultadoLogin.CORRECTO);
         AUDITORIA.info("login correcto usuario={} ip={}", seguro(authResult.getName()), request.getRemoteAddr());
 
         response.setContentType("application/json");

@@ -34,6 +34,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 
 import lombok.RequiredArgsConstructor;
+import com.boulder.boulder.monitoreo.MetricasNegocio;
+import org.springframework.security.web.util.matcher.IpAddressMatcher;
 
 @Configuration
 @EnableMethodSecurity
@@ -43,6 +45,7 @@ public class SecurityConfig {
     private final JwtUtils jwtUtils;
     private final AuthenticationConfiguration authenticationConfiguration;
     private final CuentasActivas cuentasActivas;
+    private final MetricasNegocio metricasNegocio;
 
     /**
      * Orígenes del frontend autorizados. Por defecto, el servidor de desarrollo
@@ -98,7 +101,7 @@ public class SecurityConfig {
         
         AuthenticationManager authManager = authenticationManager();
 
-        JwtAuthenticationFilter jwtAuthFilter = new JwtAuthenticationFilter(authManager, jwtUtils, limiteIntentosLogin());
+        JwtAuthenticationFilter jwtAuthFilter = new JwtAuthenticationFilter(authManager, jwtUtils, limiteIntentosLogin(), metricasNegocio);
         jwtAuthFilter.setFilterProcessesUrl("/api/auth/login");
 
         JwtAuthorizationFilter jwtAuthorizationFilter = new JwtAuthorizationFilter(jwtUtils, cuentasActivas);
@@ -134,6 +137,10 @@ public class SecurityConfig {
                 // Monitoreo: la salud la consulta el balanceador o el script de
                 // vigilancia sin sesión; el detalle y las métricas, solo ADMIN.
                 .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info").permitAll()
+                // Prometheus raspa desde el mismo servidor y no maneja tokens que
+                // vencen: se le abre solo a la interfaz local. Nginx además niega
+                // la ruta desde fuera.
+                .requestMatchers(HttpMethod.GET, "/actuator/prometheus").access(SecurityConfig::desdeEsteServidor)
                 .requestMatchers("/actuator/**").hasRole("ADMIN")
 
                 // El catálogo de personal se lee desde los partes de perforación
@@ -174,6 +181,16 @@ public class SecurityConfig {
         String ruta = peticion.getRequestURI().substring(peticion.getContextPath().length());
         boolean lectura = "GET".equals(peticion.getMethod()) || "HEAD".equals(peticion.getMethod());
         return lectura && !ruta.startsWith("/api/") && !ruta.startsWith("/actuator");
+    }
+
+    private static final IpAddressMatcher LOCAL_V4 = new IpAddressMatcher("127.0.0.0/8");
+    private static final IpAddressMatcher LOCAL_V6 = new IpAddressMatcher("::1");
+
+    /** La petición sale de la propia máquina (Prometheus o el script de vigilancia). */
+    private static AuthorizationDecision desdeEsteServidor(Supplier<? extends Authentication> autenticacion,
+                                                           RequestAuthorizationContext contexto) {
+        String ip = contexto.getRequest().getRemoteAddr();
+        return new AuthorizationDecision(ip != null && (LOCAL_V4.matches(ip) || LOCAL_V6.matches(ip)));
     }
 
     private static AuthorizationDecision escrituraPorRol(Supplier<? extends Authentication> autenticacion,

@@ -40,6 +40,15 @@ public class AlmacenFotosDisco implements AlmacenFotos {
         log.info("Almacén de fotos en {}", raiz);
     }
 
+    /**
+     * Carpeta raíz del almacén, para la salud y el mantenimiento.
+     *
+     * @return ruta absoluta y normalizada
+     */
+    public Path raiz() {
+        return raiz;
+    }
+
     @Override
     public void guardar(String clave, byte[] contenido) throws IOException {
         Path destino = resolver(clave);
