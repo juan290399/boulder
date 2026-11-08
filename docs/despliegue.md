@@ -82,6 +82,23 @@ se programan con `scripts\mantenimiento\programar_tareas.ps1`.
 | `JWT_SECRET` | Clave HMAC-SHA256 del token (≥ 32 caracteres) | — |
 | `BOULDER_FOTOS` | Almacén de fotos de testigo | `/var/lib/boulder/fotos` |
 | `BOULDER_LOGS` | Carpeta de bitácoras | `/var/log/boulder` |
+| `BOULDER_FOTOS_MINIMOLIBREMB` | Espacio libre mínimo del almacén de fotos para que la salud dé `UP` | 1024 |
+| `BOULDER_MANTENIMIENTO_CRON_TEMPORALES` | Horario de la purga de subidas a medias | `0 30 3 * * *` |
+| `BOULDER_MANTENIMIENTO_CRON_DISPOSITIVOS` | Horario de la revisión de tablets | `0 */15 * * * *` |
+
+## Monitoreo con Prometheus
+
+```bash
+sudo apt install prometheus
+sudo cp deploy/monitoreo/prometheus.yml deploy/monitoreo/alertas.yml /etc/prometheus/
+promtool check config /etc/prometheus/prometheus.yml   # valida también las reglas
+sudo systemctl restart prometheus
+curl -s http://127.0.0.1:9090/api/v1/targets | grep '"health":"up"'
+```
+
+Prometheus queda escuchando solo en el servidor (puerto 9090); su interfaz se
+consulta por un túnel SSH (`ssh -L 9090:127.0.0.1:9090 servidor`). El detalle de
+métricas y alertas está en [monitoreo.md](monitoreo.md).
 
 ## Actualizar a una versión nueva
 

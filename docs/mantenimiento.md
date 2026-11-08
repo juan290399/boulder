@@ -8,12 +8,28 @@
 | Verificación de salud | `scripts/mantenimiento/verificar_salud.sh` | cada 5 min | `logs/monitoreo.log` |
 | Copia del respaldo fuera del servidor | `rsync` (ver `crontab.txt`) | semanal, domingo 3:00 | según el almacén |
 | Estadísticas del planificador | `VACUUM (ANALYZE)` | semanal, domingo 4:00 | — |
-| Rotación de bitácoras | Logback | diaria, automática | 30 días general, 90 seguridad |
+| Rotación de bitácoras | Logback | diaria, automática | 30 días general y JSON, 90 seguridad |
 
 En Linux se instalan con `crontab -e` a partir de
 [scripts/mantenimiento/crontab.txt](../scripts/mantenimiento/crontab.txt); en
 Windows, con `scripts\mantenimiento\programar_tareas.ps1`, que registra las tareas
 en el Programador de tareas.
+
+### Tareas de la propia aplicación
+
+Además de las del sistema operativo, la aplicación corre dos tareas con
+expresiones cron de Spring (`TareasMantenimiento`). Limpian y revisan lo que
+solo ella conoce, y el horario se cambia sin recompilar con una variable de
+entorno:
+
+| Tarea | Programación por defecto (hora de Lima) | Propiedad | Qué hace |
+|---|---|---|---|
+| Purga de subidas a medias | `0 30 3 * * *` (diaria, 3:30) | `boulder.mantenimiento.cron.temporales` | Borra los `.subida-*.tmp` de más de 24 h que deja una subida de fotos cortada |
+| Revisión de tablets | `0 */15 * * * *` (cada 15 min) | `boulder.mantenimiento.cron.dispositivos` | Cuenta las tablets de GeoLog sin sincronizar hace más de 24 h y publica la métrica `boulder.geolog.dispositivos.sin_contacto` |
+
+Cada corrida deja una línea `INFO` (o `WARN` si encuentra algo) en `boulder.log`
+con el prefijo `Mantenimiento:`. Las pruebas `TareasMantenimientoTest` fijan el
+reloj y comprueban qué se borra y qué se conserva.
 
 ## Respaldos
 
