@@ -27,19 +27,19 @@ sin base disponible fallan al levantar el contexto.
 
 | Conjunto | Pruebas | Fallos |
 |---|---|---|
-| Backend: unitarias | 214 | 0 |
+| Backend: unitarias | 220 | 0 |
 | Backend: web | 21 | 0 |
 | Backend: integración | 89 | 0 |
-| **Backend total** (40 clases) | **324** | **0** |
+| **Backend total** (41 clases) | **330** | **0** |
 | Frontend (19 archivos) | 25 | 0 |
 
 Cobertura del backend (JaCoCo):
 
 | Métrica | Valor |
 |---|---|
-| Líneas | 67.8 % |
-| Ramas | 60.9 % |
-| Métodos | 66.8 % |
+| Líneas | 68.0 % |
+| Ramas | 61.1 % |
+| Métodos | 67.0 % |
 | Clases | 97.0 % |
 
 El reporte navegable está en [docs/cobertura/](cobertura/index.html).

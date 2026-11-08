@@ -104,7 +104,7 @@ El detalle por paquete está en el Javadoc.
 
 ## Pruebas (TDD)
 
-324 pruebas en 40 clases (214 unitarias, 21 web y 89 de integración) más 25 del frontend con Vitest: unitarias con JUnit y Mockito, de la capa web con MockMvc
+330 pruebas en 41 clases (220 unitarias, 21 web y 89 de integración) más 25 del frontend con Vitest: unitarias con JUnit y Mockito, de la capa web con MockMvc
 y de integración contra PostgreSQL (cada una se deshace al terminar). El historial
 muestra el ciclo: un commit `test(…) (rojo)` con la prueba que falla y el siguiente
 `feat(…) (verde)` con lo que la hace pasar.
@@ -113,9 +113,9 @@ muestra el ciclo: un commit `test(…) (rojo)` con la prueba que falla y el sigu
 
 | Cobertura (JaCoCo) | |
 |---|---|
-| Líneas | 67.8 % |
-| Ramas | 60.9 % |
-| Métodos | 66.8 % |
+| Líneas | 68.0 % |
+| Ramas | 61.1 % |
+| Métodos | 67.0 % |
 | Clases | 97.0 % |
 
 ```bash

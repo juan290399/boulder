@@ -27,6 +27,7 @@ Referencia: OWASP Top 10 (2021).
 | A05 Configuración | Cabeceras `X-Content-Type-Options`, `X-Frame-Options`, `Cache-Control` | presentes | `SeguridadAtaquesIT` |
 | A05 | Origen ajeno en CORS | 403 | `SeguridadApiTest` |
 | A05 | JSON mal formado | 400 sin trazas ni nombres de clases | `SeguridadAtaquesIT` |
+| A05 | Violación de una restricción única, foránea o de verificación | 409 sin nombres de tablas ni restricciones | `GlobalExceptionHandlerTest` |
 | A07 Autenticación | Sexto intento fallido seguido | 429, cuenta bloqueada 15 min | `SeguridadApiTest`, `LimiteIntentosLoginTest` |
 | A07 | Token con `alg: none` | 403 | `SeguridadAtaquesIT` |
 | A07 | Token firmado con otra clave | 403 | `SeguridadAtaquesIT` |
@@ -45,7 +46,7 @@ Referencia: OWASP Top 10 (2021).
 | 4 | `JWT_SECRET` local de 13 caracteres, por debajo de los 256 bits de HMAC-SHA256 | Media | Corregido: clave aleatoria de 64 caracteres; el ejemplo de despliegue exige 32 o más |
 | 5 | JSON mal formado respondía 500 | Baja | Corregido: 400 con mensaje genérico (`7364458`) |
 | 6 | 16 avisos moderados en herramientas de desarrollo (cadena de `@angular/cli`) | Baja | Aceptado: no llegan al navegador ni al servidor |
-| 7 | Una violación de restricción devuelve el mensaje de PostgreSQL (nombres de restricciones) | Baja | Pendiente: reemplazar por un mensaje propio por restricción |
+| 7 | Una violación de restricción devolvía el mensaje de PostgreSQL (nombres de restricciones) | Baja | Corregido: mensaje propio según el SQLState; el detalle solo va al log (`GlobalExceptionHandlerTest`) |
 | 8 | El token vive en `localStorage`; un XSS podría leerlo | Baja | Mitigado: Angular escapa las plantillas; recomendación: cookie `HttpOnly` |
 
 ## Configuración revisada

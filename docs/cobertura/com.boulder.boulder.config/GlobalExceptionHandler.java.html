@@ -78,14 +78,39 @@ import jakarta.persistence.EntityNotFoundException;
 <span class="fc" id="L78">        return ResponseEntity.badRequest().body(map);</span>
     }
 
-    /** Violación de integridad (FK, unique, check) -&gt; 409. */
+    /**
+     * Violación de integridad (FK, unique, check) -&gt; 409.
+     *
+     * &lt;p&gt;
+     * El mensaje de PostgreSQL nombra tablas, columnas y restricciones, así que
+     * solo va al log; al cliente se le responde según el SQLState.
+     * &lt;/p&gt;
+     */
     @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
     public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleIntegrity(
             org.springframework.dao.DataIntegrityViolationException ex, WebRequest request) {
-<span class="nc" id="L85">        String causa = ex.getMostSpecificCause().getMessage();</span>
-<span class="nc" id="L86">        log.warn(&quot;Violación de integridad de datos: {}&quot;, causa);</span>
-<span class="nc" id="L87">        return ResponseEntity.status(HttpStatus.CONFLICT)</span>
-<span class="nc" id="L88">                .body(body(HttpStatus.CONFLICT, causa, request));</span>
+<span class="fc" id="L92">        log.warn(&quot;Violación de integridad de datos: {}&quot;, ex.getMostSpecificCause().getMessage());</span>
+<span class="fc" id="L93">        return ResponseEntity.status(HttpStatus.CONFLICT)</span>
+<span class="fc" id="L94">                .body(body(HttpStatus.CONFLICT, mensajeIntegridad(sqlState(ex)), request));</span>
+    }
+
+    private static String sqlState(Throwable ex) {
+<span class="pc bpc" id="L98" title="2 of 4 branches missed.">        for (Throwable t = ex; t != null &amp;&amp; t.getCause() != t; t = t.getCause()) {</span>
+<span class="pc bpc" id="L99" title="1 of 4 branches missed.">            if (t instanceof java.sql.SQLException sql &amp;&amp; sql.getSQLState() != null) {</span>
+<span class="fc" id="L100">                return sql.getSQLState();</span>
+            }
+        }
+<span class="nc" id="L103">        return &quot;&quot;;</span>
+    }
+
+    private static String mensajeIntegridad(String sqlState) {
+<span class="fc bfc" id="L107" title="All 5 branches covered.">        return switch (sqlState) {</span>
+<span class="fc" id="L108">            case &quot;23505&quot;, &quot;23P01&quot; -&gt; &quot;Ya existe un registro con esos datos&quot;;</span>
+<span class="fc" id="L109">            case &quot;23503&quot; -&gt; &quot;Hace referencia a un registro que no existe o que está en uso&quot;;</span>
+<span class="fc" id="L110">            case &quot;23514&quot; -&gt; &quot;Un valor no cumple las reglas del registro&quot;;</span>
+<span class="fc" id="L111">            case &quot;23502&quot; -&gt; &quot;Falta un dato obligatorio&quot;;</span>
+<span class="fc" id="L112">            default -&gt; &quot;Los datos no cumplen las reglas de integridad&quot;;</span>
+        };
     }
 
     /**
@@ -105,14 +130,14 @@ import jakarta.persistence.EntityNotFoundException;
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleNoLegible(HttpMessageNotReadableException ex, WebRequest request) {
-<span class="fc" id="L108">        log.warn(&quot;Cuerpo ilegible: {}&quot;, ex.getMostSpecificCause().getMessage());</span>
-<span class="fc" id="L109">        return ResponseEntity.status(HttpStatus.BAD_REQUEST)</span>
-<span class="fc" id="L110">                .body(body(HttpStatus.BAD_REQUEST, &quot;El cuerpo de la petición no es un JSON válido&quot;, request));</span>
+<span class="fc" id="L133">        log.warn(&quot;Cuerpo ilegible: {}&quot;, ex.getMostSpecificCause().getMessage());</span>
+<span class="fc" id="L134">        return ResponseEntity.status(HttpStatus.BAD_REQUEST)</span>
+<span class="fc" id="L135">                .body(body(HttpStatus.BAD_REQUEST, &quot;El cuerpo de la petición no es un JSON válido&quot;, request));</span>
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public void handleAccessDenied(AccessDeniedException ex) throws AccessDeniedException {
-<span class="fc" id="L115">        throw ex;</span>
+<span class="fc" id="L140">        throw ex;</span>
     }
 
     /**
@@ -128,15 +153,15 @@ import jakarta.persistence.EntityNotFoundException;
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleGeneric(Exception ex, WebRequest request) {
-<span class="pc bpc" id="L131" title="1 of 2 branches missed.">        if (ex instanceof ErrorResponse errorResponse) {</span>
-<span class="fc" id="L132">            HttpStatus status = HttpStatus.valueOf(errorResponse.getStatusCode().value());</span>
-<span class="fc" id="L133">            log.warn(&quot;Petición rechazada por MVC ({}): {}&quot;, status.value(), ex.getMessage());</span>
-<span class="fc" id="L134">            return ResponseEntity.status(status)</span>
-<span class="fc" id="L135">                    .body(body(status, ex.getMessage(), request));</span>
+<span class="pc bpc" id="L156" title="1 of 2 branches missed.">        if (ex instanceof ErrorResponse errorResponse) {</span>
+<span class="fc" id="L157">            HttpStatus status = HttpStatus.valueOf(errorResponse.getStatusCode().value());</span>
+<span class="fc" id="L158">            log.warn(&quot;Petición rechazada por MVC ({}): {}&quot;, status.value(), ex.getMessage());</span>
+<span class="fc" id="L159">            return ResponseEntity.status(status)</span>
+<span class="fc" id="L160">                    .body(body(status, ex.getMessage(), request));</span>
         }
-<span class="nc" id="L137">        log.error(&quot;Error no controlado en la capa REST&quot;, ex);</span>
-<span class="nc" id="L138">        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)</span>
-<span class="nc" id="L139">                .body(body(HttpStatus.INTERNAL_SERVER_ERROR, &quot;Error interno del servidor&quot;, request));</span>
+<span class="nc" id="L162">        log.error(&quot;Error no controlado en la capa REST&quot;, ex);</span>
+<span class="nc" id="L163">        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)</span>
+<span class="nc" id="L164">                .body(body(HttpStatus.INTERNAL_SERVER_ERROR, &quot;Error interno del servidor&quot;, request));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
