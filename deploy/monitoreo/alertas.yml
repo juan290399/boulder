@@ -1,0 +1,77 @@
+# Reglas de alerta de Boulder. Los umbrales son los del plan de monitoreo
+# (docs/monitoreo.md); los nombres de métricas, los de MetricasNegocio y
+# TareasMantenimiento con los puntos cambiados por guiones bajos.
+groups:
+  - name: boulder-salud
+    rules:
+      - alert: BoulderCaido
+        expr: up{job="boulder"} == 0
+        for: 2m
+        labels: { severidad: critica }
+        annotations:
+          resumen: "Boulder no responde a Prometheus desde hace 2 minutos"
+
+      - alert: MemoriaJvmAlta
+        expr: sum(jvm_memory_used_bytes{area="heap"}) / sum(jvm_memory_max_bytes{area="heap"}) > 0.85
+        for: 10m
+        labels: { severidad: alta }
+        annotations:
+          resumen: "La memoria heap supera el 85 % hace 10 minutos"
+
+      - alert: CpuSostenida
+        expr: process_cpu_usage > 0.80
+        for: 15m
+        labels: { severidad: media }
+        annotations:
+          resumen: "El proceso usa más del 80 % de CPU hace 15 minutos"
+
+      - alert: PoolConexionesAgotado
+        expr: hikaricp_connections_active >= hikaricp_connections_max
+        for: 5m
+        labels: { severidad: alta }
+        annotations:
+          resumen: "Todas las conexiones a PostgreSQL están ocupadas"
+
+  - name: boulder-rendimiento
+    rules:
+      - alert: LatenciaApiAlta
+        expr: histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=~"/api/.*"}[10m]))) > 1
+        for: 10m
+        labels: { severidad: media }
+        annotations:
+          resumen: "El p95 del API supera 1 s"
+
+      - alert: ErroresServidor
+        expr: sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) > 0.1
+        for: 5m
+        labels: { severidad: alta }
+        annotations:
+          resumen: "Más de 6 respuestas 5xx por minuto"
+
+  - name: boulder-negocio
+    rules:
+      - alert: RechazosLogueo
+        expr: sum(increase(boulder_logueo_rechazadas_total[1h])) > 20
+        labels: { severidad: media }
+        annotations:
+          resumen: "La base rechazó más de 20 filas de GeoLog en la última hora"
+
+      - alert: TabletSinSincronizar
+        expr: boulder_geolog_dispositivos_sin_contacto > 0
+        for: 1h
+        labels: { severidad: media }
+        annotations:
+          resumen: "Hay tablets de GeoLog sin sincronizar hace más de 24 h"
+
+      - alert: FuerzaBrutaLogin
+        expr: sum(increase(boulder_login_total{resultado="bloqueado"}[1d])) > 20
+        labels: { severidad: alta }
+        annotations:
+          resumen: "Más de 20 inicios de sesión bloqueados en un día"
+
+      - alert: SinPartesEnTurno
+        expr: sum(increase(boulder_datos_filas_total{recurso="avance"}[12h])) == 0
+        for: 1h
+        labels: { severidad: baja }
+        annotations:
+          resumen: "No entró ningún parte de avance en las últimas 12 horas"

@@ -1,0 +1,17 @@
+# Prometheus en el mismo servidor que Boulder (ver docs/monitoreo.md).
+# Raspa /actuator/prometheus por la interfaz local: la aplicación solo
+# acepta esa ruta desde 127.0.0.1 y Nginx la niega desde fuera.
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+rule_files:
+  - alertas.yml
+
+scrape_configs:
+  - job_name: boulder
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["127.0.0.1:8080"]
+        labels:
+          entorno: produccion
