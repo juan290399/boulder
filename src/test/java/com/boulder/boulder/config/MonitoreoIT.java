@@ -1,6 +1,9 @@
 package com.boulder.boulder.config;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -36,7 +39,8 @@ class MonitoreoIT {
         mvc.perform(get("/actuator/health"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.components.db.status").value("UP"))
-                .andExpect(jsonPath("$.components.diskSpace.status").value("UP"));
+                .andExpect(jsonPath("$.components.diskSpace.status").value("UP"))
+                .andExpect(jsonPath("$.components.almacenFotos.status").value("UP"));
     }
 
     @Test
@@ -59,5 +63,30 @@ class MonitoreoIT {
         mvc.perform(get("/actuator/metrics/jvm.memory.used")).andExpect(status().isOk());
         mvc.perform(get("/actuator/metrics/hikaricp.connections.active")).andExpect(status().isOk());
         mvc.perform(get("/actuator/metrics/process.cpu.usage")).andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Prometheus lee las métricas desde el mismo servidor, sin token")
+    void prometheusLocal() throws Exception {
+        mvc.perform(get("/actuator/prometheus"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("jvm_memory_used_bytes")))
+                .andExpect(content().string(containsString("http_server_requests")));
+    }
+
+    @Test
+    @DisplayName("Desde otra máquina, el endpoint de Prometheus se rechaza")
+    void prometheusRemoto() throws Exception {
+        mvc.perform(get("/actuator/prometheus").with(req -> {
+            req.setRemoteAddr("10.20.30.40");
+            return req;
+        })).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Cada respuesta lleva el id de la petición que aparece en la bitácora")
+    void idDePeticion() throws Exception {
+        mvc.perform(get("/actuator/health"))
+                .andExpect(header().exists("X-Request-Id"));
     }
 }

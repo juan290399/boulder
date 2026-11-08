@@ -17,6 +17,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
+import com.boulder.boulder.monitoreo.MetricasNegocio;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -36,6 +38,7 @@ class LogueoServiceTest {
     private QuicklogRepository quicklogs;
     private ApplicationEventPublisher eventos;
     private LogueoServiceImpl servicio;
+    private final SimpleMeterRegistry registro = new SimpleMeterRegistry();
 
     @BeforeEach
     void preparar() {
@@ -43,7 +46,8 @@ class LogueoServiceTest {
         eventos = mock(ApplicationEventPublisher.class);
         servicio = new LogueoServiceImpl(mock(LitologiaRepository.class), mock(AlteracionRepository.class),
                 mock(MineralizacionRepository.class), mock(EstructuralRepository.class), quicklogs,
-                eventos, mock(JdbcTemplate.class), TransactionOperations.withoutTransaction());
+                eventos, mock(JdbcTemplate.class), TransactionOperations.withoutTransaction(),
+                new MetricasNegocio(registro));
     }
 
     private static Quicklog tramo(UUID id) {
@@ -80,6 +84,7 @@ class LogueoServiceTest {
             assertThat(x.id()).isEqualTo(mala);
             assertThat(x.motivo()).contains("uq_quicklog_tramo");
         });
+        assertThat(registro.get(MetricasNegocio.RECHAZOS).tag("plantilla", "quicklog").counter().count()).isEqualTo(1.0);
     }
 
     @Test
