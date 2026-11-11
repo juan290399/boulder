@@ -137,6 +137,27 @@ class FilaTest {
     }
 
     @Test
+    @DisplayName("Una fecha escrita como texto DD-MM-AAAA se acepta")
+    void fechaConGuiones() {
+        Fila f = con("a", "14-10-2025", "b", "7-9-2026", "c", "31-02-2026");
+        assertThat(f.fecha("a")).isEqualTo(LocalDate.of(2025, 10, 14));
+        assertThat(f.fecha("b")).isEqualTo(LocalDate.of(2026, 9, 7));
+        assertThat(f.fecha("c")).isNull();
+        assertThat(f.motivos()).contains("«31-02-2026» no es una fecha");
+    }
+
+    @Test
+    @DisplayName("El ruido binario de una fórmula de Excel no llega al decimal")
+    void decimalSinRuido() {
+        Fila f = con("avance", 18.700000000000003, "longitud", 1.3799999999999955, "azimut", 299.2191, "entero", 110.0);
+        assertThat(f.decimal("avance")).isEqualByComparingTo("18.7");
+        assertThat(f.decimal("longitud")).isEqualByComparingTo("1.38");
+        assertThat(f.decimal("azimut")).isEqualByComparingTo("299.2191");
+        assertThat(f.decimal("entero")).isEqualByComparingTo("110");
+        assertThat(f.decimal("avance").toPlainString()).isEqualTo("18.7");
+    }
+
+    @Test
     @DisplayName("Las fechas se leen de una celda de fecha, en ISO o en d/M/aaaa")
     void fechas() {
         LocalDate dia = LocalDate.of(2026, 9, 7);
