@@ -37,7 +37,12 @@ import org.apache.poi.ss.usermodel.Row;
 public class Fila {
 
     private static final DateTimeFormatter ISO = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    private static final DateTimeFormatter LATINO = DateTimeFormatter.ofPattern("d/M/yyyy");
+    private static final DateTimeFormatter LATINO = DateTimeFormatter.ofPattern("d/M/uuuu")
+            .withResolverStyle(java.time.format.ResolverStyle.STRICT);
+    private static final DateTimeFormatter LATINO_GUION = DateTimeFormatter.ofPattern("d-M-uuuu")
+            .withResolverStyle(java.time.format.ResolverStyle.STRICT);
+    /** Decimales que se conservan: más allá es ruido binario de una fórmula de Excel. */
+    private static final int ESCALA_MAXIMA = 6;
 
     private final Row fila;
     private final Map<String, Integer> columnas;
@@ -160,7 +165,15 @@ public class Fila {
         try {
             // La coma decimal es frecuente en teclados en español y Excel la
             // deja pasar cuando la celda quedó como texto.
-            return new BigDecimal(v.replace(",", ".").replace(" ", ""));
+            BigDecimal n = new BigDecimal(v.replace(",", ".").replace(" ", ""));
+            // hasta − desde calculado en Excel llega como 18.700000000000003.
+            if (n.scale() > ESCALA_MAXIMA) {
+                n = n.setScale(ESCALA_MAXIMA, java.math.RoundingMode.HALF_UP).stripTrailingZeros();
+                if (n.scale() < 0) {
+                    n = n.setScale(0);
+                }
+            }
+            return n;
         } catch (NumberFormatException e) {
             error(columna + ": «" + v + "» no es un número");
             return null;
@@ -226,14 +239,14 @@ public class Fila {
         if (v == null) {
             return null;
         }
-        for (DateTimeFormatter f : new DateTimeFormatter[] { ISO, LATINO }) {
+        for (DateTimeFormatter f : new DateTimeFormatter[] { ISO, LATINO, LATINO_GUION }) {
             try {
                 return LocalDate.parse(v, f);
             } catch (java.time.format.DateTimeParseException ignorada) {
                 // se prueba el siguiente formato
             }
         }
-        error(columna + ": «" + v + "» no es una fecha (usa AAAA-MM-DD)");
+        error(columna + ": «" + v + "» no es una fecha (usa AAAA-MM-DD o DD-MM-AAAA)");
         return null;
     }
 
