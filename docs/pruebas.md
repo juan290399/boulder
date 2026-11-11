@@ -27,10 +27,10 @@ sin base disponible fallan al levantar el contexto.
 
 | Conjunto | Pruebas | Fallos |
 |---|---|---|
-| Backend: unitarias | 232 | 0 |
+| Backend: unitarias | 234 | 0 |
 | Backend: web | 21 | 0 |
 | Backend: integración | 92 | 0 |
-| **Backend total** (45 clases) | **345** | **0** |
+| **Backend total** (45 clases) | **347** | **0** |
 | Frontend (19 archivos) | 25 | 0 |
 
 Cobertura del backend (JaCoCo):
