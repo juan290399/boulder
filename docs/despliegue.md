@@ -71,6 +71,32 @@ ejemplo y arrancar con `deploy\iniciar.ps1`. Para que arranque con el equipo, un
 tarea programada con el desencadenador «Al iniciar». El respaldo y la vigilancia
 se programan con `scripts\mantenimiento\programar_tareas.ps1`.
 
+## Base de datos existente del campamento
+
+La base `VERONICA` del campamento es anterior a Boulder: tiene los datos de
+logueo y sondajes, pero le faltan las tablas de usuarios, partes de avance, fotos
+y sincronización, y las columnas de borrado lógico. `db/migracion_campamento.sql`
+las agrega en una sola transacción, sin borrar ni cambiar datos y sin tocar el
+esquema `laboratorio`. No es repetible: una segunda corrida falla en la primera
+tabla ya creada y no aplica nada.
+
+```bash
+pg_dump -U postgres -Fc -f VERONICA_antes_de_migrar.dump VERONICA      # respaldo
+psql -U postgres -d VERONICA -v ON_ERROR_STOP=1 -f db/migracion_campamento.sql
+```
+
+Con la aplicación ya arrancada, la primera persona se registra desde la pantalla
+de inicio de sesión y se le da el rol de administrador:
+
+```bash
+psql -U postgres -d VERONICA -v ON_ERROR_STOP=1 -v usuario=<su_usuario> -f db/primer_administrador.sql
+```
+
+El script se genera de la diferencia entre el esquema de desarrollo y un
+respaldo del campamento, y se prueba restaurando ese respaldo en una base
+aparte, aplicándolo y arrancando la aplicación contra ella (`ddl-auto=validate`
+revisa cada tabla y columna).
+
 ## Variables de entorno
 
 | Variable | Uso | Valor por defecto |
