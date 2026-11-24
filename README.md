@@ -113,7 +113,7 @@ muestra el ciclo: un commit `test(…) (rojo)` con la prueba que falla y el sigu
 
 | Cobertura (JaCoCo) | |
 |---|---|
-| Líneas | 68.5 % |
+| Líneas | 68.6 % |
 | Ramas | 61.4 % |
 | Métodos | 67.8 % |
 | Clases | 97.1 % |

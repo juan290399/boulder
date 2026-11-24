@@ -37,7 +37,7 @@ Cobertura del backend (JaCoCo):
 
 | Métrica | Valor |
 |---|---|
-| Líneas | 68.5 % |
+| Líneas | 68.6 % |
 | Ramas | 61.4 % |
 | Métodos | 67.8 % |
 | Clases | 97.1 % |
