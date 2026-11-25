@@ -1,6 +1,8 @@
 package com.boulder.boulder.services;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -121,9 +123,18 @@ public class SondajeServiceImpl implements SondajeService {
     public SondajeDTO guardar(SondajeDTO dto) {
         log.info("Registrando ejecución física de un nuevo Sondaje. Código: {}", dto.getCodigo());
         try {
+            validar(dto, true);
+            // El código identifica al sondaje en partes, plantillas y reportes:
+            // se guarda sin espacios y en mayúsculas para que no haya dos que
+            // solo se diferencien en eso.
+            String codigo = dto.getCodigo().trim().toUpperCase(Locale.ROOT);
+            if (sondajeRepository.existsByCodigo(codigo)) {
+                throw new IllegalArgumentException("Ya existe un sondaje con el código " + codigo + ".");
+            }
+
             Sondaje sondaje = new Sondaje();
-            sondaje.setCodigo(dto.getCodigo());
-            sondaje.setNombre(dto.getNombre());
+            sondaje.setCodigo(codigo);
+            sondaje.setNombre(dto.getNombre().trim());
             sondaje.setAzimutSetup(dto.getAzimutSetup());
             sondaje.setInclinacionSetup(dto.getInclinacionSetup());
             sondaje.setProfundidadActual(dto.getProfundidadActual());
@@ -178,7 +189,8 @@ public class SondajeServiceImpl implements SondajeService {
             Sondaje sondaje = sondajeRepository.findById(id)
                     .orElseThrow(() -> new EntityNotFoundException("Sondaje no existente en la base de datos."));
 
-            sondaje.setNombre(dto.getNombre());
+            validar(dto, false);
+            sondaje.setNombre(dto.getNombre().trim());
             sondaje.setAzimutSetup(dto.getAzimutSetup());
             sondaje.setInclinacionSetup(dto.getInclinacionSetup());
             sondaje.setProfundidadActual(dto.getProfundidadActual());
@@ -202,11 +214,17 @@ public class SondajeServiceImpl implements SondajeService {
                 sondaje.setCollar(collarRepository.findById(dto.getCollarId())
                         .orElseThrow(() -> new EntityNotFoundException("El nuevo Collar no existe.")));
             }
-            if (dto.getPlataformaId() != null && (sondaje.getPlataforma() == null || !sondaje.getPlataforma().getId().equals(dto.getPlataformaId()))) {
+            // Plataforma y máquina son opcionales: sin id, el sondaje queda sin
+            // ellas (el formulario ofrece «Sin plataforma» y «Sin máquina»).
+            if (dto.getPlataformaId() == null) {
+                sondaje.setPlataforma(null);
+            } else if (sondaje.getPlataforma() == null || !dto.getPlataformaId().equals(sondaje.getPlataforma().getId())) {
                 sondaje.setPlataforma(plataformaRepository.findById(dto.getPlataformaId())
                         .orElseThrow(() -> new EntityNotFoundException("La nueva Plataforma no existe.")));
             }
-            if (dto.getMaquinaId() != null && (sondaje.getMaquina() == null || !sondaje.getMaquina().getId().equals(dto.getMaquinaId()))) {
+            if (dto.getMaquinaId() == null) {
+                sondaje.setMaquina(null);
+            } else if (sondaje.getMaquina() == null || !dto.getMaquinaId().equals(sondaje.getMaquina().getId())) {
                 sondaje.setMaquina(maquinaRepository.findById(dto.getMaquinaId())
                         .orElseThrow(() -> new EntityNotFoundException("La nueva Máquina no existe.")));
             }
@@ -218,6 +236,56 @@ public class SondajeServiceImpl implements SondajeService {
             log.error("Error al modificar el sondaje ID: {}", id, e);
             throw e;
         }
+    }
+
+    /**
+     * Reglas que la base no puede explicar: sin esto, un alta incompleta
+     * llegaba como «Falta un dato obligatorio» sin decir cuál. Se juntan todos
+     * los problemas en un solo mensaje para corregirlos de una vez.
+     */
+    private static void validar(SondajeDTO dto, boolean esAlta) {
+        List<String> problemas = new ArrayList<>();
+        if (esAlta) {
+            if (enBlanco(dto.getCodigo())) {
+                problemas.add("falta el código");
+            } else if (dto.getCodigo().trim().length() > 25) {
+                problemas.add("el código no puede superar los 25 caracteres");
+            }
+            if (dto.getProyectoId() == null) {
+                problemas.add("falta el proyecto");
+            }
+            if (dto.getCollarId() == null) {
+                problemas.add("falta el collar");
+            }
+        }
+        if (enBlanco(dto.getNombre())) {
+            problemas.add("falta el nombre corto");
+        } else if (dto.getNombre().trim().length() > 25) {
+            problemas.add("el nombre corto no puede superar los 25 caracteres");
+        }
+        if (dto.getAzimutSetup() != null && (dto.getAzimutSetup() < 0 || dto.getAzimutSetup() > 360)) {
+            problemas.add("el azimut va de 0° a 360°");
+        }
+        if (dto.getInclinacionSetup() != null && (dto.getInclinacionSetup() < -90 || dto.getInclinacionSetup() > 90)) {
+            problemas.add("la inclinación va de -90° a 90°");
+        }
+        if (dto.getProfundidadActual() != null && dto.getProfundidadActual() < 0) {
+            problemas.add("la profundidad actual no puede ser negativa");
+        }
+        if (dto.getProfundidadFinal() != null && dto.getProfundidadFinal() <= 0) {
+            problemas.add("la profundidad programada debe ser mayor que cero");
+        }
+        if (dto.getFechaInicio() != null && dto.getFechaFin() != null && dto.getFechaFin().isBefore(dto.getFechaInicio())) {
+            problemas.add("la fecha de fin no puede ser anterior a la de inicio");
+        }
+        if (!problemas.isEmpty()) {
+            String texto = String.join("; ", problemas);
+            throw new IllegalArgumentException(Character.toUpperCase(texto.charAt(0)) + texto.substring(1) + ".");
+        }
+    }
+
+    private static boolean enBlanco(String valor) {
+        return valor == null || valor.isBlank();
     }
 
     private SondajeDTO convertToDto(Sondaje sondaje) {
