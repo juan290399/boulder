@@ -2,13 +2,18 @@
 <p class="auth-sub">Tu cuenta tiene más de un rol. Elige con cuál trabajar en esta sesión.</p>
 
 <div *ngIf="roles.length > 0; else sinRoles">
-  <div class="mb-3">
-    <label for="roleSelect" class="form-label">Rol</label>
-    <select class="form-select" [(ngModel)]="selectedRole" id="roleSelect">
-      <option [ngValue]="null" disabled>Elige un rol</option>
-      <option [ngValue]="role" *ngFor="let role of roles">{{ etiqueta(role) }}</option>
-    </select>
-  </div>
+  <fieldset class="roles mb-3">
+    <legend class="visually-hidden">Rol</legend>
+    <label class="rol" *ngFor="let role of roles" [class.rol--elegido]="selectedRole === role">
+      <input type="radio" name="rol" class="visually-hidden" [value]="role" [(ngModel)]="selectedRole" [attr.aria-label]="etiqueta(role)" />
+      <i class="bi rol__icono" [ngClass]="icono(role)" aria-hidden="true"></i>
+      <span class="rol__texto">
+        <span class="rol__nombre">{{ etiqueta(role) }}</span>
+        <span class="rol__detalle">{{ detalle(role) }}</span>
+      </span>
+      <i class="bi bi-check-circle-fill rol__marca" aria-hidden="true"></i>
+    </label>
+  </fieldset>
 
   <button type="button" class="btn btn-primary w-100" (click)="onRoleSelected()" [disabled]="!selectedRole">
     Continuar
