@@ -146,11 +146,11 @@ class UsuarioServiceTest {
     @Test
     @DisplayName("El alta rechaza un usuario o un correo ya registrados")
     void altaDuplicada() {
-        when(usuarios.existsByUsuario("ana")).thenReturn(true);
+        when(usuarios.existsByUsuario("anita")).thenReturn(true);
         when(usuarios.existsByCorreo("ya@boulder.pe")).thenReturn(true);
 
-        assertThatThrownBy(() -> servicio.guardar(alta("ana", "otro@boulder.pe")))
-                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("ana");
+        assertThatThrownBy(() -> servicio.guardar(alta("anita", "otro@boulder.pe")))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("anita");
         assertThatThrownBy(() -> servicio.guardar(alta("luis", "ya@boulder.pe")))
                 .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("ya@boulder.pe");
         verify(usuarios, never()).save(any());
@@ -159,7 +159,7 @@ class UsuarioServiceTest {
     @Test
     @DisplayName("El alta cifra la contraseña, nace activa y con los roles pedidos sin repetir")
     void alta() {
-        UsuarioDTO dto = alta("ana", "ana@boulder.pe");
+        UsuarioDTO dto = alta("anita", "ana@boulder.pe");
         dto.setRoles(List.of("GEOLOGO", "GEOLOGO", "VISITANTE"));
 
         servicio.guardar(dto);
@@ -179,7 +179,7 @@ class UsuarioServiceTest {
     @DisplayName("Un rol que no está en el catálogo se rechaza")
     void rolInexistente() {
         when(roles.findByCodigo("JEFE")).thenReturn(Optional.empty());
-        UsuarioDTO dto = alta("ana", "ana@boulder.pe");
+        UsuarioDTO dto = alta("anita", "ana@boulder.pe");
         dto.setRoles(List.of("JEFE"));
 
         assertThatThrownBy(() -> servicio.guardar(dto)).hasMessageContaining("JEFE");

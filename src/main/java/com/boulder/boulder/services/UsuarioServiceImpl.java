@@ -101,6 +101,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     public UsuarioDTO guardar(UsuarioDTO dto) {
         log.info("Iniciando registro de un nuevo usuario en la plataforma: {}", dto.getUsuario());
         try {
+            validarDatos(dto, true);
             if (usuarioRepository.existsByUsuario(dto.getUsuario())) {
                 throw new IllegalArgumentException("El identificador de usuario '" + dto.getUsuario() + "' ya se encuentra registrado.");
             }
@@ -135,6 +136,49 @@ public class UsuarioServiceImpl implements UsuarioService {
             log.error("Fallo crítico al persistir el usuario: {}", dto.getUsuario(), e);
             throw e;
         }
+    }
+
+    /**
+     * Reglas de una cuenta creada o editada por un administrador, las mismas
+     * que el auto-registro valida con {@code @Valid} sobre {@link RegistroDTO}.
+     * Junta todos los problemas en un solo mensaje para que el formulario los
+     * muestre de una vez. Al editar, el usuario no cambia y la contraseña es
+     * opcional (en blanco se conserva la anterior).
+     */
+    private static void validarDatos(UsuarioDTO dto, boolean esAlta) {
+        List<String> problemas = new ArrayList<>();
+        if (enBlanco(dto.getNombres())) {
+            problemas.add("los nombres son obligatorios");
+        }
+        if (enBlanco(dto.getApellidos())) {
+            problemas.add("los apellidos son obligatorios");
+        }
+        if (enBlanco(dto.getCorreo())) {
+            problemas.add("el correo es obligatorio");
+        } else if (!dto.getCorreo().trim().matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
+            problemas.add("el correo no tiene un formato válido");
+        }
+        if (esAlta) {
+            if (enBlanco(dto.getUsuario())) {
+                problemas.add("el usuario es obligatorio");
+            } else if (dto.getUsuario().trim().length() < 4) {
+                problemas.add("el usuario debe tener al menos 4 caracteres");
+            }
+            if (enBlanco(dto.getContrasenia())) {
+                problemas.add("la contraseña es obligatoria");
+            }
+        }
+        if (!enBlanco(dto.getContrasenia()) && dto.getContrasenia().length() < 6) {
+            problemas.add("la contraseña debe tener al menos 6 caracteres");
+        }
+        if (!problemas.isEmpty()) {
+            String texto = String.join("; ", problemas);
+            throw new IllegalArgumentException(Character.toUpperCase(texto.charAt(0)) + texto.substring(1) + ".");
+        }
+    }
+
+    private static boolean enBlanco(String valor) {
+        return valor == null || valor.trim().isEmpty();
     }
 
     @Override
@@ -177,6 +221,7 @@ public class UsuarioServiceImpl implements UsuarioService {
             Usuario usuario = usuarioRepository.findById(id)
                     .orElseThrow(() -> new EntityNotFoundException("El usuario a modificar no existe en la base de datos."));
 
+            validarDatos(dto, false);
             usuario.setNombres(dto.getNombres());
             usuario.setApellidos(dto.getApellidos());
             usuario.setCorreo(dto.getCorreo());
