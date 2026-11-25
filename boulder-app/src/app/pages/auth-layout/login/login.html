@@ -1,36 +1,32 @@
-<div class="login-container">
-  <div class="login-card">
-    <div class="login-header">
-      <h2>Plataforma Boulder</h2>
-      <p>Control Operativo de Sondajes Mineros</p>
-    </div>
+<h1 class="auth-title">Iniciar sesión</h1>
+<p class="auth-sub">Entra con la cuenta que te dio el administrador.</p>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onLogin($event)">
-      
-      <div class="form-group">
-      <label for="usuario">Usuario / Identificador</label>
-      <input 
-        type="text" 
-        id="usuario" 
-        formControlName="usuario" 
-        placeholder="Ingrese su cuenta de usuario" 
-        class="form-control" /> </div>
-
-    <div class="form-group">
-      <label for="contrasenia">Contraseña</label>
-      <input 
-        type="password" 
-        id="contrasenia" 
-        formControlName="contrasenia" 
-        placeholder="••••••••" 
-        class="form-control" /> </div>
-
-      <p *ngIf="errorMessage" class="text-danger small mt-2">{{ errorMessage }}</p>
-
-      <button type="submit" class="btn-login" [disabled]="loginForm.invalid || loading">
-        <span *ngIf="!loading">Iniciar Sesión</span>
-        <span *ngIf="loading" class="spinner">Autenticando...</span>
-      </button>
-    </form>
+<form [formGroup]="loginForm" (ngSubmit)="onLogin($event)" novalidate>
+  <div class="mb-3">
+    <label for="usuario" class="form-label">Usuario</label>
+    <input type="text" id="usuario" formControlName="usuario" class="form-control"
+           autocomplete="username" autocapitalize="none" spellcheck="false" />
   </div>
-</div>
+
+  <div class="mb-3">
+    <label for="contrasenia" class="form-label">Contraseña</label>
+    <input type="password" id="contrasenia" formControlName="contrasenia" class="form-control"
+           autocomplete="current-password" />
+  </div>
+
+  @if (errorMessage) {
+    <div class="alert alert-danger py-2 small" role="alert">
+      <i class="bi bi-exclamation-triangle me-1"></i>{{ errorMessage }}
+    </div>
+  }
+
+  <button type="submit" class="btn btn-primary w-100" [disabled]="loginForm.invalid || loading">
+    @if (loading) {
+      <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Entrando…
+    } @else {
+      Iniciar sesión
+    }
+  </button>
+</form>
+
+<p class="auth-alt">¿Aún no tienes cuenta? <a routerLink="/auth/register">Solicítala aquí</a></p>

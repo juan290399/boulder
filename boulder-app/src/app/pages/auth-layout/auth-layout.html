@@ -1,5 +1,17 @@
-<div class="auth-container">
-    <div class="auth-card">
-    <router-outlet></router-outlet>
+<div class="auth-shell">
+  <main class="auth-panel">
+    <div class="auth-brand">
+      <div class="auth-brand__mark" aria-hidden="true"><i class="bi bi-gem"></i></div>
+      <div>
+        <p class="auth-brand__name">Boulder</p>
+        <p class="auth-brand__tag">Gestión geológica</p>
+      </div>
     </div>
+
+    <div class="auth-card">
+      <router-outlet></router-outlet>
+    </div>
+
+    <p class="auth-foot">Control operativo de sondajes · Campamento VERONICA</p>
+  </main>
 </div>

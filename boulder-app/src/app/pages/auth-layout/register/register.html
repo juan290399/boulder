@@ -1,45 +1,60 @@
-<h2>Crear Cuenta</h2>
-<p class="subtitle">Regístrate para empezar a operar</p>
+<h1 class="auth-title">Solicitar cuenta</h1>
+<p class="auth-sub">La cuenta queda inactiva hasta que un administrador la apruebe y le asigne un rol.</p>
 
-<div *ngIf="okMessage" class="alert alert-success p-3 mb-3">
-  {{ okMessage }}
-  <button type="button" class="btn btn-link p-0 ms-1" (click)="irAlLogin()">Ir al inicio de sesión</button>
-</div>
+@if (okMessage) {
+  <div class="alert alert-success py-2 small" role="status">
+    <i class="bi bi-check-circle me-1"></i>{{ okMessage }}
+    <button type="button" class="btn btn-link btn-sm p-0 ms-1 align-baseline" (click)="irAlLogin()">Ir al inicio de sesión</button>
+  </div>
+}
 
-<div *ngIf="errorMessage" class="alert alert-danger p-3 mb-3">{{ errorMessage }}</div>
+@if (errorMessage) {
+  <div class="alert alert-danger py-2 small" role="alert">
+    <i class="bi bi-exclamation-triangle me-1"></i>{{ errorMessage }}
+  </div>
+}
 
 <form (ngSubmit)="onRegister()">
-  <div class="form-group">
-    <label>Nombres</label>
-    <input type="text" [(ngModel)]="user.nombres" name="nombres" required placeholder="Juan Carlos">
+  <div class="row g-3 mb-3">
+    <div class="col-sm-6">
+      <label for="reg-nombres" class="form-label">Nombres</label>
+      <input id="reg-nombres" type="text" class="form-control" [(ngModel)]="user.nombres" name="nombres"
+             required autocomplete="given-name">
+    </div>
+    <div class="col-sm-6">
+      <label for="reg-apellidos" class="form-label">Apellidos</label>
+      <input id="reg-apellidos" type="text" class="form-control" [(ngModel)]="user.apellidos" name="apellidos"
+             required autocomplete="family-name">
+    </div>
   </div>
 
-  <div class="form-group">
-    <label>Apellidos</label>
-    <input type="text" [(ngModel)]="user.apellidos" name="apellidos" required placeholder="Pérez Quispe">
+  <div class="mb-3">
+    <label for="reg-correo" class="form-label">Correo</label>
+    <input id="reg-correo" type="email" class="form-control" [(ngModel)]="user.correo" name="correo"
+           required autocomplete="email">
   </div>
 
-  <div class="form-group">
-    <label>Correo Electrónico</label>
-    <input type="email" [(ngModel)]="user.correo" name="correo" required placeholder="juan@correo.com">
+  <div class="mb-3">
+    <label for="reg-usuario" class="form-label">Usuario</label>
+    <input id="reg-usuario" type="text" class="form-control" [(ngModel)]="user.usuario" name="usuario"
+           required minlength="4" autocomplete="username" autocapitalize="none" spellcheck="false">
+    <div class="form-text">Mínimo 4 caracteres; es con el que entrarás.</div>
   </div>
 
-  <div class="form-group">
-    <label>Usuario</label>
-    <input type="text" [(ngModel)]="user.usuario" name="usuario" required minlength="4" placeholder="jperez">
+  <div class="mb-4">
+    <label for="reg-contrasenia" class="form-label">Contraseña</label>
+    <input id="reg-contrasenia" type="password" class="form-control" [(ngModel)]="user.contrasenia" name="contrasenia"
+           required minlength="6" autocomplete="new-password">
+    <div class="form-text">Mínimo 6 caracteres.</div>
   </div>
 
-  <div class="form-group">
-    <label>Contraseña</label>
-    <input type="password" [(ngModel)]="user.contrasenia" name="contrasenia" required minlength="6"
-           placeholder="Mínimo 6 caracteres">
-  </div>
-
-  <button type="submit" [disabled]="loading" class="btn-primary">
-    {{ loading ? 'Registrando...' : 'Registrarse' }}
+  <button type="submit" [disabled]="loading" class="btn btn-primary w-100">
+    @if (loading) {
+      <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Enviando…
+    } @else {
+      Solicitar cuenta
+    }
   </button>
 </form>
 
-<div class="footer-links">
-  ¿Ya tienes cuenta? <a routerLink="/auth/login">Inicia sesión</a>
-</div>
+<p class="auth-alt">¿Ya tienes cuenta? <a routerLink="/auth/login">Inicia sesión</a></p>

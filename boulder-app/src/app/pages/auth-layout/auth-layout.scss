@@ -1,16 +1,71 @@
-.auth-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      font-family: 'Segoe UI', Roboto, sans-serif;
-    }
-    .auth-card {
-      background: white;
-      padding: 2.5rem;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-      width: 100%;
-      max-width: 450px;
-    }
+/* Pantallas sin sesión: inicio, registro y elección de rol. Usan los mismos
+   tokens que el resto de la aplicación; los formularios son de Bootstrap. */
+
+.auth-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: var(--bo-canvas);
+}
+
+.auth-panel {
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
+.auth-brand__mark {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: var(--bo-r-md);
+  background: var(--bo-brand-500);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  box-shadow: var(--bo-shadow-brand);
+}
+
+.auth-brand__name {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--bo-ink);
+}
+
+.auth-brand__tag {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--bo-ink-2);
+}
+
+.auth-card {
+  background: var(--bo-surface);
+  border: 1px solid var(--bo-border);
+  border-radius: var(--bo-r-lg);
+  box-shadow: var(--bo-shadow-md);
+  padding: 2rem;
+}
+
+.auth-foot {
+  margin: 1.25rem 0 0;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--bo-ink-2);
+}
+
+@media (max-width: 480px) {
+  .auth-card { padding: 1.5rem 1.25rem; }
+}
