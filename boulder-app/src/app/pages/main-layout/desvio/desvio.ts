@@ -21,6 +21,7 @@ import {
   TrayectoriaSondaje,
 } from '../../../models/operacional';
 import { AuthService } from '../../../services/auth.service';
+import { irA } from '../../../util/interfaz';
 
 /** Las cuatro miradas sobre el mismo dato de desviación. */
 type Vista = 'sondaje' | 'perforista' | 'maquina' | 'trayectoria';
@@ -199,6 +200,9 @@ export class Desvio implements OnInit {
 
     this.seleccionada.set(fila);
     this.aviso.set(null);
+    // El detalle queda debajo de la tabla (51 mediciones): se lleva la vista y
+    // el foco a su título para que se note que se abrió.
+    setTimeout(() => irA('detalle-medicion', 'detalle-medicion-titulo'));
     this.form = {
       interpretacion: fila.interpretacion ?? '',
       instruccion: fila.instruccion ?? '',

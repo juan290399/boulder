@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { Visor } from '../../../components/visor/visor';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -41,7 +42,7 @@ interface PorSubir {
 @Component({
   selector: 'app-fotos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Visor],
   templateUrl: './fotos.html',
   styleUrl: './fotos.scss',
 })

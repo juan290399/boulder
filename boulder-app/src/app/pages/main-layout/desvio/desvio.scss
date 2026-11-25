@@ -32,3 +32,21 @@
 .fila-medicion .mono {
   white-space: nowrap;
 }
+
+/* Primera celda: botón sin aspecto de botón para abrir la medición con teclado. */
+.fila-boton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.25rem 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+}
+
+/* Fechas y metros no se parten en dos renglones. */
+.fila-medicion .num { white-space: nowrap; }

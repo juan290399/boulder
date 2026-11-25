@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { Visor } from '../../../components/visor/visor';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { forkJoin, of } from 'rxjs';
@@ -24,7 +25,7 @@ import { ReporteService } from '../../../services/reporte.service';
 @Component({
   selector: 'app-quicklog',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Visor],
   templateUrl: './quicklog.html',
   styleUrl: './quicklog.scss',
 })

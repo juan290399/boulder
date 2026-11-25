@@ -52,6 +52,15 @@
     <span class="text-muted small">{{ frente().length }} sondajes</span>
   </div>
 
+  @if (leyenda().length) {
+    <p class="leyenda-etapas">
+      <span class="visually-hidden">Siglas de las etapas:</span>
+      @for (e of leyenda(); track e.sigla) {
+        <span class="leyenda-etapas__item"><abbr [title]="e.nombre">{{ e.sigla }}</abbr> {{ e.nombre }}</span>
+      }
+    </p>
+  }
+
   @if (cargando()) {
     <div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Cargando…</p></div>
   } @else if (!frente().length) {
@@ -78,16 +87,20 @@
                 [class.fila-sondaje--abierta]="seleccionado()?.sondajeId === fila.sondajeId"
                 (click)="seleccionar(fila)">
 
+              <!-- El botón hace la fila alcanzable con teclado; su clic sube a
+                   la fila, que es la que abre o cierra el detalle. -->
               <td>
-                <div class="d-flex align-items-center gap-2">
-                  <i class="bi"
+                <button type="button" class="fila-boton"
+                        [attr.aria-expanded]="seleccionado()?.sondajeId === fila.sondajeId"
+                        aria-controls="detalle-sondaje">
+                  <i class="bi" aria-hidden="true"
                      [class.bi-chevron-right]="seleccionado()?.sondajeId !== fila.sondajeId"
                      [class.bi-chevron-down]="seleccionado()?.sondajeId === fila.sondajeId"></i>
-                  <div>
-                    <div class="mono fw-semibold">{{ fila.sondajeCodigo }}</div>
-                    <div class="text-muted small">{{ fila.sondajeNombre }}</div>
-                  </div>
-                </div>
+                  <span>
+                    <span class="mono fw-semibold d-block">{{ fila.sondajeCodigo }}</span>
+                    <span class="text-muted small d-block">{{ fila.sondajeNombre }}</span>
+                  </span>
+                </button>
               </td>
 
               <td class="num">{{ fila.etapas[0].profundidad | number:'1.0-2' }} m</td>
@@ -147,6 +160,7 @@
 </div>
 
 @if (seleccionado(); as fila) {
+  <div id="detalle-sondaje">
   @if (formulario(); as fm) {
     <div class="panel">
       @if (fm.clave === 'perforacion') {
@@ -164,7 +178,7 @@
 
   <div class="panel">
     <div class="panel__head">
-      <h2 class="panel__title">
+      <h2 class="panel__title" id="detalle-sondaje-titulo" tabindex="-1">
         Partes de <span class="mono">{{ fila.sondajeCodigo }}</span>
       </h2>
       <div class="d-flex gap-2">
@@ -192,8 +206,9 @@
       @for (tipo of tipos; track tipo.clave) {
         <button type="button" class="tabs__btn"
                 [class.tabs__btn--activo]="tipoActivo() === tipo.clave"
+                [attr.aria-pressed]="tipoActivo() === tipo.clave"
                 (click)="elegirTipo(tipo.clave)">
-          <i class="bi" [ngClass]="tipo.icono"></i>
+          <i class="bi" aria-hidden="true" [ngClass]="tipo.icono"></i>
           <span>{{ tipo.etiqueta }}</span>
         </button>
       }
@@ -245,5 +260,6 @@
         </table>
       </div>
     }
+  </div>
   </div>
 }

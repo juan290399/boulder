@@ -4,6 +4,8 @@
 .fila-sondaje {
   cursor: pointer;
 
+  td:first-child { padding-block: 0.25rem; }
+
   &--abierta {
     background: var(--bo-brand-soft) !important;
   }
@@ -75,4 +77,38 @@
    los guiones son puntos de corte válidos para el navegador. */
 .fila-sondaje .mono {
   white-space: nowrap;
+}
+
+/* Primera celda: un botón sin aspecto de botón que vuelve la fila alcanzable
+   con teclado. Ocupa la celda entera para que el área de clic sea generosa. */
+.fila-boton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.25rem 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+}
+
+/* Leyenda de siglas de las etapas, fija sobre la tabla. */
+.leyenda-etapas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  padding: 0.6rem 1.25rem;
+  border-bottom: 1px solid var(--bo-border);
+  font-size: 0.8rem;
+  color: var(--bo-ink-2);
+
+  abbr {
+    font-weight: 700;
+    color: var(--bo-ink);
+    text-decoration: none;
+  }
 }

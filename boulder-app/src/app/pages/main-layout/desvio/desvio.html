@@ -14,18 +14,22 @@
       <button type="button" class="btn"
               [class.btn-primary]="vista() === 'sondaje'"
               [class.btn-outline-secondary]="vista() !== 'sondaje'"
+              [attr.aria-pressed]="vista() === 'sondaje'"
               (click)="cambiarVista('sondaje')">Por sondaje</button>
       <button type="button" class="btn"
               [class.btn-primary]="vista() === 'perforista'"
               [class.btn-outline-secondary]="vista() !== 'perforista'"
+              [attr.aria-pressed]="vista() === 'perforista'"
               (click)="cambiarVista('perforista')">Por perforista</button>
       <button type="button" class="btn"
               [class.btn-primary]="vista() === 'maquina'"
               [class.btn-outline-secondary]="vista() !== 'maquina'"
+              [attr.aria-pressed]="vista() === 'maquina'"
               (click)="cambiarVista('maquina')">Por máquina</button>
       <button type="button" class="btn"
               [class.btn-primary]="vista() === 'trayectoria'"
               [class.btn-outline-secondary]="vista() !== 'trayectoria'"
+              [attr.aria-pressed]="vista() === 'trayectoria'"
               (click)="cambiarVista('trayectoria')">Trayectoria</button>
     </div>
   </div>
@@ -127,19 +131,20 @@
                   [class.fila-medicion--abierta]="seleccionada() === d"
                   (click)="seleccionar(d)">
                 <td>
-                  <div class="d-flex align-items-center gap-2">
-                    <i class="bi"
+                  <button type="button" class="fila-boton" [attr.aria-expanded]="seleccionada() === d"
+                          aria-controls="detalle-medicion">
+                    <i class="bi" aria-hidden="true"
                        [class.bi-chevron-right]="seleccionada() !== d"
                        [class.bi-chevron-down]="seleccionada() === d"></i>
-                    <div>
-                  <div class="mono fw-semibold">{{ d.sondajeCodigo }}</div>
-                  <div class="text-muted small">{{ d.sondajeNombre }}</div>
-                    </div>
-                  </div>
+                    <span>
+                      <span class="mono fw-semibold d-block">{{ d.sondajeCodigo }}</span>
+                      <span class="text-muted small d-block">{{ d.sondajeNombre }}</span>
+                    </span>
+                  </button>
                 </td>
                 <td class="num">{{ d.profundidad | number:'1.0-2' }} m</td>
                 <td class="num text-muted">{{ d.nroMedicion ?? '—' }}</td>
-                <td>{{ d.fechaMedicion }}</td>
+                <td class="text-nowrap">{{ d.fechaMedicion }}</td>
                 <td class="mono">{{ d.maquinaCodigo ?? '—' }}</td>
                 <td>{{ d.perforista ?? '—' }}</td>
                 <td class="num">
@@ -314,9 +319,9 @@
 </div>
 
 @if (seleccionada(); as med) {
-  <div class="panel">
+  <div class="panel" id="detalle-medicion">
     <div class="panel__head">
-      <h2 class="panel__title">
+      <h2 class="panel__title" id="detalle-medicion-titulo" tabindex="-1">
         Medición de <span class="mono">{{ med.sondajeCodigo }}</span>
         a los {{ med.profundidad | number:'1.0-2' }} m
         <span class="text-muted fw-normal">· {{ med.fechaMedicion }}</span>

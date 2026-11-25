@@ -78,16 +78,3 @@
 
 .sin-foto { color: var(--bo-ink-2); padding-left: 1.6rem; }
 
-.visor {
-  position: fixed; inset: 0; z-index: 1050; background: rgba(15, 23, 42, 0.78);
-  display: grid; place-items: center; padding: 1.5rem;
-}
-.visor__caja {
-  background: var(--bo-surface); border-radius: var(--bo-r-sm); max-width: min(1400px, 96vw);
-  max-height: 94vh; display: flex; flex-direction: column; overflow: hidden;
-}
-.visor__barra {
-  display: flex; justify-content: space-between; align-items: center; gap: 1rem;
-  padding: 0.75rem 1rem; border-bottom: 1px solid var(--bo-border); font-size: 0.9rem;
-}
-.visor__img { max-width: 100%; max-height: calc(94vh - 60px); object-fit: contain; display: block; margin: auto; }

@@ -142,27 +142,25 @@
 </div>
 
 @if (ampliada(); as a) {
-  <div class="visor" (click)="ampliada.set(null)">
-    <div class="visor__caja" (click)="$event.stopPropagation()">
-      <div class="visor__barra">
-        <div>
-          <strong>Cajas {{ a.foto.cajaDesde ?? '?' }}–{{ a.foto.cajaHasta ?? '?' }}</strong>
-          @if (a.foto.desde !== null) { · {{ a.foto.desde | number:'1.2-2' }} – {{ a.foto.hasta | number:'1.2-2' }} m }
-          @if (a.foto.condicion) { · {{ a.foto.condicion === 'seco' ? 'seco' : 'húmedo' }} }
-          <div class="tenue">{{ a.foto.archivoOriginal }} · {{ a.foto.ancho }}×{{ a.foto.alto }} · {{ tamanio(a.foto.bytes) }} · {{ a.foto.autor ?? '' }}</div>
-        </div>
-        <div>
-          @if (puedeRegistrar) {
-          <button type="button" class="btn btn-sm btn-outline-danger" (click)="eliminar(a.foto)"><i class="bi bi-trash me-1"></i>Quitar</button>
-          }
-          <button type="button" class="btn btn-sm btn-outline-secondary ms-2" (click)="ampliada.set(null)"><i class="bi bi-x-lg"></i></button>
-        </div>
-      </div>
-      @if (a.url) {
-        <img class="visor__img" [src]="a.url" alt="Foto ampliada">
-      } @else {
-        <div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Cargando la foto original…</p></div>
-      }
+  <app-visor [etiqueta]="'Foto de las cajas ' + (a.foto.cajaDesde ?? '?') + ' a ' + (a.foto.cajaHasta ?? '?')"
+             (cerrar)="ampliada.set(null)">
+    <div info>
+      <strong>Cajas {{ a.foto.cajaDesde ?? '?' }}–{{ a.foto.cajaHasta ?? '?' }}</strong>
+      @if (a.foto.desde !== null) { · {{ a.foto.desde | number:'1.2-2' }} – {{ a.foto.hasta | number:'1.2-2' }} m }
+      @if (a.foto.condicion) { · {{ a.foto.condicion === 'seco' ? 'seco' : 'húmedo' }} }
+      <div class="tenue">{{ a.foto.archivoOriginal }} · {{ a.foto.ancho }}×{{ a.foto.alto }} · {{ tamanio(a.foto.bytes) }} · {{ a.foto.autor ?? '' }}</div>
     </div>
-  </div>
+    @if (puedeRegistrar) {
+      <div acciones>
+        <button type="button" class="btn btn-sm btn-outline-danger" (click)="eliminar(a.foto)"><i class="bi bi-trash me-1" aria-hidden="true"></i>Quitar</button>
+      </div>
+    }
+    @if (a.url) {
+      <img class="visor__img" [src]="a.url"
+           [alt]="'Testigo de las cajas ' + (a.foto.cajaDesde ?? '?') + ' a ' + (a.foto.cajaHasta ?? '?')
+                  + (a.foto.desde !== null ? ', de ' + a.foto.desde + ' a ' + a.foto.hasta + ' m' : '')">
+    } @else {
+      <div class="empty-state"><i class="bi bi-hourglass-split" aria-hidden="true"></i><p>Cargando la foto original…</p></div>
+    }
+  </app-visor>
 }

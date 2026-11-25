@@ -23,6 +23,7 @@ import { AvanceOperativo, AvancePerforacion, FrenteAvance } from '../../../model
 import { PartePerforacionForm } from './parte-perforacion/parte-perforacion';
 import { ParteOperativoForm } from './parte-operativo/parte-operativo';
 import { AuthService } from '../../../services/auth.service';
+import { irA } from '../../../util/interfaz';
 
 /** Descriptor de cada parte (perforación y los siete de testigo), para la pestaña de detalle. */
 interface TipoParte {
@@ -243,7 +244,14 @@ export class AvanceOperativoPage implements OnInit {
     }
     this.seleccionado.set(fila);
     this.cargarPartes();
+    // El detalle aparece debajo de la tabla: se lleva la vista y el foco a su
+    // título, así quien abre con teclado (o una fila de abajo) ve que cambió.
+    setTimeout(() => irA('detalle-sondaje', 'detalle-sondaje-titulo'));
   }
+
+  /** Siglas de las etapas con su nombre, para la leyenda sobre la tabla. */
+  readonly leyenda = computed(() =>
+    (this.frente()[0]?.etapas ?? []).map(e => ({ sigla: this.abrevia(e.clave), nombre: e.nombre })));
 
   elegirTipo(clave: string): void {
     this.formulario.set(null);
