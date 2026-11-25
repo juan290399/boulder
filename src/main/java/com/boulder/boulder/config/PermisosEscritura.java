@@ -9,7 +9,7 @@ import java.util.Set;
  *   <li>Lectura: cualquier rol con sesión.</li>
  *   <li>{@code ASISTENTE_GEOLOGIA}: registra y corrige partes, logueo, cargas y fotos.</li>
  *   <li>{@code GEOLOGO}: además borra partes y mantiene los datos maestros.</li>
- *   <li>{@code ADMIN}: todo. {@code VISITANTE}: solo lectura.</li>
+ *   <li>{@code ADMIN}: todo, y es el único que escribe empresas y proyectos. {@code VISITANTE}: solo lectura.</li>
  * </ul>
  */
 public final class PermisosEscritura {
@@ -21,6 +21,9 @@ public final class PermisosEscritura {
     /** Datos maestros de la campaña dentro de /api/operacional. */
     private static final Set<String> MAESTROS = Set.of(
             "sondajes", "maquinas", "plataformas", "programas-sondaje", "collares");
+
+    /** Recursos de /api/operacional que se administran solo desde el panel de ADMIN. */
+    private static final Set<String> SOLO_ADMIN = Set.of("empresas", "proyectos");
 
     private PermisosEscritura() {
     }
@@ -36,6 +39,9 @@ public final class PermisosEscritura {
             return true;
         }
         boolean geologo = autoridades.contains(GEOLOGO);
+        if (ruta.startsWith("/api/operacional/") && SOLO_ADMIN.contains(recurso(ruta))) {
+            return false;
+        }
         if (ruta.startsWith("/api/operacional/")
                 && ("DELETE".equals(metodo) || MAESTROS.contains(recurso(ruta)))) {
             return geologo;
