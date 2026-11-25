@@ -50,3 +50,12 @@
 
 /* Fechas y metros no se parten en dos renglones. */
 .fila-medicion .num { white-space: nowrap; }
+
+/* Detalle de una medición como vista propia. */
+.volver { margin-bottom: 0.25rem; text-decoration: none; }
+
+.detalle-resumen {
+  margin: 0.2rem 0 0;
+  font-size: 0.875rem;
+  color: var(--bo-ink-2);
+}

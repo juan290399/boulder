@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, Injector, OnInit, afterNextRender, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -21,7 +23,7 @@ import {
   TrayectoriaSondaje,
 } from '../../../models/operacional';
 import { AuthService } from '../../../services/auth.service';
-import { irA } from '../../../util/interfaz';
+import { irA, mensajeDeError } from '../../../util/interfaz';
 
 /** Las cuatro miradas sobre el mismo dato de desviación. */
 type Vista = 'sondaje' | 'perforista' | 'maquina' | 'trayectoria';
@@ -61,6 +63,12 @@ export class Desvio implements OnInit {
   readonly puedeRegistrar = inject(AuthService).puedeRegistrar();
   private readonly medicionService = inject(SurveyMedicionService);
   private readonly sondajeService = inject(SondajeService);
+  private readonly router = inject(Router);
+  private readonly ruta = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
+  /** Medición pedida en la URL (?medicion=) que espera a que cargue la lista. */
+  private medicionPedida: string | null = null;
 
   readonly vista = signal<Vista>('sondaje');
   readonly cargando = signal(false);
@@ -75,6 +83,18 @@ export class Desvio implements OnInit {
   readonly cargandoTrayectoria = signal(false);
   readonly guardando = signal(false);
   readonly aviso = signal<string | null>(null);
+  /** Error del formulario de seguimiento, mostrado junto a él. */
+  readonly errorSeguimiento = signal<string | null>(null);
+  /** Filtro en vivo de la vista por sondaje. */
+  readonly filtro = signal('');
+
+  /** Mediciones filtradas en el navegador: son pocas y ya vienen todas. */
+  readonly medicionesVisibles = computed(() => {
+    const q = this.filtro().trim().toLowerCase();
+    return !q ? this.porSondaje() : this.porSondaje().filter(d =>
+      [d.sondajeCodigo, d.sondajeNombre, d.maquinaCodigo, d.perforista]
+        .some(v => (v ?? '').toLowerCase().includes(q)));
+  });
 
   /** Formulario de medición nueva abierto, y el aviso de la última registrada. */
   readonly nuevaMedicion = signal(false);
@@ -83,7 +103,6 @@ export class Desvio implements OnInit {
   /** Sondajes que tienen trayectoria medida, para la vista de curvas. */
   readonly sondajes = signal<Sondaje[]>([]);
 
-  filtroCodigo = '';
   sondajeGrafico = '';
 
   form: FormSeguimiento = {
@@ -104,14 +123,34 @@ export class Desvio implements OnInit {
       .map(e => ({ profundidad: e.profundidad, valor: e.inclinacion })));
 
   ngOnInit(): void {
+    // La URL manda: ?medicion=ID abre su detalle y sin él se ve la lista.
+    this.ruta.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(params => {
+        this.medicionPedida = params.get('medicion');
+        this.aplicarMedicionPedida();
+      });
     this.cargar();
   }
 
   cambiarVista(vista: Vista): void {
     this.vista.set(vista);
-    this.seleccionada.set(null);
     this.trayectoria.set(null);
     this.cargar();
+  }
+
+  abrirNuevaMedicion(): void {
+    this.avisoAlta.set(null);
+    this.nuevaMedicion.set(true);
+    // El formulario aparece arriba de la tabla: vista y foco a su primer campo,
+    // una vez que Angular lo dibujó.
+    // (el propio formulario lleva el foco a su primer campo).
+    afterNextRender(() => irA('form-nueva-medicion'), { injector: this.injector });
+  }
+
+  cerrarNuevaMedicion(): void {
+    this.nuevaMedicion.set(false);
+    setTimeout(() => document.getElementById('btn-nueva-medicion')?.focus());
   }
 
   cargar(): void {
@@ -125,8 +164,19 @@ export class Desvio implements OnInit {
 
     switch (this.vista()) {
       case 'sondaje':
-        this.service.porSondaje(this.filtroCodigo || undefined).subscribe({
-          next: d => { this.porSondaje.set(d); this.cargando.set(false); },
+        this.service.porSondaje().subscribe({
+          next: d => {
+            this.porSondaje.set(d);
+            this.cargando.set(false);
+            // El detalle abierto toma la fila recién cargada (su seguimiento
+            // pudo cambiar); si se abrió desde la URL, se busca ahora.
+            const abierta = this.seleccionada();
+            if (abierta) {
+              const actual = d.find(x => x.medicionId === abierta.medicionId);
+              if (actual) { this.seleccionada.set(actual); }
+            }
+            this.aplicarMedicionPedida();
+          },
           error: fallo,
         });
         break;
@@ -153,16 +203,12 @@ export class Desvio implements OnInit {
   }
 
   medicionGuardada(m: SurveyMedicion): void {
-    this.nuevaMedicion.set(false);
+    this.cerrarNuevaMedicion();
     const desvio = m.desvMetros != null ? ` · separación estimada ${m.desvMetros} m` : '';
     this.avisoAlta.set(`Medición N.º ${m.nroMedicion} a ${m.profundidad} m registrada${desvio}.`);
     this.cargar();
   }
 
-  limpiarFiltro(): void {
-    this.filtroCodigo = '';
-    this.cargar();
-  }
 
   /**
    * Carga la trayectoria del sondaje elegido en la vista de curvas.
@@ -187,22 +233,59 @@ export class Desvio implements OnInit {
       });
   }
 
+  /** Abre el detalle de la medición: solo cambia la URL, y la URL abre el detalle. */
   seleccionar(fila: DesviacionSondaje): void {
-    // Se compara la fila en sí y no su medicionId: la vista puede devolver el
-    // id vacío —lo hacía antes de exponerlo—, y entonces `undefined ===
-    // undefined` daba verdadero y el panel se cerraba en el mismo clic que lo
-    // abría, sin ningún error a la vista.
-    if (this.seleccionada() === fila) {
-      this.seleccionada.set(null);
-      this.trayectoria.set(null);
+    if (fila.medicionId) {
+      this.router.navigate([], { relativeTo: this.ruta, queryParams: { medicion: fila.medicionId } });
+    } else {
+      this.abrirDetalle(fila);
+    }
+  }
+
+  volverALista(): void {
+    if (this.ruta.snapshot.queryParamMap.has('medicion')) {
+      this.router.navigate([], { relativeTo: this.ruta, queryParams: {} });
+    } else {
+      this.cerrarDetalle();
+    }
+  }
+
+  /** Sincroniza la vista con ?medicion= una vez que la lista está cargada. */
+  private aplicarMedicionPedida(): void {
+    const id = this.medicionPedida;
+    const abierta = this.seleccionada();
+    if (!id) {
+      if (abierta) { this.cerrarDetalle(); }
       return;
     }
+    if (abierta?.medicionId === id) { return; }
+    const fila = this.porSondaje().find(d => d.medicionId === id);
+    if (fila) {
+      this.abrirDetalle(fila);
+    }
+  }
 
+  private cerrarDetalle(): void {
+    const id = this.seleccionada()?.medicionId;
+    this.seleccionada.set(null);
+    this.trayectoria.set(null);
+    this.aviso.set(null);
+    this.errorSeguimiento.set(null);
+    // De vuelta en la lista, el foco regresa a la fila de la medición que se veía.
+    setTimeout(() => irA('med-' + id, 'med-' + id));
+  }
+
+  private abrirDetalle(fila: DesviacionSondaje): void {
+    this.vista.set('sondaje');
+    this.nuevaMedicion.set(false);
     this.seleccionada.set(fila);
     this.aviso.set(null);
-    // El detalle queda debajo de la tabla (51 mediciones): se lleva la vista y
-    // el foco a su título para que se note que se abrió.
-    setTimeout(() => irA('detalle-medicion', 'detalle-medicion-titulo'));
+    this.errorSeguimiento.set(null);
+    // La pantalla cambia de contenido: arriba de todo y el foco en el título.
+    setTimeout(() => {
+      window.scrollTo({ top: 0 });
+      document.getElementById('detalle-medicion-titulo')?.focus({ preventScroll: true });
+    });
     this.form = {
       interpretacion: fila.interpretacion ?? '',
       instruccion: fila.instruccion ?? '',
@@ -234,10 +317,14 @@ export class Desvio implements OnInit {
   guardarSeguimiento(): void {
     const fila = this.seleccionada();
     const id = fila?.medicionId;
-    if (!id) { return; }
+    this.aviso.set(null);
+    this.errorSeguimiento.set(null);
+    if (!id) {
+      this.errorSeguimiento.set('Esta medición no tiene identificador; no se puede guardar su seguimiento.');
+      return;
+    }
 
     this.guardando.set(true);
-    this.aviso.set(null);
 
     this.medicionService.obtenerPorId(id).subscribe({
       next: medicion => {
@@ -254,15 +341,15 @@ export class Desvio implements OnInit {
             this.aviso.set('Seguimiento guardado.');
             this.cargar();
           },
-          error: () => {
+          error: (e: unknown) => {
             this.guardando.set(false);
-            this.error.set('No se pudo guardar el seguimiento.');
+            this.errorSeguimiento.set(mensajeDeError(e, 'No se pudo guardar el seguimiento'));
           },
         });
       },
-      error: () => {
+      error: (e: unknown) => {
         this.guardando.set(false);
-        this.error.set('No se pudo leer la medición para actualizarla.');
+        this.errorSeguimiento.set(mensajeDeError(e, 'No se pudo leer la medición para actualizarla'));
       },
     });
   }

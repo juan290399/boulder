@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, input, output, signal } from '@angular/core';
+import { Component, ElementRef, Injector, OnInit, afterNextRender, inject, input, output, signal } from '@angular/core';
+import { mensajeDeError } from '../../../../util/interfaz';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { forkJoin, of } from 'rxjs';
@@ -45,6 +46,8 @@ interface Previa {
   styleUrl: '../../../../components/formulario-parte.scss',
 })
 export class MedicionDesvioForm implements OnInit {
+  private readonly host = inject(ElementRef<HTMLElement>);
+  private readonly injector = inject(Injector);
 
   private readonly servicio = inject(SurveyMedicionService);
   private readonly sondajeService = inject(SondajeService);
@@ -89,6 +92,10 @@ export class MedicionDesvioForm implements OnInit {
           this.elegirSondaje(this.sondajeInicial());
         }
         this.cargando.set(false);
+        // Los campos aparecen recién al terminar la carga: entonces el cursor
+        // va al primero (Sondaje).
+        afterNextRender(() => (this.host.nativeElement as HTMLElement)
+          .querySelector<HTMLElement>('#md-sondaje')?.focus(), { injector: this.injector });
       },
       error: () => {
         this.error.set('No se pudieron cargar los sondajes.');
@@ -183,7 +190,7 @@ export class MedicionDesvioForm implements OnInit {
       },
       error: (e: HttpErrorResponse) => {
         this.guardando.set(false);
-        this.error.set(e.error?.message ?? 'No se pudo guardar la medición.');
+        this.error.set(mensajeDeError(e, 'No se pudo guardar la medición'));
       },
     });
   }

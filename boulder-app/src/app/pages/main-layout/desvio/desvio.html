@@ -1,76 +1,100 @@
-<div class="page-head">
-  <div>
-    <h1 class="page-head__title">Desvíos</h1>
-  </div>
-
-  <div class="page-head__actions">
-    @if (puedeRegistrar) {
-    <button type="button" class="btn btn-sm btn-primary" (click)="avisoAlta.set(null); nuevaMedicion.set(true)"
-            [disabled]="nuevaMedicion()">
-      <i class="bi bi-plus-lg me-1"></i>Nueva medición
-    </button>
-    }
-    <div class="btn-group btn-group-sm" role="group" aria-label="Vista">
-      <button type="button" class="btn"
-              [class.btn-primary]="vista() === 'sondaje'"
-              [class.btn-outline-secondary]="vista() !== 'sondaje'"
-              [attr.aria-pressed]="vista() === 'sondaje'"
-              (click)="cambiarVista('sondaje')">Por sondaje</button>
-      <button type="button" class="btn"
-              [class.btn-primary]="vista() === 'perforista'"
-              [class.btn-outline-secondary]="vista() !== 'perforista'"
-              [attr.aria-pressed]="vista() === 'perforista'"
-              (click)="cambiarVista('perforista')">Por perforista</button>
-      <button type="button" class="btn"
-              [class.btn-primary]="vista() === 'maquina'"
-              [class.btn-outline-secondary]="vista() !== 'maquina'"
-              [attr.aria-pressed]="vista() === 'maquina'"
-              (click)="cambiarVista('maquina')">Por máquina</button>
-      <button type="button" class="btn"
-              [class.btn-primary]="vista() === 'trayectoria'"
-              [class.btn-outline-secondary]="vista() !== 'trayectoria'"
-              [attr.aria-pressed]="vista() === 'trayectoria'"
-              (click)="cambiarVista('trayectoria')">Trayectoria</button>
+<!-- Dos vistas en una pantalla: las mediciones (por sondaje, perforista,
+     máquina o trayectoria) y, al elegir una, su detalle a todo el ancho con
+     «← Desvíos» para volver. La URL lleva ?medicion=ID, así el botón Atrás del
+     navegador también vuelve. -->
+@if (seleccionada(); as med) {
+  <div class="page-head">
+    <div>
+      <button type="button" class="btn btn-link btn-sm p-0 volver" (click)="volverALista()">
+        <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Desvíos
+      </button>
+      <h1 class="page-head__title" id="detalle-medicion-titulo" tabindex="-1">
+        <span class="mono">{{ med.sondajeCodigo }}</span> a los {{ med.profundidad | number:'1.0-2' }} m
+      </h1>
+      <p class="detalle-resumen">
+        Medición N.º {{ med.nroMedicion ?? '—' }} · {{ med.fechaMedicion }}
+        @if (med.maquinaCodigo) { · máquina <span class="mono">{{ med.maquinaCodigo }}</span> }
+        @if (med.perforista) { · {{ med.perforista }} }
+      </p>
+    </div>
+    <div class="page-head__actions">
+      @if (med.desvTotal !== null && med.desvTotal !== undefined) {
+        <span [ngClass]="tonoDesvio(med.desvTotal)">Desvío total {{ med.desvTotal | number:'1.0-2' }} m</span>
+      }
+      @if (med.decision) {
+        <span [ngClass]="tonoDecision(med.decision)">{{ med.decision }}</span>
+      }
     </div>
   </div>
-</div>
+} @else {
+  <div class="page-head">
+    <h1 class="page-head__title">Desvíos</h1>
+
+    <div class="page-head__actions">
+      @if (puedeRegistrar) {
+      <button type="button" class="btn btn-sm btn-primary" id="btn-nueva-medicion" (click)="abrirNuevaMedicion()"
+              [disabled]="nuevaMedicion()">
+        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Nueva medición
+      </button>
+      }
+      <div class="btn-group btn-group-sm" role="group" aria-label="Vista">
+        <button type="button" class="btn"
+                [class.btn-primary]="vista() === 'sondaje'"
+                [class.btn-outline-secondary]="vista() !== 'sondaje'"
+                [attr.aria-pressed]="vista() === 'sondaje'"
+                (click)="cambiarVista('sondaje')">Por sondaje</button>
+        <button type="button" class="btn"
+                [class.btn-primary]="vista() === 'perforista'"
+                [class.btn-outline-secondary]="vista() !== 'perforista'"
+                [attr.aria-pressed]="vista() === 'perforista'"
+                (click)="cambiarVista('perforista')">Por perforista</button>
+        <button type="button" class="btn"
+                [class.btn-primary]="vista() === 'maquina'"
+                [class.btn-outline-secondary]="vista() !== 'maquina'"
+                [attr.aria-pressed]="vista() === 'maquina'"
+                (click)="cambiarVista('maquina')">Por máquina</button>
+        <button type="button" class="btn"
+                [class.btn-primary]="vista() === 'trayectoria'"
+                [class.btn-outline-secondary]="vista() !== 'trayectoria'"
+                [attr.aria-pressed]="vista() === 'trayectoria'"
+                (click)="cambiarVista('trayectoria')">Trayectoria</button>
+      </div>
+    </div>
+  </div>
+}
 
 @if (error(); as mensaje) {
-  <div class="alert-inline"><i class="bi bi-exclamation-triangle"></i>{{ mensaje }}</div>
+  <div class="alert-inline" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i>{{ mensaje }}</div>
 }
 
 @if (avisoAlta(); as a) {
-  <div class="alert alert-success py-2 d-flex justify-content-between align-items-center">
-    <span><i class="bi bi-check-circle me-1"></i>{{ a }}</span>
+  <div class="alert-inline alert-inline--ok d-flex justify-content-between align-items-center" role="status">
+    <span><i class="bi bi-check-circle me-1" aria-hidden="true"></i>{{ a }}</span>
     <button type="button" class="btn-close" aria-label="Cerrar" (click)="avisoAlta.set(null)"></button>
   </div>
 }
 
+@if (!seleccionada()) {
 @if (nuevaMedicion()) {
-  <div class="panel">
-    <app-medicion-desvio [sondajeInicial]="seleccionada()?.sondajeId ?? null"
-                         (guardado)="medicionGuardada($event)" (cancelado)="nuevaMedicion.set(false)" />
+  <div class="panel" id="form-nueva-medicion">
+    <app-medicion-desvio [sondajeInicial]="null"
+                         (guardado)="medicionGuardada($event)" (cancelado)="cerrarNuevaMedicion()" />
   </div>
 }
 
 <div class="panel">
   @if (vista() === 'sondaje') {
     <div class="panel__head">
-      <div class="toolbar">
+      <div class="toolbar w-100">
         <div class="toolbar__field">
-          <label class="form-label" for="filtro-codigo">Código de sondaje</label>
-          <input id="filtro-codigo" class="form-control form-control-sm"
-                 placeholder="DDH-VERO-S-038-26"
-                 [(ngModel)]="filtroCodigo" (keyup.enter)="cargar()" />
+          <label class="form-label" for="filtro-codigo">Buscar</label>
+          <input id="filtro-codigo" class="form-control form-control-sm" type="search"
+                 placeholder="Sondaje, máquina o perforista"
+                 [ngModel]="filtro()" (ngModelChange)="filtro.set($event)" />
         </div>
-        <button type="button" class="btn btn-sm btn-primary" (click)="cargar()">
-          <i class="bi bi-search me-1"></i>Buscar
-        </button>
-        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="limpiarFiltro()">
-          Limpiar
-        </button>
+        <span class="toolbar__spacer"></span>
+        <span class="text-muted small align-self-end mb-2">{{ medicionesVisibles().length }} de {{ porSondaje().length }} mediciones</span>
       </div>
-      <span class="text-muted small">{{ porSondaje().length }} mediciones</span>
     </div>
   } @else if (vista() === 'trayectoria') {
     <div class="panel__head">
@@ -101,10 +125,13 @@
   @if (cargando()) {
     <div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Cargando…</p></div>
   } @else if (vista() === 'sondaje') {
-    @if (!porSondaje().length) {
+    @if (!medicionesVisibles().length) {
       <div class="empty-state">
-        <i class="bi bi-compass"></i>
-        <p>No hay mediciones de desviación para este filtro.</p>
+        <i class="bi bi-compass" aria-hidden="true"></i>
+        <p>{{ filtro() ? 'Ninguna medición coincide con la búsqueda.' : 'Aún no hay mediciones de desviación.' }}</p>
+        @if (filtro()) {
+          <button type="button" class="btn btn-link btn-sm p-0" (click)="filtro.set('')">Ver todas</button>
+        }
       </div>
     } @else {
       <div class="table-scroll">
@@ -126,20 +153,16 @@
             </tr>
           </thead>
           <tbody>
-            @for (d of porSondaje(); track $index) {
-              <tr class="fila-medicion"
-                  [class.fila-medicion--abierta]="seleccionada() === d"
-                  (click)="seleccionar(d)">
+            @for (d of medicionesVisibles(); track d.medicionId ?? $index) {
+              <tr class="fila-medicion" (click)="seleccionar(d)">
+                <!-- El botón hace la fila alcanzable con teclado; su clic sube a la fila. -->
                 <td>
-                  <button type="button" class="fila-boton" [attr.aria-expanded]="seleccionada() === d"
-                          aria-controls="detalle-medicion">
-                    <i class="bi" aria-hidden="true"
-                       [class.bi-chevron-right]="seleccionada() !== d"
-                       [class.bi-chevron-down]="seleccionada() === d"></i>
+                  <button type="button" class="fila-boton" [id]="'med-' + d.medicionId">
                     <span>
                       <span class="mono fw-semibold d-block">{{ d.sondajeCodigo }}</span>
                       <span class="text-muted small d-block">{{ d.sondajeNombre }}</span>
                     </span>
+                    <i class="bi bi-chevron-right ms-auto text-secondary" aria-hidden="true"></i>
                   </button>
                 </td>
                 <td class="num">{{ d.profundidad | number:'1.0-2' }} m</td>
@@ -318,18 +341,12 @@
   }
 </div>
 
+}
+
 @if (seleccionada(); as med) {
   <div class="panel" id="detalle-medicion">
     <div class="panel__head">
-      <h2 class="panel__title" id="detalle-medicion-titulo" tabindex="-1">
-        Medición de <span class="mono">{{ med.sondajeCodigo }}</span>
-        a los {{ med.profundidad | number:'1.0-2' }} m
-        <span class="text-muted fw-normal">· {{ med.fechaMedicion }}</span>
-      </h2>
-      <button type="button" class="btn btn-sm btn-outline-secondary"
-              (click)="seleccionar(med)" aria-label="Cerrar detalle">
-        <i class="bi bi-x-lg"></i>
-      </button>
+      <h2 class="panel__title">Trayectoria y seguimiento</h2>
     </div>
 
     <div class="panel__body">
@@ -402,9 +419,17 @@
       <h3 class="seccion">Seguimiento de la decisión</h3>
 
       @if (aviso(); as texto) {
-        <div class="alert-inline alert-inline--ok">
-          <i class="bi bi-check-circle"></i>{{ texto }}
+        <div class="alert-inline alert-inline--ok" role="status">
+          <i class="bi bi-check-circle" aria-hidden="true"></i>{{ texto }}
         </div>
+      }
+      @if (errorSeguimiento(); as texto) {
+        <div class="alert-inline" role="alert">
+          <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>{{ texto }}
+        </div>
+      }
+      @if (!puedeRegistrar) {
+        <p class="form-text mt-0">Solo lectura: tu rol no puede modificar el seguimiento.</p>
       }
 
       <div class="row g-3">
@@ -412,25 +437,25 @@
           <label class="form-label" for="interpretacion">Interpretación</label>
           <textarea id="interpretacion" class="form-control" rows="3"
                     placeholder="Por qué se desvió. Ej.: el desvío en azimut se debe al terreno fracturado cortado entre los 85 y 95 m."
-                    [(ngModel)]="form.interpretacion"></textarea>
+                    [(ngModel)]="form.interpretacion" [disabled]="!puedeRegistrar"></textarea>
         </div>
 
         <div class="col-12 col-lg-6">
           <label class="form-label" for="instruccion">Instrucción para la máquina</label>
           <textarea id="instruccion" class="form-control" rows="3"
                     placeholder="Qué hacer. Ej.: mantener los parámetros indicados, menos rotación y empuje moderado."
-                    [(ngModel)]="form.instruccion"></textarea>
+                    [(ngModel)]="form.instruccion" [disabled]="!puedeRegistrar"></textarea>
         </div>
 
         <div class="col-12 col-md-5">
           <label class="form-label" for="responsable">Responsable del seguimiento</label>
           <input id="responsable" class="form-control" placeholder="Nombre de quien da seguimiento"
-                 [(ngModel)]="form.responsableSeguimiento" />
+                 [(ngModel)]="form.responsableSeguimiento" [disabled]="!puedeRegistrar" />
         </div>
 
         <div class="col-12 col-md-4">
           <label class="form-label" for="estado-seg">Estado</label>
-          <select id="estado-seg" class="form-select" [(ngModel)]="form.estadoSeguimiento">
+          <select id="estado-seg" class="form-select" [(ngModel)]="form.estadoSeguimiento" [disabled]="!puedeRegistrar">
             <option value="sin_seguimiento">Sin seguimiento</option>
             <option value="pendiente">Pendiente</option>
             <option value="en_curso">En curso</option>
@@ -438,13 +463,15 @@
           </select>
         </div>
 
+        @if (puedeRegistrar) {
         <div class="col-12 col-md-3 d-flex align-items-end">
           <button type="button" class="btn btn-primary w-100"
-                  (click)="guardarSeguimiento()" [disabled]="guardando() || !puedeRegistrar">
-            <i class="bi bi-save me-1"></i>
+                  (click)="guardarSeguimiento()" [disabled]="guardando()">
+            <i class="bi bi-save me-1" aria-hidden="true"></i>
             {{ guardando() ? 'Guardando…' : 'Guardar seguimiento' }}
           </button>
         </div>
+        }
       </div>
 
     </div>
