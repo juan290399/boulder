@@ -1,135 +1,168 @@
 <div class="page">
   <div class="page-head">
     <h1 class="page-head__title">Plataformas de perforación</h1>
+    @if (puedeEditar) {
+      <button type="button" class="btn btn-success" (click)="nueva()">
+        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Nueva plataforma
+      </button>
+    }
   </div>
 
-  <section class="panel" *ngIf="puedeEditar">
-    <div class="panel__head">
-      <h2 class="panel__title">
-        {{ form.id ? 'Editar plataforma' : 'Nueva plataforma' }}
-        <span *ngIf="form.id" class="mono text-secondary fw-normal ms-1">{{ form.codigo }}</span>
-      </h2>
-    </div>
-    <div class="panel__body">
-      <div class="row g-3 mb-3">
-        <div class="col-md-2">
-          <label for="pla-codigo" class="form-label">Código</label>
-          <input id="pla-codigo" class="form-control mono" [(ngModel)]="form.codigo" />
-        </div>
-        <div class="col-md-3">
-          <label for="pla-nombre" class="form-label">Nombre</label>
-          <input id="pla-nombre" class="form-control" [(ngModel)]="form.nombre" />
-        </div>
-        <div class="col-md-4">
-          <label for="pla-proyecto" class="form-label">Proyecto</label>
-          <select id="pla-proyecto" class="form-select" [(ngModel)]="form.proyectoId">
-            <option [ngValue]="''">Elige un proyecto</option>
-            <option *ngFor="let p of proyectos" [ngValue]="p.id">{{ p.nombre }}</option>
-          </select>
-        </div>
-        <div class="col-md-3">
-          <label for="pla-tipo" class="form-label">Tipo</label>
-          <input id="pla-tipo" class="form-control" [(ngModel)]="form.tipo" />
-        </div>
+  <div *ngIf="mensaje" class="alert-inline alert-inline--ok" role="status">{{ mensaje }}</div>
+  <div *ngIf="error" class="alert-inline" role="alert">{{ error }}</div>
 
-        <div class="col-6 col-md-3">
-          <label for="pla-este" class="form-label">Este (m)</label>
-          <input id="pla-este" class="form-control" type="number" [(ngModel)]="form.este" />
-        </div>
-        <div class="col-6 col-md-3">
-          <label for="pla-norte" class="form-label">Norte (m)</label>
-          <input id="pla-norte" class="form-control" type="number" [(ngModel)]="form.norte" />
-        </div>
-        <div class="col-6 col-md-3">
-          <label for="pla-elevacion" class="form-label">Elevación (m s. n. m.)</label>
-          <input id="pla-elevacion" class="form-control" type="number" [(ngModel)]="form.elevacion" />
-        </div>
-        <div class="col-6 col-md-3">
-          <label for="pla-pozas" class="form-label">N.° de pozas</label>
-          <input id="pla-pozas" class="form-control" type="number" min="0" [(ngModel)]="form.numeroPozas" />
-        </div>
-
-        <div class="col-md-3">
-          <label for="pla-estado" class="form-label">Estado</label>
-          <input id="pla-estado" class="form-control" [(ngModel)]="form.estado" />
-        </div>
-        <div class="col-md-9">
-          <label for="pla-ubicacion" class="form-label">Ubicación</label>
-          <input id="pla-ubicacion" class="form-control" [(ngModel)]="form.ubicacion" />
+  <div class="maestro-detalle" [class.con-ficha]="fichaAbierta">
+    <section class="panel">
+      <div class="panel__head">
+        <div class="toolbar w-100">
+          <div class="toolbar__field">
+            <label for="pla-filtro" class="form-label">Buscar</label>
+            <input id="pla-filtro" class="form-control" type="search" placeholder="Código, nombre o proyecto"
+                   [(ngModel)]="filtro" />
+          </div>
+          <span class="toolbar__spacer"></span>
+          <span class="text-secondary small align-self-end mb-2">{{ plataformasVisibles.length }} de {{ plataformas.length }}</span>
+          <button type="button" class="btn btn-sm btn-outline-secondary align-self-end mb-1" [disabled]="loading" (click)="verTodos()">
+            <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i>{{ filtrado ? 'Ver todas' : 'Refrescar' }}
+          </button>
         </div>
       </div>
 
-      <div class="d-flex gap-2">
-        <button type="button" class="btn btn-success" (click)="guardar()">
-          {{ form.id ? 'Guardar cambios' : 'Crear plataforma' }}
-        </button>
-        <button type="button" class="btn btn-outline-secondary" (click)="limpiar()">
-          {{ form.id ? 'Cancelar' : 'Limpiar' }}
-        </button>
+      <div class="table-scroll" *ngIf="plataformasVisibles.length > 0; else vacio">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Plataforma</th><th>Proyecto</th>
+              <th class="num">Este</th><th class="num">Norte</th><th class="num">Elev.</th>
+              <th>Estado</th>
+              @if (puedeEditar) { <th><span class="visually-hidden">Acciones</span></th> }
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let pl of plataformasVisibles" [class.fila-editable]="puedeEditar"
+                [class.fila-seleccionada]="esSeleccionada(pl)" (click)="editar(pl)">
+              <td>
+                <div class="mono fw-semibold text-nowrap">{{ pl.codigo }}</div>
+                <div class="small text-secondary">{{ pl.nombre }}</div>
+              </td>
+              <td>{{ nombreProyecto(pl.proyectoId) }}</td>
+              <td class="num">{{ pl.este ?? '—' }}</td>
+              <td class="num">{{ pl.norte ?? '—' }}</td>
+              <td class="num">{{ pl.elevacion ?? '—' }}</td>
+              <td>
+                <span class="chip" [class.chip--ok]="(pl.estado || '').toLowerCase().startsWith('activ')">
+                  {{ pl.estado || '—' }}
+                </span>
+              </td>
+              @if (puedeEditar) {
+                <td class="text-end">
+                  <button type="button" class="btn btn-sm btn-outline-primary" (click)="$event.stopPropagation(); editar(pl)"
+                          [attr.aria-label]="'Editar ' + pl.codigo">Editar</button>
+                </td>
+              }
+            </tr>
+          </tbody>
+        </table>
       </div>
-    </div>
-  </section>
 
-  <div *ngIf="mensaje" class="alert-inline alert-inline--info">{{ mensaje }}</div>
+      <ng-template #vacio>
+        <div class="empty-state">
+          <span *ngIf="loading">Cargando plataformas…</span>
+          <span *ngIf="!loading && (filtrado || filtro)">{{ sinCoincidencias || 'Ninguna plataforma coincide con la búsqueda.' }}
+            <button type="button" class="btn btn-link btn-sm p-0 align-baseline" (click)="verTodos()">Ver todas</button></span>
+          <span *ngIf="!loading && !filtrado && !filtro">Aún no hay plataformas registradas.</span>
+        </div>
+      </ng-template>
 
-  <section class="panel">
-    <div class="panel__head">
-      <h2 class="panel__title">Plataformas registradas</h2>
-      <button type="button" class="btn btn-sm btn-outline-secondary" [disabled]="loading" (click)="listar()">
-        <i class="bi bi-arrow-clockwise me-1"></i>Refrescar
-      </button>
-    </div>
-    <div class="panel__body">
-      <div class="row g-2">
-        <div class="col-md-6">
-          <label for="pla-buscar-codigo" class="form-label">Buscar por código</label>
-          <div class="input-group">
-            <input id="pla-buscar-codigo" class="form-control mono" [(ngModel)]="busquedaCodigo" (keyup.enter)="buscarPorCodigo()" />
-            <button type="button" class="btn btn-primary" (click)="buscarPorCodigo()">Buscar</button>
+      <details class="busqueda-exacta">
+        <summary>Búsqueda exacta por código o ID</summary>
+        <div class="row g-2 mt-1">
+          <div class="col-md-6">
+            <label for="pla-buscar-codigo" class="form-label">Código</label>
+            <div class="input-group">
+              <input id="pla-buscar-codigo" class="form-control mono" [(ngModel)]="busquedaCodigo" (keyup.enter)="buscarPorCodigo()" />
+              <button type="button" class="btn btn-outline-primary" (click)="buscarPorCodigo()">Buscar</button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label for="pla-buscar-id" class="form-label">ID</label>
+            <div class="input-group">
+              <input id="pla-buscar-id" class="form-control mono" [(ngModel)]="busquedaId" (keyup.enter)="buscarPorId()" />
+              <button type="button" class="btn btn-outline-primary" (click)="buscarPorId()">Buscar</button>
+            </div>
           </div>
         </div>
-        <div class="col-md-6">
-          <label for="pla-buscar-id" class="form-label">Buscar por ID</label>
-          <div class="input-group">
-            <input id="pla-buscar-id" class="form-control" [(ngModel)]="busquedaId" (keyup.enter)="buscarPorId()" />
-            <button type="button" class="btn btn-outline-primary" (click)="buscarPorId()">Buscar</button>
+      </details>
+    </section>
+
+    <app-ficha [abierta]="fichaAbierta" [clave]="form.id" [titulo]="form.id ? 'Editar plataforma' : 'Nueva plataforma'"
+               [subtitulo]="form.id ? form.codigo : ''" (cerrar)="cerrarFicha()">
+      <form id="pla-formulario" (ngSubmit)="guardar()">
+        @if (errorFormulario) {
+          <div class="alert-inline" role="alert">{{ errorFormulario }}</div>
+        }
+
+        <div class="row g-3 mb-3">
+          <div class="col-sm-5">
+            <label for="pla-codigo" class="form-label">Código</label>
+            <input id="pla-codigo" name="codigo" class="form-control mono" [(ngModel)]="form.codigo" spellcheck="false" />
+          </div>
+          <div class="col-sm-7">
+            <label for="pla-nombre" class="form-label">Nombre</label>
+            <input id="pla-nombre" name="nombre" class="form-control" [(ngModel)]="form.nombre" />
+          </div>
+          <div class="col-sm-7">
+            <label for="pla-proyecto" class="form-label">Proyecto</label>
+            <select id="pla-proyecto" name="proyectoId" class="form-select" [(ngModel)]="form.proyectoId">
+              <option [ngValue]="''">Elige un proyecto</option>
+              <option *ngFor="let p of proyectos" [ngValue]="p.id">{{ p.nombre }}</option>
+            </select>
+          </div>
+          <div class="col-sm-5">
+            <label for="pla-tipo" class="form-label">Tipo</label>
+            <input id="pla-tipo" name="tipo" class="form-control" [(ngModel)]="form.tipo" />
           </div>
         </div>
+
+        <h3 class="ficha__grupo">Coordenadas UTM</h3>
+        <div class="row g-3 mb-3">
+          <div class="col-6">
+            <label for="pla-este" class="form-label">Este (m)</label>
+            <input id="pla-este" name="este" class="form-control" type="number" [(ngModel)]="form.este" />
+          </div>
+          <div class="col-6">
+            <label for="pla-norte" class="form-label">Norte (m)</label>
+            <input id="pla-norte" name="norte" class="form-control" type="number" [(ngModel)]="form.norte" />
+          </div>
+          <div class="col-6">
+            <label for="pla-elevacion" class="form-label">Elevación (m s. n. m.)</label>
+            <input id="pla-elevacion" name="elevacion" class="form-control" type="number" [(ngModel)]="form.elevacion" />
+          </div>
+          <div class="col-6">
+            <label for="pla-pozas" class="form-label">N.° de pozas</label>
+            <input id="pla-pozas" name="numeroPozas" class="form-control" type="number" min="0" [(ngModel)]="form.numeroPozas" />
+          </div>
+        </div>
+
+        <h3 class="ficha__grupo">Estado</h3>
+        <div class="row g-3">
+          <div class="col-sm-5">
+            <label for="pla-estado" class="form-label">Estado</label>
+            <input id="pla-estado" name="estado" class="form-control" [(ngModel)]="form.estado" />
+          </div>
+          <div class="col-sm-7">
+            <label for="pla-ubicacion" class="form-label">Ubicación</label>
+            <input id="pla-ubicacion" name="ubicacion" class="form-control" [(ngModel)]="form.ubicacion" />
+          </div>
+        </div>
+      </form>
+
+      <div pie class="d-flex gap-2">
+        <button type="submit" form="pla-formulario" class="btn btn-success" [disabled]="guardando">
+          {{ guardando ? 'Guardando…' : (form.id ? 'Guardar cambios' : 'Crear plataforma') }}
+        </button>
+        <button type="button" class="btn btn-outline-secondary" (click)="cerrarFicha()">Cancelar</button>
       </div>
-    </div>
-
-    <div class="table-scroll" *ngIf="plataformas.length > 0; else vacio">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Código</th><th>Nombre</th><th>Proyecto</th>
-            <th class="num">Este</th><th class="num">Norte</th><th class="num">Elev.</th>
-            <th>Estado</th><th><span class="visually-hidden">Acciones</span></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let pl of plataformas">
-            <td class="mono">{{ pl.codigo }}</td>
-            <td>{{ pl.nombre }}</td>
-            <td>{{ nombreProyecto(pl.proyectoId) }}</td>
-            <td class="num">{{ pl.este ?? '—' }}</td>
-            <td class="num">{{ pl.norte ?? '—' }}</td>
-            <td class="num">{{ pl.elevacion ?? '—' }}</td>
-            <td>
-              <span class="chip" [class.chip--ok]="(pl.estado || '').toLowerCase().startsWith('operativ')">
-                {{ pl.estado || '—' }}
-              </span>
-            </td>
-            <td class="text-end">
-              <button type="button" *ngIf="puedeEditar" class="btn btn-sm btn-outline-primary" (click)="editar(pl)">Editar</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <ng-template #vacio>
-      <div class="empty-state">No hay plataformas para mostrar.</div>
-    </ng-template>
-  </section>
+    </app-ficha>
+  </div>
 </div>

@@ -1,128 +1,151 @@
 <div class="page">
   <div class="page-head">
     <h1 class="page-head__title">Máquinas de perforación</h1>
+    @if (puedeEditar) {
+      <button type="button" class="btn btn-success" (click)="nueva()">
+        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Nueva máquina
+      </button>
+    }
   </div>
 
-  <section class="panel" *ngIf="puedeEditar">
-    <div class="panel__head">
-      <h2 class="panel__title">
-        {{ form.id ? 'Editar máquina' : 'Nueva máquina' }}
-        <span *ngIf="form.id" class="mono text-secondary fw-normal ms-1">{{ form.codigo }}</span>
-      </h2>
-    </div>
-    <div class="panel__body">
-      <div class="row g-3 mb-3">
-        <div class="col-md-2">
-          <label for="maq-codigo" class="form-label">Código</label>
-          <input id="maq-codigo" class="form-control mono" [(ngModel)]="form.codigo" />
+  <div *ngIf="mensaje" class="alert-inline alert-inline--ok" role="status">{{ mensaje }}</div>
+  <div *ngIf="error" class="alert-inline" role="alert">{{ error }}</div>
+
+  <div class="maestro-detalle" [class.con-ficha]="fichaAbierta">
+    <section class="panel">
+      <div class="panel__head">
+        <h2 class="panel__title">Flota <span class="text-secondary fw-normal small ms-1">{{ maquinas.length }}</span></h2>
+        <button type="button" class="btn btn-sm btn-outline-secondary" [disabled]="loading" (click)="verTodos()">
+          <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i>{{ filtrado ? 'Ver todas' : 'Refrescar' }}
+        </button>
+      </div>
+
+      <div class="table-scroll" *ngIf="maquinas.length > 0; else vacio">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Máquina</th><th>Tipo</th><th>Marca</th>
+              <th class="num">PQ (m)</th><th class="num">HQ (m)</th><th class="num">NQ (m)</th>
+              <th>Estado</th>
+              @if (puedeEditar) { <th><span class="visually-hidden">Acciones</span></th> }
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let m of maquinas" [class.fila-editable]="puedeEditar"
+                [class.fila-seleccionada]="esSeleccionada(m)" (click)="editar(m)">
+              <td>
+                <div class="fw-semibold">{{ m.nombre }}</div>
+                <div class="mono small text-secondary">{{ m.codigo }}</div>
+              </td>
+              <td>{{ m.tipo || '—' }}</td>
+              <td>{{ m.marca || '—' }}</td>
+              <td class="num">{{ m.alcancePq || '—' }}</td>
+              <td class="num">{{ m.alcanceHq || '—' }}</td>
+              <td class="num">{{ m.alcanceNq || '—' }}</td>
+              <td>
+                <span class="chip" [class.chip--ok]="(m.estado || '').toLowerCase().startsWith('operativ')">
+                  {{ m.estado || '—' }}
+                </span>
+              </td>
+              @if (puedeEditar) {
+                <td class="text-end">
+                  <button type="button" class="btn btn-sm btn-outline-primary" (click)="$event.stopPropagation(); editar(m)"
+                          [attr.aria-label]="'Editar ' + m.nombre">Editar</button>
+                </td>
+              }
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #vacio>
+        <div class="empty-state">
+          <span *ngIf="loading">Cargando máquinas…</span>
+          <span *ngIf="!loading && filtrado">{{ sinCoincidencias || 'Sin resultados.' }}
+            <button type="button" class="btn btn-link btn-sm p-0 align-baseline" (click)="verTodos()">Ver todas</button></span>
+          <span *ngIf="!loading && !filtrado">Aún no hay máquinas registradas.</span>
         </div>
-        <div class="col-md-3">
-          <label for="maq-nombre" class="form-label">Nombre</label>
-          <input id="maq-nombre" class="form-control" [(ngModel)]="form.nombre" />
+      </ng-template>
+
+      <details class="busqueda-exacta">
+        <summary>Búsqueda exacta por código o ID</summary>
+        <div class="row g-2 mt-1">
+          <div class="col-md-6">
+            <label for="maq-buscar-codigo" class="form-label">Código</label>
+            <div class="input-group">
+              <input id="maq-buscar-codigo" class="form-control mono" [(ngModel)]="busquedaCodigo" (keyup.enter)="buscarPorCodigo()" />
+              <button type="button" class="btn btn-outline-primary" (click)="buscarPorCodigo()">Buscar</button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label for="maq-buscar-id" class="form-label">ID</label>
+            <div class="input-group">
+              <input id="maq-buscar-id" class="form-control mono" [(ngModel)]="busquedaId" (keyup.enter)="buscarPorId()" />
+              <button type="button" class="btn btn-outline-primary" (click)="buscarPorId()">Buscar</button>
+            </div>
+          </div>
         </div>
-        <div class="col-md-2">
-          <label for="maq-tipo" class="form-label">Tipo</label>
-          <input id="maq-tipo" class="form-control" [(ngModel)]="form.tipo" />
-        </div>
-        <div class="col-md-2">
-          <label for="maq-marca" class="form-label">Marca</label>
-          <input id="maq-marca" class="form-control" [(ngModel)]="form.marca" />
-        </div>
-        <div class="col-md-3">
-          <label for="maq-motor" class="form-label">Motor</label>
-          <input id="maq-motor" class="form-control" [(ngModel)]="form.motor" />
+      </details>
+    </section>
+
+    <app-ficha [abierta]="fichaAbierta" [clave]="form.id" [titulo]="form.id ? 'Editar máquina' : 'Nueva máquina'"
+               [subtitulo]="form.id ? form.codigo : ''" (cerrar)="cerrarFicha()">
+      <form id="maq-formulario" (ngSubmit)="guardar()">
+        @if (errorFormulario) {
+          <div class="alert-inline" role="alert">{{ errorFormulario }}</div>
+        }
+
+        <div class="row g-3 mb-3">
+          <div class="col-sm-7">
+            <label for="maq-nombre" class="form-label">Nombre</label>
+            <input id="maq-nombre" name="nombre" class="form-control" [(ngModel)]="form.nombre" />
+          </div>
+          <div class="col-sm-5">
+            <label for="maq-codigo" class="form-label">Código</label>
+            <input id="maq-codigo" name="codigo" class="form-control mono" [(ngModel)]="form.codigo" spellcheck="false" />
+          </div>
+          <div class="col-sm-4">
+            <label for="maq-tipo" class="form-label">Tipo</label>
+            <input id="maq-tipo" name="tipo" class="form-control" [(ngModel)]="form.tipo" />
+          </div>
+          <div class="col-sm-4">
+            <label for="maq-marca" class="form-label">Marca</label>
+            <input id="maq-marca" name="marca" class="form-control" [(ngModel)]="form.marca" />
+          </div>
+          <div class="col-sm-4">
+            <label for="maq-motor" class="form-label">Motor</label>
+            <input id="maq-motor" name="motor" class="form-control" [(ngModel)]="form.motor" />
+          </div>
         </div>
 
-        <div class="col-4 col-md-3">
-          <label for="maq-pq" class="form-label">Alcance PQ (m)</label>
-          <input id="maq-pq" class="form-control" type="number" min="0" [(ngModel)]="form.alcancePq" />
+        <h3 class="ficha__grupo">Alcance por diámetro</h3>
+        <div class="row g-3 mb-3">
+          <div class="col-4">
+            <label for="maq-pq" class="form-label">PQ (m)</label>
+            <input id="maq-pq" name="alcancePq" class="form-control" type="number" min="0" [(ngModel)]="form.alcancePq" />
+          </div>
+          <div class="col-4">
+            <label for="maq-hq" class="form-label">HQ (m)</label>
+            <input id="maq-hq" name="alcanceHq" class="form-control" type="number" min="0" [(ngModel)]="form.alcanceHq" />
+          </div>
+          <div class="col-4">
+            <label for="maq-nq" class="form-label">NQ (m)</label>
+            <input id="maq-nq" name="alcanceNq" class="form-control" type="number" min="0" [(ngModel)]="form.alcanceNq" />
+          </div>
         </div>
-        <div class="col-4 col-md-3">
-          <label for="maq-hq" class="form-label">Alcance HQ (m)</label>
-          <input id="maq-hq" class="form-control" type="number" min="0" [(ngModel)]="form.alcanceHq" />
-        </div>
-        <div class="col-4 col-md-3">
-          <label for="maq-nq" class="form-label">Alcance NQ (m)</label>
-          <input id="maq-nq" class="form-control" type="number" min="0" [(ngModel)]="form.alcanceNq" />
-        </div>
-        <div class="col-md-3">
+
+        <div>
           <label for="maq-estado" class="form-label">Estado</label>
-          <input id="maq-estado" class="form-control" [(ngModel)]="form.estado" />
+          <input id="maq-estado" name="estado" class="form-control" [(ngModel)]="form.estado" />
         </div>
-      </div>
+      </form>
 
-      <div class="d-flex gap-2">
-        <button type="button" class="btn btn-success" (click)="guardar()">
-          {{ form.id ? 'Guardar cambios' : 'Crear máquina' }}
+      <div pie class="d-flex gap-2">
+        <button type="submit" form="maq-formulario" class="btn btn-success" [disabled]="guardando">
+          {{ guardando ? 'Guardando…' : (form.id ? 'Guardar cambios' : 'Crear máquina') }}
         </button>
-        <button type="button" class="btn btn-outline-secondary" (click)="limpiar()">
-          {{ form.id ? 'Cancelar' : 'Limpiar' }}
-        </button>
+        <button type="button" class="btn btn-outline-secondary" (click)="cerrarFicha()">Cancelar</button>
       </div>
-    </div>
-  </section>
-
-  <div *ngIf="mensaje" class="alert-inline alert-inline--info">{{ mensaje }}</div>
-
-  <section class="panel">
-    <div class="panel__head">
-      <h2 class="panel__title">Flota</h2>
-      <button type="button" class="btn btn-sm btn-outline-secondary" [disabled]="loading" (click)="listar()">
-        <i class="bi bi-arrow-clockwise me-1"></i>Refrescar
-      </button>
-    </div>
-    <div class="panel__body">
-      <div class="row g-2">
-        <div class="col-md-6">
-          <label for="maq-buscar-codigo" class="form-label">Buscar por código</label>
-          <div class="input-group">
-            <input id="maq-buscar-codigo" class="form-control mono" [(ngModel)]="busquedaCodigo" (keyup.enter)="buscarPorCodigo()" />
-            <button type="button" class="btn btn-primary" (click)="buscarPorCodigo()">Buscar</button>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <label for="maq-buscar-id" class="form-label">Buscar por ID</label>
-          <div class="input-group">
-            <input id="maq-buscar-id" class="form-control" [(ngModel)]="busquedaId" (keyup.enter)="buscarPorId()" />
-            <button type="button" class="btn btn-outline-primary" (click)="buscarPorId()">Buscar</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="table-scroll" *ngIf="maquinas.length > 0; else vacio">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Código</th><th>Nombre</th><th>Tipo</th><th>Marca</th>
-            <th class="num">PQ (m)</th><th class="num">HQ (m)</th><th class="num">NQ (m)</th>
-            <th>Estado</th><th><span class="visually-hidden">Acciones</span></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let m of maquinas">
-            <td class="mono">{{ m.codigo }}</td>
-            <td class="fw-semibold">{{ m.nombre }}</td>
-            <td>{{ m.tipo || '—' }}</td>
-            <td>{{ m.marca || '—' }}</td>
-            <td class="num">{{ m.alcancePq || '—' }}</td>
-            <td class="num">{{ m.alcanceHq || '—' }}</td>
-            <td class="num">{{ m.alcanceNq || '—' }}</td>
-            <td>
-              <span class="chip" [class.chip--ok]="(m.estado || '').toLowerCase().startsWith('operativ')">
-                {{ m.estado || '—' }}
-              </span>
-            </td>
-            <td class="text-end">
-              <button type="button" *ngIf="puedeEditar" class="btn btn-sm btn-outline-primary" (click)="editar(m)">Editar</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <ng-template #vacio>
-      <div class="empty-state">No hay máquinas para mostrar.</div>
-    </ng-template>
-  </section>
+    </app-ficha>
+  </div>
 </div>

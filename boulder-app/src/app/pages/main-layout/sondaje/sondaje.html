@@ -1,155 +1,190 @@
 <div class="page">
   <div class="page-head">
     <h1 class="page-head__title">Sondajes</h1>
+    @if (puedeEditar) {
+      <button type="button" class="btn btn-success" (click)="nuevo()">
+        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Nuevo sondaje
+      </button>
+    }
   </div>
 
-  <section class="panel" *ngIf="puedeEditar">
-    <div class="panel__head">
-      <h2 class="panel__title">
-        {{ form.id ? 'Editar sondaje' : 'Nuevo sondaje' }}
-        <span *ngIf="form.id" class="mono text-secondary fw-normal ms-1">{{ form.codigo }}</span>
-      </h2>
-    </div>
-    <div class="panel__body">
-      <div class="row g-3 mb-3">
-        <div class="col-md-3">
-          <label for="son-codigo" class="form-label">Código</label>
-          <input id="son-codigo" class="form-control mono" [(ngModel)]="form.codigo" aria-describedby="son-codigo-ayuda" />
-          <div id="son-codigo-ayuda" class="form-text">Ej.: DDH-VERO-S-045-26</div>
-        </div>
-        <div class="col-md-2">
-          <label for="son-nombre" class="form-label">Nombre corto</label>
-          <input id="son-nombre" class="form-control" [(ngModel)]="form.nombre" aria-describedby="son-nombre-ayuda" />
-          <div id="son-nombre-ayuda" class="form-text">Ej.: DDH-045</div>
-        </div>
-        <div class="col-md-4">
-          <label for="son-proyecto" class="form-label">Proyecto</label>
-          <select id="son-proyecto" class="form-select" [(ngModel)]="form.proyectoId">
-            <option [ngValue]="''">Elige un proyecto</option>
-            <option *ngFor="let p of proyectos" [ngValue]="p.id">{{ p.nombre }}</option>
-          </select>
-        </div>
-        <div class="col-md-3">
-          <label for="son-campania" class="form-label">Campaña</label>
-          <input id="son-campania" class="form-control" [(ngModel)]="form.campania" />
-        </div>
+  <div *ngIf="mensaje" class="alert-inline alert-inline--ok" role="status">{{ mensaje }}</div>
+  <div *ngIf="error" class="alert-inline" role="alert">{{ error }}</div>
 
-        <div class="col-md-4">
-          <label for="son-collar" class="form-label">Collar</label>
-          <select id="son-collar" class="form-select" [(ngModel)]="form.collarId">
-            <option [ngValue]="''">Elige un collar</option>
-            <option *ngFor="let c of collares" [ngValue]="c.id">{{ c.codigo }}</option>
-          </select>
-        </div>
-        <div class="col-md-4">
-          <label for="son-plataforma" class="form-label">Plataforma</label>
-          <select id="son-plataforma" class="form-select" [(ngModel)]="form.plataformaId">
-            <option [ngValue]="''">Sin plataforma</option>
-            <option *ngFor="let pl of plataformas" [ngValue]="pl.id">{{ pl.codigo }}</option>
-          </select>
-        </div>
-        <div class="col-md-4">
-          <label for="son-maquina" class="form-label">Máquina</label>
-          <select id="son-maquina" class="form-select" [(ngModel)]="form.maquinaId">
-            <option [ngValue]="''">Sin máquina</option>
-            <option *ngFor="let m of maquinas" [ngValue]="m.id">{{ m.codigo }} · {{ m.nombre }}</option>
-          </select>
-        </div>
-
-        <div class="col-6 col-md-2">
-          <label for="son-azimut" class="form-label">Azimut (°)</label>
-          <input id="son-azimut" class="form-control" type="number" [(ngModel)]="form.azimutSetup" />
-        </div>
-        <div class="col-6 col-md-2">
-          <label for="son-inclinacion" class="form-label">Inclinación (°)</label>
-          <input id="son-inclinacion" class="form-control" type="number" [(ngModel)]="form.inclinacionSetup" />
-        </div>
-        <div class="col-6 col-md-2">
-          <label for="son-prof-actual" class="form-label">Prof. actual (m)</label>
-          <input id="son-prof-actual" class="form-control" type="number" [(ngModel)]="form.profundidadActual" />
-        </div>
-        <div class="col-6 col-md-2">
-          <label for="son-prof-final" class="form-label">Prof. programada (m)</label>
-          <input id="son-prof-final" class="form-control" type="number" [(ngModel)]="form.profundidadFinal" />
-        </div>
-        <div class="col-6 col-md-2">
-          <label for="son-inicio" class="form-label">Inicio</label>
-          <input id="son-inicio" class="form-control" type="date" [(ngModel)]="form.fechaInicio" />
-        </div>
-        <div class="col-6 col-md-2">
-          <label for="son-fin" class="form-label">Fin</label>
-          <input id="son-fin" class="form-control" type="date" [(ngModel)]="form.fechaFin" />
+  <div class="maestro-detalle" [class.con-ficha]="fichaAbierta">
+    <section class="panel">
+      <div class="panel__head">
+        <div class="toolbar w-100">
+          <div class="toolbar__field">
+            <label for="son-filtro" class="form-label">Buscar</label>
+            <input id="son-filtro" class="form-control" type="search" placeholder="Código, nombre o proyecto"
+                   [(ngModel)]="filtro" />
+          </div>
+          <span class="toolbar__spacer"></span>
+          <span class="text-secondary small align-self-end mb-2">{{ sondajesVisibles.length }} de {{ sondajes.length }}</span>
+          <button type="button" class="btn btn-sm btn-outline-secondary align-self-end mb-1" [disabled]="loading" (click)="verTodos()">
+            <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i>{{ filtrado ? 'Ver todos' : 'Refrescar' }}
+          </button>
         </div>
       </div>
 
-      <div class="d-flex gap-2">
-        <button type="button" class="btn btn-success" (click)="guardar()">
-          {{ form.id ? 'Guardar cambios' : 'Registrar sondaje' }}
-        </button>
-        <button type="button" class="btn btn-outline-secondary" (click)="limpiar()">
-          {{ form.id ? 'Cancelar' : 'Limpiar' }}
-        </button>
+      <div class="table-scroll" *ngIf="sondajesVisibles.length > 0; else vacio">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Sondaje</th><th>Proyecto</th>
+              <th class="num">Az. (°)</th><th class="num">Inc. (°)</th>
+              <th class="num">Prof. actual (m)</th><th class="num">Prof. programada (m)</th>
+              @if (puedeEditar) { <th><span class="visually-hidden">Acciones</span></th> }
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let s of sondajesVisibles" [class.fila-editable]="puedeEditar"
+                [class.fila-seleccionada]="esSeleccionado(s)" (click)="editar(s)">
+              <td>
+                <div class="mono fw-semibold text-nowrap">{{ s.codigo }}</div>
+                <div class="small text-secondary">{{ s.nombre }}</div>
+              </td>
+              <td>{{ nombreProyecto(s.proyectoId) }}</td>
+              <td class="num">{{ s.azimutSetup ?? '—' }}</td>
+              <td class="num">{{ s.inclinacionSetup ?? '—' }}</td>
+              <td class="num">{{ s.profundidadActual ?? 0 }}</td>
+              <td class="num">{{ s.profundidadFinal ?? '—' }}</td>
+              @if (puedeEditar) {
+                <td class="text-end">
+                  <button type="button" class="btn btn-sm btn-outline-primary" (click)="$event.stopPropagation(); editar(s)"
+                          [attr.aria-label]="'Editar ' + s.codigo">Editar</button>
+                </td>
+              }
+            </tr>
+          </tbody>
+        </table>
       </div>
-    </div>
-  </section>
 
-  <div *ngIf="mensaje" class="alert-inline alert-inline--info">{{ mensaje }}</div>
+      <ng-template #vacio>
+        <div class="empty-state">
+          <span *ngIf="loading">Cargando sondajes…</span>
+          <span *ngIf="!loading && (filtrado || filtro)">{{ sinCoincidencias || 'Ningún sondaje coincide con la búsqueda.' }}
+            <button type="button" class="btn btn-link btn-sm p-0 align-baseline" (click)="verTodos()">Ver todos</button></span>
+          <span *ngIf="!loading && !filtrado && !filtro">Aún no hay sondajes registrados.</span>
+        </div>
+      </ng-template>
 
-  <section class="panel">
-    <div class="panel__head">
-      <h2 class="panel__title">Sondajes registrados</h2>
-      <button type="button" class="btn btn-sm btn-outline-secondary" [disabled]="loading" (click)="listar()">
-        <i class="bi bi-arrow-clockwise me-1"></i>Refrescar
-      </button>
-    </div>
-    <div class="panel__body">
-      <div class="row g-2">
-        <div class="col-md-6">
-          <label for="son-buscar-codigo" class="form-label">Buscar por código</label>
-          <div class="input-group">
-            <input id="son-buscar-codigo" class="form-control mono" [(ngModel)]="busquedaCodigo" (keyup.enter)="buscarPorCodigo()" />
-            <button type="button" class="btn btn-primary" (click)="buscarPorCodigo()">Buscar</button>
+      <!-- Búsquedas exactas en el servidor (por código y por ID), plegadas. -->
+      <details class="busqueda-exacta">
+        <summary>Búsqueda exacta por código o ID</summary>
+        <div class="row g-2 mt-1">
+          <div class="col-md-6">
+            <label for="son-buscar-codigo" class="form-label">Código</label>
+            <div class="input-group">
+              <input id="son-buscar-codigo" class="form-control mono" [(ngModel)]="busquedaCodigo" (keyup.enter)="buscarPorCodigo()" />
+              <button type="button" class="btn btn-outline-primary" (click)="buscarPorCodigo()">Buscar</button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label for="son-buscar-id" class="form-label">ID</label>
+            <div class="input-group">
+              <input id="son-buscar-id" class="form-control mono" [(ngModel)]="busquedaId" (keyup.enter)="buscarPorId()" />
+              <button type="button" class="btn btn-outline-primary" (click)="buscarPorId()">Buscar</button>
+            </div>
           </div>
         </div>
-        <div class="col-md-6">
-          <label for="son-buscar-id" class="form-label">Buscar por ID</label>
-          <div class="input-group">
-            <input id="son-buscar-id" class="form-control" [(ngModel)]="busquedaId" (keyup.enter)="buscarPorId()" />
-            <button type="button" class="btn btn-outline-primary" (click)="buscarPorId()">Buscar</button>
+      </details>
+    </section>
+
+    <app-ficha [abierta]="fichaAbierta" [clave]="form.id" [titulo]="form.id ? 'Editar sondaje' : 'Nuevo sondaje'"
+               [subtitulo]="form.id ? form.codigo : ''" (cerrar)="cerrarFicha()">
+      <form id="son-formulario" (ngSubmit)="guardar()">
+        @if (errorFormulario) {
+          <div class="alert-inline" role="alert">{{ errorFormulario }}</div>
+        }
+
+        <div class="row g-3 mb-3">
+          <div class="col-sm-7">
+            <label for="son-codigo" class="form-label">Código</label>
+            <input id="son-codigo" name="codigo" class="form-control mono" [(ngModel)]="form.codigo"
+                   aria-describedby="son-codigo-ayuda" spellcheck="false" />
+            <div id="son-codigo-ayuda" class="form-text">Ej.: DDH-VERO-S-045-26</div>
+          </div>
+          <div class="col-sm-5">
+            <label for="son-nombre" class="form-label">Nombre corto</label>
+            <input id="son-nombre" name="nombre" class="form-control" [(ngModel)]="form.nombre" aria-describedby="son-nombre-ayuda" />
+            <div id="son-nombre-ayuda" class="form-text">Ej.: DDH-045</div>
+          </div>
+          <div class="col-sm-7">
+            <label for="son-proyecto" class="form-label">Proyecto</label>
+            <select id="son-proyecto" name="proyectoId" class="form-select" [(ngModel)]="form.proyectoId">
+              <option [ngValue]="''">Elige un proyecto</option>
+              <option *ngFor="let p of proyectos" [ngValue]="p.id">{{ p.nombre }}</option>
+            </select>
+          </div>
+          <div class="col-sm-5">
+            <label for="son-campania" class="form-label">Campaña</label>
+            <input id="son-campania" name="campania" class="form-control" [(ngModel)]="form.campania" />
           </div>
         </div>
+
+        <h3 class="ficha__grupo">Ubicación y equipo</h3>
+        <div class="row g-3 mb-3">
+          <div class="col-12">
+            <label for="son-collar" class="form-label">Collar</label>
+            <select id="son-collar" name="collarId" class="form-select" [(ngModel)]="form.collarId">
+              <option [ngValue]="''">Elige un collar</option>
+              <option *ngFor="let c of collares" [ngValue]="c.id">{{ c.codigo }}</option>
+            </select>
+          </div>
+          <div class="col-sm-6">
+            <label for="son-plataforma" class="form-label">Plataforma</label>
+            <select id="son-plataforma" name="plataformaId" class="form-select" [(ngModel)]="form.plataformaId">
+              <option [ngValue]="''">Sin plataforma</option>
+              <option *ngFor="let pl of plataformas" [ngValue]="pl.id">{{ pl.codigo }}</option>
+            </select>
+          </div>
+          <div class="col-sm-6">
+            <label for="son-maquina" class="form-label">Máquina</label>
+            <select id="son-maquina" name="maquinaId" class="form-select" [(ngModel)]="form.maquinaId">
+              <option [ngValue]="''">Sin máquina</option>
+              <option *ngFor="let m of maquinas" [ngValue]="m.id">{{ m.codigo }} · {{ m.nombre }}</option>
+            </select>
+          </div>
+        </div>
+
+        <h3 class="ficha__grupo">Diseño y avance</h3>
+        <div class="row g-3">
+          <div class="col-6">
+            <label for="son-azimut" class="form-label">Azimut (°)</label>
+            <input id="son-azimut" name="azimutSetup" class="form-control" type="number" [(ngModel)]="form.azimutSetup" />
+          </div>
+          <div class="col-6">
+            <label for="son-inclinacion" class="form-label">Inclinación (°)</label>
+            <input id="son-inclinacion" name="inclinacionSetup" class="form-control" type="number" [(ngModel)]="form.inclinacionSetup" />
+          </div>
+          <div class="col-6">
+            <label for="son-prof-actual" class="form-label">Prof. actual (m)</label>
+            <input id="son-prof-actual" name="profundidadActual" class="form-control" type="number" [(ngModel)]="form.profundidadActual" />
+          </div>
+          <div class="col-6">
+            <label for="son-prof-final" class="form-label">Prof. programada (m)</label>
+            <input id="son-prof-final" name="profundidadFinal" class="form-control" type="number" [(ngModel)]="form.profundidadFinal" />
+          </div>
+          <div class="col-6">
+            <label for="son-inicio" class="form-label">Inicio</label>
+            <input id="son-inicio" name="fechaInicio" class="form-control" type="date" [(ngModel)]="form.fechaInicio" />
+          </div>
+          <div class="col-6">
+            <label for="son-fin" class="form-label">Fin</label>
+            <input id="son-fin" name="fechaFin" class="form-control" type="date" [(ngModel)]="form.fechaFin"
+                   [min]="form.fechaInicio || null" />
+          </div>
+        </div>
+      </form>
+
+      <div pie class="d-flex gap-2">
+        <button type="submit" form="son-formulario" class="btn btn-success" [disabled]="guardando">
+          {{ guardando ? 'Guardando…' : (form.id ? 'Guardar cambios' : 'Registrar sondaje') }}
+        </button>
+        <button type="button" class="btn btn-outline-secondary" (click)="cerrarFicha()">Cancelar</button>
       </div>
-    </div>
-
-    <div class="table-scroll" *ngIf="sondajes.length > 0; else vacio">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Código</th><th>Nombre</th><th>Proyecto</th>
-            <th class="num">Az. (°)</th><th class="num">Inc. (°)</th>
-            <th class="num">Prof. actual (m)</th><th class="num">Prof. programada (m)</th>
-            <th><span class="visually-hidden">Acciones</span></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let s of sondajes">
-            <td class="mono fw-semibold text-nowrap">{{ s.codigo }}</td>
-            <td>{{ s.nombre }}</td>
-            <td>{{ nombreProyecto(s.proyectoId) }}</td>
-            <td class="num">{{ s.azimutSetup ?? '—' }}</td>
-            <td class="num">{{ s.inclinacionSetup ?? '—' }}</td>
-            <td class="num">{{ s.profundidadActual ?? 0 }}</td>
-            <td class="num">{{ s.profundidadFinal ?? '—' }}</td>
-            <td class="text-end">
-              <button type="button" *ngIf="puedeEditar" class="btn btn-sm btn-outline-primary" (click)="editar(s)">Editar</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <ng-template #vacio>
-      <div class="empty-state">No hay sondajes para mostrar.</div>
-    </ng-template>
-  </section>
+    </app-ficha>
+  </div>
 </div>

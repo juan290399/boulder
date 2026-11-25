@@ -658,9 +658,14 @@ body {
 /* Tarjetas de indicador. */
 .metric-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  /* Las pantallas traen cuatro cifras: cuatro columnas, o dos por dos, para
+     que ninguna quede sola en un renglón (con auto-fit caían 3 + 1). */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
   margin-bottom: 1.25rem;
+
+  @media (max-width: 1199.98px) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @media (max-width: 575.98px) { grid-template-columns: minmax(0, 1fr); }
 }
 
 .metric {

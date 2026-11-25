@@ -52,7 +52,8 @@ subrayar botones, agregar columnas) y pregunta por el código.
 
 ## Brand Commitments
 
-Nombre «Boulder» con el ícono de gema (Bootstrap Icons `bi-gem`) y el
+Nombre «Boulder» con el ícono propio de un sondaje cruzando estratos
+(`<app-marca>`, también en `public/favicon.svg`) y el
 subtítulo «Gestión geológica».
 
 ## Evidence on Hand

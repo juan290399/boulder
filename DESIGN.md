@@ -200,6 +200,26 @@ el activo lleva fondo `brand-soft` y una línea interior izquierda
 `.data-table`: densa, cabecera pegajosa en versalitas, separadores de 1px y
 hover de fila en `surface-2`; `.num` para números y `.mono` para códigos.
 
+### Maestro-detalle
+Las pantallas de mantenimiento (Usuarios, Empresas, Proyectos, Empleados,
+Diccionarios, Sondajes, Plataformas, Máquinas) abren con la lista a todo el
+ancho. Elegir una fila o pulsar el botón «Nuevo…» del `page-head` reparte la
+pantalla con `.maestro-detalle.con-ficha`: lista a la izquierda y
+`<app-ficha>` a la derecha (título, campos, pie fijo con Guardar/Cancelar).
+Bajo 1200 px la ficha reemplaza a la lista y ofrece «Volver a la lista». Los
+avisos van arriba: `alert-inline--ok` con `role="status"` para éxitos y
+`alert-inline` con `role="alert"` para errores, con el texto de
+`mensajeDeError`. Los errores del formulario van dentro de la ficha.
+
+### Filas que se despliegan
+Una fila que abre un detalle (Avances, Desvíos) lleva en su primera celda un
+`.fila-boton` con `aria-expanded`; al abrir, la vista y el foco van al título
+del detalle.
+
+### Visor de fotos
+`<app-visor>`: diálogo modal con etiqueta, cierre con Esc o con el fondo,
+foco atrapado y devuelto a la miniatura.
+
 ## Do's and Don'ts
 
 ### Do:
