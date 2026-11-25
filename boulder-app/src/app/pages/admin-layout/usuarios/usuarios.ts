@@ -1,12 +1,12 @@
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpErrorResponse } from '@angular/common/http';
 
 import { AuthService } from '../../../services/auth.service';
 import { RolService } from '../../../services/rol.service';
 import { UsuarioService } from '../../../services/usuario.service';
 import { Rol, Usuario } from '../../../models/base';
+import { irA, mensajeDeError } from '../../../util/interfaz';
 
 type FiltroEstado = 'todos' | 'activos' | 'inactivos' | 'pendientes';
 
@@ -146,17 +146,15 @@ export class Usuarios implements OnInit {
     this.form = { ...u, contrasenia: '' };
     this.limpiarAvisos();
     this.cdr.detectChanges();
-    // El formulario está arriba y el botón Editar puede quedar lejos, al final
-    // de la tabla: se lleva la vista al formulario y el foco al primer campo.
-    document.getElementById('usr-formulario')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    document.getElementById('usr-nombres')?.focus({ preventScroll: true });
+    // El formulario está arriba y Editar puede quedar lejos, al final de la tabla.
+    irA('usr-formulario', 'usr-nombres');
   }
 
   verPendientes(): void {
     this.filtroEstado = 'pendientes';
     this.busqueda = '';
     this.cdr.detectChanges();
-    document.getElementById('usr-listado')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    irA('usr-listado');
   }
 
   limpiar(): void {
@@ -232,28 +230,10 @@ export class Usuarios implements OnInit {
     this.error = '';
   }
 
-  /**
-   * Prefiere el mensaje del backend: las salvaguardas devuelven textos
-   * concretos ("No puedes quitarte a ti mismo el rol ADMIN") que explican
-   * mucho mejor el rechazo que un genérico.
-   */
+  /** Muestra el error con el mensaje del servidor (ver util/interfaz). */
   private fallo(contexto: string, err: unknown): void {
     console.error(contexto, err);
-
-    let detalle = '';
-    if (err instanceof HttpErrorResponse) {
-      if (err.status === 403) {
-        detalle = 'No tienes permiso para esta operación.';
-      } else {
-        // `errores` llega como mapa campo -> mensaje cuando falla @Valid.
-        const errores = err.error?.errores;
-        detalle = errores && typeof errores === 'object'
-          ? Object.values(errores as Record<string, string>).join(' · ')
-          : (errores ?? err.error?.message ?? '');
-      }
-    }
-
-    this.error = detalle ? `${contexto}: ${detalle}` : contexto;
+    this.error = mensajeDeError(err, contexto);
     this.loading = false;
     this.cdr.detectChanges();
   }

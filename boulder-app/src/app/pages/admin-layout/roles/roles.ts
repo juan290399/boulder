@@ -6,6 +6,7 @@ import { RolService } from '../../../services/rol.service';
 import { UsuarioService } from '../../../services/usuario.service';
 import { Rol } from '../../../models/base';
 import { PERMISOS, ROLES, presentacionRol } from '../../../models/roles';
+import { mensajeDeError } from '../../../util/interfaz';
 
 @Component({
   selector: 'app-admin-roles',
@@ -95,9 +96,10 @@ export class Roles implements OnInit {
     return roles.includes(codigo);
   }
 
+  /** Muestra el error con el mensaje del servidor (ver util/interfaz). */
   private fallo(mensaje: string, err: unknown): void {
     console.error(mensaje, err);
-    this.error = mensaje;
+    this.error = mensajeDeError(err, mensaje);
     this.loading = false;
     this.cdr.detectChanges();
   }

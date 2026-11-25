@@ -113,6 +113,13 @@
   /* Los códigos (usuario, rol, empleado) son datos, no errores: sin el rosa
      que Bootstrap da a <code>. */
   --bs-code-color: var(--bo-ink-2);
+  /* Los grises y azules por defecto de Bootstrap (#6c757d, #0d6efd) no llegan
+     a 4.5:1 sobre las superficies claras; se reapuntan a la tinta y la marca. */
+  --bs-secondary-rgb: 71, 85, 105;
+  --bs-secondary-color: var(--bo-ink-2);
+  --bs-tertiary-color: var(--bo-ink-2);
+  --bs-primary-text-emphasis: var(--bo-brand-600);
+  --bs-focus-ring-color: rgba(37, 99, 235, 0.35);
 }
 
 html, body {
@@ -141,6 +148,27 @@ body {
   --bs-btn-hover-border-color: var(--bo-brand-600);
 }
 
+.btn-outline-primary {
+  --bs-btn-color: var(--bo-brand-600);
+  --bs-btn-border-color: var(--bo-brand-500);
+  --bs-btn-hover-bg: var(--bo-brand-600);
+  --bs-btn-hover-border-color: var(--bo-brand-600);
+  --bs-btn-active-bg: var(--bo-brand-600);
+  --bs-btn-disabled-color: var(--bo-brand-600);
+}
+
+.btn-outline-secondary {
+  --bs-btn-color: var(--bo-ink-2);
+  --bs-btn-border-color: var(--bo-border-strong);
+  --bs-btn-hover-color: var(--bo-ink);
+  --bs-btn-hover-bg: var(--bo-surface-2);
+  --bs-btn-hover-border-color: var(--bo-ink-3);
+  --bs-btn-active-color: var(--bo-ink);
+  --bs-btn-active-bg: var(--bo-neutral-soft);
+  --bs-btn-active-border-color: var(--bo-ink-3);
+  --bs-btn-disabled-color: var(--bo-ink-2);
+}
+
 .btn-primary:hover,
 .btn-success:hover {
   box-shadow: var(--bo-shadow-brand);
@@ -159,6 +187,20 @@ body {
   transition: border-color var(--bo-t-fast), box-shadow var(--bo-t-fast);
 }
 
+/* Foco del teclado. Un solo anillo para todo lo que se puede activar: sin él,
+   quien navega con Tab no ve dónde está (WCAG 2.4.7). Solo con :focus-visible,
+   así el clic con el mouse no lo deja pintado. */
+/* :is (y no :where) para ganarle a `.btn:focus-visible { outline: 0 }` de Bootstrap. */
+:is(a, button, [role="button"], summary, .btn, .form-check-input, .app-sidebar__link):focus-visible {
+  outline: 2px solid var(--bo-brand-500);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+.app-sidebar :is(a, button):focus-visible {
+  outline-color: var(--bo-brand-400);
+}
+
 .form-control:focus,
 .form-select:focus {
   border-color: var(--bo-brand-400);
@@ -173,6 +215,24 @@ body {
   letter-spacing: 0.01em;
 }
 
+
+/* Interruptor: el de Bootstrap mide 32x16 px. Se agranda para que el objetivo
+   táctil pase de 24 px (WCAG 2.5.8) sin depender del rótulo. */
+.form-switch .form-check-input {
+  width: 2.75rem;
+  height: 1.5rem;
+  margin-top: 0;
+  cursor: pointer;
+}
+
+.form-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-left: 0;
+
+  .form-check-input { margin-left: 0; float: none; flex: 0 0 auto; }
+}
 
 /* ---------------------------------------------------------------- 3. armazón */
 
@@ -344,14 +404,6 @@ body {
   line-height: 1.25;
 }
 
-.topbar__eyebrow {
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  font-weight: 600;
-  color: var(--bo-ink-3);
-}
-
 .topbar__area {
   font-size: 0.95rem;
   font-weight: 600;
@@ -426,12 +478,11 @@ body {
 
 .topbar__user-role {
   font-size: 0.72rem;
-  color: var(--bo-ink-3);
+  color: var(--bo-ink-2);
 }
 
 @media (max-width: 768px) {
-  .topbar__user-text,
-  .topbar__context { display: none; }
+  .topbar__user-text { display: none; }
 }
 
 
@@ -719,8 +770,18 @@ body {
 
   .app-sidebar__title,
   .app-sidebar__subtitle,
-  .app-sidebar__section,
-  .app-sidebar__link span { display: none; }
+  .app-sidebar__section { display: none; }
+
+  /* Solo íconos a la vista; el nombre sigue disponible para el lector de
+     pantalla (con display:none el enlace quedaba sin nombre). */
+  .app-sidebar__link span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
 
   .app-sidebar__link { justify-content: center; }
   .app-viewport { padding: 1rem; }
@@ -784,4 +845,15 @@ body {
     break-inside: avoid;
     box-shadow: none !important;
   }
+}
+
+
+/* -------------------------------------------------------- movimiento reducido */
+
+/* Quien pide menos movimiento conserva los cambios de color y de foco, que son
+   información, pero no los desplazamientos: ni el salto del botón al pulsarlo
+   ni el scroll animado. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .btn:active { transform: none; }
 }

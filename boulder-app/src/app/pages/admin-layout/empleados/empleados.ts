@@ -1,12 +1,12 @@
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpErrorResponse } from '@angular/common/http';
 
 import { EmpleadoService } from '../../../services/empleado.service';
 import { EmpresaService } from '../../../services/empresa.service';
 import { Cargo, Empleado } from '../../../models/base';
 import { Empresa } from '../../../models/operacional';
+import { irA, mensajeDeError } from '../../../util/interfaz';
 
 /** Etiquetas para las áreas de `base.cargo.area`. */
 const ETIQUETAS_AREA: Record<string, string> = {
@@ -141,9 +141,8 @@ export class Empleados implements OnInit {
     this.form = { ...e };
     this.limpiarAvisos();
     this.cdr.detectChanges();
-    // El formulario está arriba y el botón Editar puede quedar lejos en la tabla.
-    document.getElementById('emp-formulario')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    document.getElementById('emp-codigo')?.focus({ preventScroll: true });
+    // El formulario está arriba y Editar puede quedar lejos, al final de la tabla.
+    irA('emp-formulario', 'emp-codigo');
   }
 
   limpiar(): void {
@@ -173,24 +172,10 @@ export class Empleados implements OnInit {
     this.error = '';
   }
 
+  /** Muestra el error con el mensaje del servidor (ver util/interfaz). */
   private fallo(contexto: string, err: unknown): void {
     console.error(contexto, err);
-
-    let detalle = '';
-    if (err instanceof HttpErrorResponse) {
-      if (err.status === 403) {
-        detalle = 'No tienes permiso para esta operación.';
-      } else {
-        // `errores` llega como mapa campo -> mensaje o como texto «campo: mensaje; ...»;
-        // al usuario le basta el mensaje.
-        const errores = err.error?.errores;
-        detalle = errores && typeof errores === 'object'
-          ? Object.values(errores as Record<string, string>).join(' · ')
-          : String(errores ?? err.error?.message ?? '').replace(/(^|; )\w+: /g, '$1').replace(/; (\p{Lu})/gu, (_m: string, c: string) => '; ' + c.toLowerCase());
-      }
-    }
-
-    this.error = detalle ? `${contexto}: ${detalle}` : contexto;
+    this.error = mensajeDeError(err, contexto);
     this.loading = false;
     this.cdr.detectChanges();
   }

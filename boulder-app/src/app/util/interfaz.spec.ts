@@ -1,0 +1,32 @@
+import { HttpErrorResponse } from '@angular/common/http';
+
+import { mensajeDeError } from './interfaz';
+
+describe('mensajeDeError', () => {
+  const error = (status: number, cuerpo: unknown) => new HttpErrorResponse({ status, error: cuerpo });
+
+  it('usa el mensaje del servidor', () => {
+    expect(mensajeDeError(error(400, { message: 'El RUC debe tener 11 dígitos.' }), 'No se pudo guardar'))
+      .toBe('No se pudo guardar: El RUC debe tener 11 dígitos.');
+  });
+
+  it('quita los nombres de campo del texto de @Valid y deja la frase en minúscula', () => {
+    const cuerpo = { errores: 'codigo: El código es obligatorio; nombres: Los nombres son obligatorios' };
+    expect(mensajeDeError(error(400, cuerpo), 'No se pudo guardar'))
+      .toBe('No se pudo guardar: El código es obligatorio; los nombres son obligatorios');
+  });
+
+  it('une los mensajes cuando los errores llegan como mapa', () => {
+    const cuerpo = { errores: { codigo: 'El código es obligatorio', nombres: 'Los nombres son obligatorios' } };
+    expect(mensajeDeError(error(400, cuerpo), 'X')).toBe('X: El código es obligatorio; los nombres son obligatorios');
+  });
+
+  it('explica el 403 y la falta de conexión', () => {
+    expect(mensajeDeError(error(403, null), 'X')).toBe('X: No tienes permiso para esta operación.');
+    expect(mensajeDeError(error(0, null), 'X')).toBe('X: No hay conexión con el servidor.');
+  });
+
+  it('deja solo el contexto si no hay detalle', () => {
+    expect(mensajeDeError(new Error('raro'), 'No se pudo cargar')).toBe('No se pudo cargar');
+  });
+});

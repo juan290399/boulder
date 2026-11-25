@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
 
+import { irA, mensajeDeError } from '../../../util/interfaz';
+
 import { CatalogoGeologia } from '../../../services/logueo.service';
 import { DiccionarioService, EstructuraCatalogo } from '../../../services/diccionario.service';
 
@@ -153,8 +155,7 @@ export class Diccionarios implements OnInit {
       color: c.colorR != null ? this.hex(c.colorR, c.colorG!, c.colorB!) : '#a0a0a0',
     });
     // En pantallas angostas el formulario queda debajo de la tabla.
-    document.getElementById('dicc-formulario')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    document.getElementById('nombre')?.focus({ preventScroll: true });
+    irA('dicc-formulario', 'nombre');
   }
 
   actualizarForm(cambio: Partial<Formulario>): void {
@@ -203,13 +204,10 @@ export class Diccionarios implements OnInit {
 
   /** Prefiere el mensaje del servidor: un 409 no siempre es un código repetido. */
   private motivo(e: HttpErrorResponse): string {
-    if (e.status === 403) {
-      return 'Solo el administrador puede modificar los diccionarios.';
-    }
     if (e.status === 409 && !e.error?.message) {
       return 'Ese código ya existe en este catálogo.';
     }
-    return e.error?.message ?? 'No se pudo guardar.';
+    return mensajeDeError(e, 'No se pudo guardar');
   }
 
   private hex(r: number, g: number, b: number): string {

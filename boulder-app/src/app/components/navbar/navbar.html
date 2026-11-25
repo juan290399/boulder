@@ -5,7 +5,7 @@
       <app-marca />
     </div>
     <div>
-      <h1 class="app-sidebar__title">Boulder</h1>
+      <p class="app-sidebar__title">Boulder</p>
       <span class="app-sidebar__subtitle">Gestión geológica</span>
     </div>
   </div>
@@ -19,9 +19,10 @@
       <a *ngFor="let item of grupo.items"
          class="app-sidebar__link"
          [routerLink]="item.ruta"
-         routerLinkActive="active"
-         [routerLinkActiveOptions]="{ exact: true }">
-        <i class="bi" [ngClass]="item.icono"></i>
+         routerLinkActive="active" ariaCurrentWhenActive="page"
+         [routerLinkActiveOptions]="{ exact: true }"
+         [attr.title]="item.etiqueta">
+        <i class="bi" [ngClass]="item.icono" aria-hidden="true"></i>
         <span>{{ item.etiqueta }}</span>
       </a>
     </ng-container>

@@ -6,6 +6,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ProyectoService } from '../../../services/proyecto.service';
 import { EmpresaService } from '../../../services/empresa.service';
 import { Proyecto as ProyectoModel, Empresa } from '../../../models/operacional';
+import { irA, mensajeDeError } from '../../../util/interfaz';
 
 const FORM_VACIO = (): ProyectoModel => ({
   empresaId: '',
@@ -130,8 +131,7 @@ export class Proyecto implements OnInit {
     this.form = { ...proyecto };
     this.limpiarAvisos();
     this.cdr.detectChanges();
-    document.getElementById('pro-formulario')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    document.getElementById('pro-nombre')?.focus({ preventScroll: true });
+    irA('pro-formulario', 'pro-nombre');
   }
 
   limpiar(): void {
@@ -161,19 +161,10 @@ export class Proyecto implements OnInit {
     this.fallo('No se pudo hacer la búsqueda', err);
   }
 
-  /** Prefiere el mensaje del servidor, que dice qué campo corregir. */
+  /** Muestra el error con el mensaje del servidor (ver util/interfaz). */
   private fallo(msg: string, err: unknown): void {
     console.error(msg, err);
-    let detalle = '';
-    if (err instanceof HttpErrorResponse) {
-      const errores = err.error?.errores;
-      detalle = err.status === 403
-        ? 'No tienes permiso para esta operación.'
-        : errores && typeof errores === 'object'
-          ? Object.values(errores as Record<string, string>).join(' · ')
-          : (err.error?.message ?? '');
-    }
-    this.error = detalle ? `${msg}: ${detalle}` : msg;
+    this.error = mensajeDeError(err, msg);
     this.loading = false;
     this.cdr.detectChanges();
   }
