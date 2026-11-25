@@ -9,7 +9,6 @@ import { Ficha } from './ficha';
     <app-ficha [abierta]="abierta()" titulo="Editar empresa" subtitulo="MIN" (cerrar)="cerrados = cerrados + 1">
       <input id="campo" />
       <div pie><button type="button">Guardar</button></div>
-      <p vacio>Elige una empresa.</p>
     </app-ficha>
   `,
 })
@@ -29,8 +28,8 @@ describe('Ficha', () => {
     fixture.detectChanges();
   });
 
-  it('cerrada muestra la invitación y no los campos', () => {
-    expect(raiz.textContent).toContain('Elige una empresa.');
+  it('cerrada no pinta nada, para que la lista ocupe todo el ancho', () => {
+    expect(raiz.querySelector('.ficha__caja')).toBeNull();
     expect(raiz.querySelector('#campo')).toBeNull();
     expect(raiz.querySelector('app-ficha')!.classList.contains('ficha--vacia')).toBe(true);
   });
@@ -43,7 +42,6 @@ describe('Ficha', () => {
     expect(titulo.textContent).toContain('Editar empresa');
     expect(raiz.querySelector('#campo')).not.toBeNull();
     expect(raiz.querySelector('.ficha__pie')!.textContent).toContain('Guardar');
-    expect(raiz.textContent).not.toContain('Elige una empresa.');
   });
 
   it('Esc dentro de la ficha y el botón cerrar avisan al padre', () => {

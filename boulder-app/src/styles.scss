@@ -861,17 +861,22 @@ body {
 
 /* ------------------------------------------------------- maestro-detalle */
 
-/* Pantallas de mantenimiento: la lista a la izquierda y la ficha del registro
-   elegido a la derecha (componente app-ficha). En pantallas angostas se apilan
-   y, con la ficha abierta, la lista se oculta hasta pulsar «Volver a la lista». */
+/* Pantallas de mantenimiento: sin nada elegido la lista ocupa todo el ancho;
+   con un registro abierto (.con-ficha) se reparte en lista a la izquierda y
+   ficha a la derecha (componente app-ficha). En pantallas angostas, con la
+   ficha abierta, la lista se oculta hasta pulsar «Volver a la lista». */
 .maestro-detalle {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.25rem;
   align-items: start;
 
   > .panel { margin: 0; }
+
+  &.con-ficha { grid-template-columns: minmax(0, 1fr) minmax(340px, 420px); }
 }
+
+.ficha--vacia { display: none !important; }
 
 .ficha {
   display: block;
@@ -890,12 +895,6 @@ body {
   border-radius: var(--bo-r-lg);
   box-shadow: var(--bo-shadow-sm);
   overflow: hidden;
-}
-
-.ficha--vacia .ficha__caja {
-  background: transparent;
-  border-style: dashed;
-  box-shadow: none;
 }
 
 .ficha__head {
@@ -919,15 +918,6 @@ body {
   background: var(--bo-surface-2);
 }
 
-.ficha__vacio {
-  padding: 2rem 1.5rem;
-  text-align: center;
-  color: var(--bo-ink-2);
-  font-size: 0.9rem;
-
-  p { margin: 0; }
-}
-
 /* Grupos de campos dentro de la ficha. */
 .ficha__grupo {
   margin: 1.25rem 0 0.75rem;
@@ -948,9 +938,8 @@ body {
 }
 
 @media (max-width: 1199.98px) {
-  .maestro-detalle { grid-template-columns: minmax(0, 1fr); }
+  .maestro-detalle.con-ficha { grid-template-columns: minmax(0, 1fr); }
   .maestro-detalle.con-ficha > .panel { display: none; }
-  .maestro-detalle .ficha--vacia { display: none; }
   .ficha { position: static; }
   .ficha__caja { max-height: none; }
   .ficha__volver { display: inline-block; }

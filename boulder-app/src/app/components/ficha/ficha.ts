@@ -5,10 +5,12 @@ import {
 let siguienteId = 0;
 
 /**
- * Ficha del registro elegido en una pantalla maestro-detalle: la lista queda a
- * la izquierda y esta ficha a la derecha, siempre a la vista y sin tapar nada.
+ * Ficha del registro elegido en una pantalla maestro-detalle. Mientras no hay
+ * nada elegido la lista ocupa todo el ancho; al elegir un registro (o pulsar
+ * «Nuevo») la pantalla se reparte en dos columnas: lista a la izquierda y esta
+ * ficha a la derecha, sin tapar nada.
  *
- * - Cerrada muestra el contenido `[vacio]` (una invitación a elegir o crear).
+ * - Cerrada no ocupa lugar.
  * - Abierta muestra el título, los campos (`<ng-content />`) y los botones del
  *   pie (`[pie]`), que quedan fijos aunque el formulario sea largo.
  * - Al abrirla, o al pasar a otro registro (`clave`), lleva el foco al primer
@@ -23,7 +25,6 @@ let siguienteId = 0;
  *     <app-ficha [abierta]="abierta" [clave]="form.id" titulo="Editar empresa" (cerrar)="...">
  *       ...campos...
  *       <div pie>...botones...</div>
- *       <p vacio>Elige una empresa de la lista.</p>
  *     </app-ficha>
  *   </div>
  */
@@ -36,8 +37,8 @@ let siguienteId = 0;
     '(keydown.escape)': 'abierta() && cerrar.emit()',
   },
   template: `
-    <section #caja class="ficha__caja" [attr.aria-labelledby]="abierta() ? idTitulo : null" tabindex="-1">
-      @if (abierta()) {
+    @if (abierta()) {
+      <section #caja class="ficha__caja" [attr.aria-labelledby]="idTitulo" tabindex="-1">
         <header class="ficha__head">
           <button type="button" class="btn btn-link btn-sm ficha__volver" (click)="cerrar.emit()">
             <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Volver a la lista
@@ -56,12 +57,8 @@ let siguienteId = 0;
         <footer class="ficha__pie">
           <ng-content select="[pie]" />
         </footer>
-      } @else {
-        <div class="ficha__vacio">
-          <ng-content select="[vacio]" />
-        </div>
-      }
-    </section>
+      </section>
+    }
   `,
 })
 export class Ficha {
@@ -73,7 +70,7 @@ export class Ficha {
   readonly cerrar = output<void>();
 
   readonly idTitulo = `ficha-${++siguienteId}`;
-  private readonly caja = viewChild.required<ElementRef<HTMLElement>>('caja');
+  private readonly caja = viewChild<ElementRef<HTMLElement>>('caja');
   private origen: HTMLElement | null = null;
 
   constructor() {
@@ -84,7 +81,7 @@ export class Ficha {
         if (abierta) {
           const activo = document.activeElement as HTMLElement | null;
           // Recordar el origen solo si el foco viene de fuera de la ficha.
-          if (activo && !this.caja().nativeElement.contains(activo)) {
+          if (activo && !this.caja()?.nativeElement.contains(activo)) {
             this.origen = activo;
           }
           setTimeout(() => this.primerFoco());
@@ -98,7 +95,10 @@ export class Ficha {
   }
 
   private primerFoco(): void {
-    const caja = this.caja().nativeElement;
+    const caja = this.caja()?.nativeElement;
+    if (!caja) {
+      return;
+    }
     const campo = [...caja.querySelectorAll<HTMLElement>(
       '.ficha__body input:not([disabled]):not([type=hidden]), .ficha__body select:not([disabled]), .ficha__body textarea:not([disabled])',
     )].find(e => e.getClientRects().length > 0);
