@@ -34,7 +34,7 @@
             <tr>
               <th>Sondaje</th><th>Proyecto</th>
               <th class="num">Az. (°)</th><th class="num">Inc. (°)</th>
-              <th class="num">Prof. actual (m)</th><th class="num">Prof. programada (m)</th>
+              <th class="num">Prof. actual (m)</th><th class="num">Prof. programada (m)</th><th>Perforación</th>
               @if (puedeEditar) { <th><span class="visually-hidden">Acciones</span></th> }
             </tr>
           </thead>
@@ -50,6 +50,10 @@
               <td class="num">{{ s.inclinacionSetup ?? '—' }}</td>
               <td class="num">{{ s.profundidadActual ?? 0 }}</td>
               <td class="num">{{ s.profundidadFinal ?? '—' }}</td>
+              <td class="text-nowrap">
+                @if (s.fechaFin) { <span class="small">fin {{ s.fechaFin }}</span> }
+                @else { <span class="chip chip--ok">en curso</span> }
+              </td>
               @if (puedeEditar) {
                 <td class="text-end">
                   <button type="button" class="btn btn-sm btn-outline-primary" (click)="$event.stopPropagation(); editar(s)"
@@ -102,25 +106,26 @@
         <div class="row g-3 mb-3">
           <div class="col-sm-7">
             <label for="son-codigo" class="form-label">Código</label>
-            <input id="son-codigo" name="codigo" class="form-control mono" [(ngModel)]="form.codigo"
-                   aria-describedby="son-codigo-ayuda" spellcheck="false" />
-            <div id="son-codigo-ayuda" class="form-text">Ej.: DDH-VERO-S-045-26</div>
+            <input id="son-codigo" name="codigo" class="form-control mono text-uppercase" [(ngModel)]="form.codigo"
+                   [disabled]="!!form.id" maxlength="25" required aria-describedby="son-codigo-ayuda" spellcheck="false" />
+            <div id="son-codigo-ayuda" class="form-text">{{ form.id ? 'No se puede cambiar.' : 'Ej.: DDH-VERO-S-045-26' }}</div>
           </div>
           <div class="col-sm-5">
             <label for="son-nombre" class="form-label">Nombre corto</label>
-            <input id="son-nombre" name="nombre" class="form-control" [(ngModel)]="form.nombre" aria-describedby="son-nombre-ayuda" />
+            <input id="son-nombre" name="nombre" class="form-control" [(ngModel)]="form.nombre" maxlength="25" required
+                   aria-describedby="son-nombre-ayuda" />
             <div id="son-nombre-ayuda" class="form-text">Ej.: DDH-045</div>
           </div>
           <div class="col-sm-7">
             <label for="son-proyecto" class="form-label">Proyecto</label>
-            <select id="son-proyecto" name="proyectoId" class="form-select" [(ngModel)]="form.proyectoId">
+            <select id="son-proyecto" name="proyectoId" class="form-select" [(ngModel)]="form.proyectoId" required>
               <option [ngValue]="''">Elige un proyecto</option>
               <option *ngFor="let p of proyectos" [ngValue]="p.id">{{ p.nombre }}</option>
             </select>
           </div>
           <div class="col-sm-5">
-            <label for="son-campania" class="form-label">Campaña</label>
-            <input id="son-campania" name="campania" class="form-control" [(ngModel)]="form.campania" />
+            <label for="son-campania" class="form-label">Campaña <span class="text-secondary fw-normal">(opcional)</span></label>
+            <input id="son-campania" name="campania" class="form-control" [(ngModel)]="form.campania" maxlength="25" />
           </div>
         </div>
 
@@ -128,20 +133,20 @@
         <div class="row g-3 mb-3">
           <div class="col-12">
             <label for="son-collar" class="form-label">Collar</label>
-            <select id="son-collar" name="collarId" class="form-select" [(ngModel)]="form.collarId">
+            <select id="son-collar" name="collarId" class="form-select" [(ngModel)]="form.collarId" required>
               <option [ngValue]="''">Elige un collar</option>
               <option *ngFor="let c of collares" [ngValue]="c.id">{{ c.codigo }}</option>
             </select>
           </div>
           <div class="col-sm-6">
-            <label for="son-plataforma" class="form-label">Plataforma</label>
+            <label for="son-plataforma" class="form-label">Plataforma <span class="text-secondary fw-normal">(opcional)</span></label>
             <select id="son-plataforma" name="plataformaId" class="form-select" [(ngModel)]="form.plataformaId">
               <option [ngValue]="''">Sin plataforma</option>
               <option *ngFor="let pl of plataformas" [ngValue]="pl.id">{{ pl.codigo }}</option>
             </select>
           </div>
           <div class="col-sm-6">
-            <label for="son-maquina" class="form-label">Máquina</label>
+            <label for="son-maquina" class="form-label">Máquina <span class="text-secondary fw-normal">(opcional)</span></label>
             <select id="son-maquina" name="maquinaId" class="form-select" [(ngModel)]="form.maquinaId">
               <option [ngValue]="''">Sin máquina</option>
               <option *ngFor="let m of maquinas" [ngValue]="m.id">{{ m.codigo }} · {{ m.nombre }}</option>
@@ -152,27 +157,33 @@
         <h3 class="ficha__grupo">Diseño y avance</h3>
         <div class="row g-3">
           <div class="col-6">
-            <label for="son-azimut" class="form-label">Azimut (°)</label>
-            <input id="son-azimut" name="azimutSetup" class="form-control" type="number" [(ngModel)]="form.azimutSetup" />
+            <label for="son-azimut" class="form-label">Azimut (°) <span class="text-secondary fw-normal">(opcional)</span></label>
+            <input id="son-azimut" name="azimutSetup" class="form-control" type="number" min="0" max="360" step="0.1"
+                   [(ngModel)]="form.azimutSetup" aria-describedby="son-azimut-ayuda" />
+            <div id="son-azimut-ayuda" class="form-text">De 0 a 360.</div>
           </div>
           <div class="col-6">
-            <label for="son-inclinacion" class="form-label">Inclinación (°)</label>
-            <input id="son-inclinacion" name="inclinacionSetup" class="form-control" type="number" [(ngModel)]="form.inclinacionSetup" />
+            <label for="son-inclinacion" class="form-label">Inclinación (°) <span class="text-secondary fw-normal">(opcional)</span></label>
+            <input id="son-inclinacion" name="inclinacionSetup" class="form-control" type="number" min="-90" max="90" step="0.1"
+                   [(ngModel)]="form.inclinacionSetup" aria-describedby="son-inclinacion-ayuda" />
+            <div id="son-inclinacion-ayuda" class="form-text">De -90 a 90; negativa hacia abajo.</div>
           </div>
           <div class="col-6">
             <label for="son-prof-actual" class="form-label">Prof. actual (m)</label>
-            <input id="son-prof-actual" name="profundidadActual" class="form-control" type="number" [(ngModel)]="form.profundidadActual" />
+            <input id="son-prof-actual" name="profundidadActual" class="form-control" type="number" min="0" step="0.01"
+                   [(ngModel)]="form.profundidadActual" />
           </div>
           <div class="col-6">
-            <label for="son-prof-final" class="form-label">Prof. programada (m)</label>
-            <input id="son-prof-final" name="profundidadFinal" class="form-control" type="number" [(ngModel)]="form.profundidadFinal" />
+            <label for="son-prof-final" class="form-label">Prof. programada (m) <span class="text-secondary fw-normal">(opcional)</span></label>
+            <input id="son-prof-final" name="profundidadFinal" class="form-control" type="number" min="0" step="0.01"
+                   [(ngModel)]="form.profundidadFinal" />
           </div>
           <div class="col-6">
-            <label for="son-inicio" class="form-label">Inicio</label>
+            <label for="son-inicio" class="form-label">Inicio <span class="text-secondary fw-normal">(opcional)</span></label>
             <input id="son-inicio" name="fechaInicio" class="form-control" type="date" [(ngModel)]="form.fechaInicio" />
           </div>
           <div class="col-6">
-            <label for="son-fin" class="form-label">Fin</label>
+            <label for="son-fin" class="form-label">Fin <span class="text-secondary fw-normal">(opcional)</span></label>
             <input id="son-fin" name="fechaFin" class="form-control" type="date" [(ngModel)]="form.fechaFin"
                    [min]="form.fechaInicio || null" />
           </div>
