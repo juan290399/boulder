@@ -1,3 +1,4 @@
+import { Marca } from '../marca/marca';
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
@@ -28,7 +29,7 @@ interface GrupoMenu {
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, RouterLinkActive, Marca],
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss',
 })
