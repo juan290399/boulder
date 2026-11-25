@@ -112,3 +112,44 @@
     text-decoration: none;
   }
 }
+
+/* ------------------------------------------------- detalle de un sondaje */
+
+.volver { margin-bottom: 0.25rem; text-decoration: none; }
+
+.detalle-resumen {
+  margin: 0.2rem 0 0;
+  font-size: 0.875rem;
+  color: var(--bo-ink-2);
+}
+
+.etapas-detalle { padding: 1rem 1.25rem; }
+
+.etapas--grande {
+  gap: 0.75rem;
+
+  .etapas__item { gap: 0.35rem; min-width: 0; }
+  .track { height: 8px; }
+}
+
+.etapas__nombre {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--bo-ink);
+  /* Hasta dos renglones: «Corte de densidad» no se trunca en pantallas medianas. */
+  line-height: 1.2;
+  min-height: 2.4em;
+}
+
+.etapas__metros {
+  font-size: 0.75rem;
+  color: var(--bo-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 991.98px) {
+  .etapas--grande {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
