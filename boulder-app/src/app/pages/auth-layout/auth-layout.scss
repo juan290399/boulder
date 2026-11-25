@@ -19,7 +19,7 @@
   justify-content: center;
   gap: 1.5rem;
   padding: 3rem;
-  background: #eaf0fb;
+  background: #f1efea;
   border-right: 1px solid var(--bo-border);
 }
 
@@ -27,16 +27,6 @@
   width: 100%;
   max-width: 460px;
   height: auto;
-}
-
-.auth-art__caption {
-  max-width: 34ch;
-  margin: 0;
-  text-align: center;
-  font-size: 0.95rem;
-  line-height: 1.5;
-  color: var(--bo-ink-2);
-  text-wrap: balance;
 }
 
 /* ---------------------------------------------------------- formulario */
@@ -89,6 +79,7 @@
 
 .auth-foot {
   margin: 2.5rem 0 0;
+  text-align: center;
   font-size: 0.78rem;
   color: var(--bo-ink-2);
 }
@@ -115,5 +106,5 @@
   }
 
   .auth-brand { margin-bottom: 1.5rem; }
-  .auth-foot { margin-top: 1.5rem; text-align: center; }
+  .auth-foot { margin-top: 1.5rem; }
 }

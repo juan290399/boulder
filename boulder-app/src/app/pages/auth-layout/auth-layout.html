@@ -1,82 +1,128 @@
 <div class="auth-shell">
-  <!-- Ilustración lateral: un corte geológico con tres sondajes inclinados que
-       cruzan un cuerpo mineralizado. Se oculta en pantallas angostas. -->
+  <!-- Ilustración lateral: corte geológico con una perforadora diamantina sobre
+       orugas en su plataforma y tres sondajes que cortan un cuerpo de sulfuros.
+       Se oculta en pantallas angostas. -->
   <aside class="auth-art" aria-hidden="true">
     <svg class="auth-art__svg" viewBox="0 0 520 520" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <clipPath id="corte">
-          <rect x="20" y="20" width="480" height="480" rx="28" />
-        </clipPath>
-        <pattern id="testigo" width="14" height="14" patternUnits="userSpaceOnUse">
-          <rect width="14" height="14" fill="#f8fafc" />
-          <path d="M0 7h14" stroke="#cbd5e1" stroke-width="1" />
+        <clipPath id="corte"><rect x="20" y="20" width="480" height="480" rx="28" /></clipPath>
+        <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#c9dbea" />
+          <stop offset="1" stop-color="#eef0ec" />
+        </linearGradient>
+        <linearGradient id="amarillo" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#f2c230" />
+          <stop offset="1" stop-color="#d49a12" />
+        </linearGradient>
+        <pattern id="moteado" width="9" height="9" patternUnits="userSpaceOnUse">
+          <circle cx="2" cy="3" r="1" fill="#000" opacity=".10" />
+          <circle cx="6.5" cy="7" r=".8" fill="#fff" opacity=".12" />
+        </pattern>
+        <pattern id="sulfuros" width="17" height="13" patternUnits="userSpaceOnUse">
+          <circle cx="3" cy="4" r="1.2" fill="#6b5310" opacity=".45" />
+          <circle cx="11" cy="9" r=".9" fill="#fff6c8" opacity=".6" />
         </pattern>
       </defs>
 
       <g clip-path="url(#corte)">
-        <!-- cielo -->
-        <rect x="20" y="20" width="480" height="480" fill="#f8fafc" />
+        <!-- cielo y cordillera de fondo -->
+        <rect x="20" y="20" width="480" height="180" fill="url(#cielo)" />
+        <path d="M20 132 L70 96 L104 112 L150 70 L196 104 L232 88 L276 118 L320 80 L368 110 L414 74 L458 100 L500 86 V180 H20 Z"
+              fill="#a9a197" />
+        <path d="M150 70 L168 84 L158 86 L176 98 L150 90 Z M414 74 L430 88 L420 90 L436 100 L412 92 Z" fill="#f4f2ee" />
+        <path d="M20 150 L84 122 L140 138 L206 114 L262 140 L330 118 L396 138 L452 120 L500 132 V190 H20 Z" fill="#8f877b" />
 
-        <!-- estratos, del más somero al más profundo -->
-        <path d="M20 170 C110 150 200 182 290 166 S430 150 500 160 V500 H20 Z" fill="#dbe5f6" />
-        <path d="M20 232 C120 214 220 250 320 230 S450 214 500 222 V500 H20 Z" fill="#c7d6f1" />
-        <path d="M20 300 C130 282 230 322 330 300 S450 286 500 292 V500 H20 Z" fill="#b2c6eb" />
-        <path d="M20 372 C140 352 240 392 340 370 S450 356 500 362 V500 H20 Z" fill="#9db5e4" />
-        <path d="M20 440 C150 422 250 458 350 438 S450 426 500 432 V500 H20 Z" fill="#88a4dd" />
+        <!-- estratos -->
+        <path d="M20 170 C90 160 130 172 150 170 H360 C400 162 450 156 500 160 V500 H20 Z" fill="#7a5c3e" />
+        <path d="M20 186 C120 178 220 198 320 184 S450 176 500 180 V500 H20 Z" fill="#b07a45" />
+        <path d="M20 236 C120 220 220 254 330 234 S450 222 500 228 V500 H20 Z" fill="#c8b58f" />
+        <path d="M20 304 C130 286 230 324 330 302 S450 290 500 296 V500 H20 Z" fill="#8c8d80" />
+        <path d="M20 376 C140 356 240 396 340 374 S450 362 500 366 V500 H20 Z" fill="#6d6c63" />
+        <path d="M20 444 C150 426 250 462 350 442 S450 432 500 436 V500 H20 Z" fill="#55514a" />
+        <rect x="20" y="160" width="480" height="340" fill="url(#moteado)" />
 
-        <!-- cuerpo mineralizado -->
+        <!-- cuerpo de sulfuros -->
         <path d="M232 318 C268 292 336 290 380 310 C412 326 404 352 370 362 C326 376 262 372 236 354 C216 340 214 330 232 318 Z"
-              fill="#fde68a" stroke="#d97706" stroke-width="1.5" />
-        <path d="M262 334 C292 320 338 320 364 332" fill="none" stroke="#d97706" stroke-width="1" stroke-dasharray="3 4" opacity=".7" />
+              fill="#c9a227" stroke="#8a6d12" stroke-width="1.5" />
+        <path d="M232 318 C268 292 336 290 380 310 C412 326 404 352 370 362 C326 376 262 372 236 354 C216 340 214 330 232 318 Z"
+              fill="url(#sulfuros)" />
 
-        <!-- superficie -->
-        <path d="M20 170 C110 150 200 182 290 166 S430 150 500 160" fill="none" stroke="#475569" stroke-width="1.5" />
+        <!-- plataforma de perforación nivelada y poza de lodos -->
+        <path d="M150 170 H360" stroke="#5e4630" stroke-width="2" />
+        <rect x="372" y="164" width="40" height="9" rx="2" fill="#3f6f8f" stroke="#2c4f66" stroke-width="1" />
 
-        <!-- sondajes: traza con estaciones de medición -->
-        <g fill="none" stroke="#1d4ed8" stroke-width="2.5" stroke-linecap="round">
-          <path d="M168 168 L246 330 L278 400" />
+        <!-- sondajes -->
+        <g fill="none" stroke="#1f2328" stroke-width="2.5" stroke-linecap="round">
+          <path d="M168 170 L246 330 L278 400" />
           <path d="M252 170 L300 338 L316 424" />
-          <path d="M352 158 L330 300 L318 372" />
+          <path d="M346 164 L330 300 L318 372" />
         </g>
-        <g fill="#ffffff" stroke="#1d4ed8" stroke-width="2">
-          <circle cx="207" cy="249" r="4" /><circle cx="246" cy="330" r="4" /><circle cx="278" cy="400" r="4" />
-          <circle cx="276" cy="254" r="4" /><circle cx="300" cy="338" r="4" /><circle cx="316" cy="424" r="4" />
-          <circle cx="341" cy="229" r="4" /><circle cx="330" cy="300" r="4" /><circle cx="318" cy="372" r="4" />
+        <g fill="#ffffff" stroke="#1f2328" stroke-width="1.8">
+          <circle cx="207" cy="250" r="3.6" /><circle cx="246" cy="330" r="3.6" /><circle cx="278" cy="400" r="3.6" />
+          <circle cx="276" cy="254" r="3.6" /><circle cx="300" cy="338" r="3.6" /><circle cx="316" cy="424" r="3.6" />
+          <circle cx="338" cy="232" r="3.6" /><circle cx="330" cy="300" r="3.6" /><circle cx="318" cy="372" r="3.6" />
         </g>
-
-        <!-- collares -->
-        <g fill="#2563eb">
-          <rect x="161" y="160" width="14" height="10" rx="2" />
-          <rect x="245" y="162" width="14" height="10" rx="2" />
-          <rect x="345" y="150" width="14" height="10" rx="2" />
+        <!-- collares de concreto -->
+        <g fill="#b9b6ae" stroke="#7d7a72" stroke-width="1">
+          <rect x="160" y="165" width="16" height="6" rx="1.5" />
+          <rect x="339" y="159" width="15" height="6" rx="1.5" />
         </g>
 
-        <!-- máquina perforadora sobre el sondaje del medio -->
-        <g stroke="#0f172a" stroke-width="2" stroke-linejoin="round" fill="none">
-          <path d="M252 162 L240 78 L264 78 Z" fill="#ffffff" />
-          <path d="M244 110 H260 M242 94 H262 M246 126 H258" />
-          <rect x="226" y="150" width="52" height="12" rx="3" fill="#0f172a" />
-          <path d="M252 78 V64" />
+        <!-- perforadora diamantina sobre orugas, mástil inclinado sobre el sondaje -->
+        <g>
+          <!-- orugas -->
+          <rect x="262" y="156" width="92" height="15" rx="7.5" fill="#2b2b2b" />
+          <g fill="#555" stroke="#1a1a1a" stroke-width="1">
+            <circle cx="271" cy="163.5" r="5" /><circle cx="289" cy="163.5" r="4" />
+            <circle cx="308" cy="163.5" r="4" /><circle cx="327" cy="163.5" r="4" /><circle cx="345" cy="163.5" r="5" />
+          </g>
+          <!-- unidad de potencia -->
+          <rect x="268" y="120" width="76" height="36" rx="3" fill="url(#amarillo)" stroke="#9a6f0b" stroke-width="1.2" />
+          <g stroke="#9a6f0b" stroke-width="1.2">
+            <path d="M310 128 V150 M315 128 V150 M320 128 V150 M325 128 V150 M330 128 V150 M335 128 V150" />
+          </g>
+          <rect x="274" y="128" width="26" height="16" rx="2" fill="#2d3236" />
+          <g fill="#7fc36b"><circle cx="279" cy="133" r="1.6" /></g>
+          <g fill="#e2553b"><circle cx="285" cy="133" r="1.6" /></g>
+          <path d="M276 140 H298" stroke="#9aa3aa" stroke-width="1.2" />
+          <!-- escape -->
+          <rect x="336" y="104" width="4" height="18" fill="#444" />
+          <!-- pie del mástil y cilindro de elevación -->
+          <path d="M268 152 L252 168" stroke="#3a3a3a" stroke-width="4" stroke-linecap="round" />
+          <path d="M276 124 L238 96" stroke="#8f9499" stroke-width="3.2" stroke-linecap="round" />
+          <path d="M276 124 L256 109" stroke="#c9ced2" stroke-width="5" stroke-linecap="round" />
         </g>
-        <circle cx="252" cy="62" r="3" fill="#d97706" />
 
-        <!-- caja de testigos -->
-        <g transform="translate(372 66)">
-          <rect width="104" height="62" rx="8" fill="url(#testigo)" stroke="#94a3b8" stroke-width="1.5" />
+        <!-- mástil girado unos 16° sobre el collar del sondaje central -->
+        <g transform="rotate(-16 252 170)">
+          <rect x="245" y="44" width="14" height="126" rx="2" fill="url(#amarillo)" stroke="#9a6f0b" stroke-width="1.2" />
+          <path d="M245 60 L259 74 M259 74 L245 88 M245 88 L259 102 M259 102 L245 116 M245 116 L259 130 M259 130 L245 144 M245 144 L259 158"
+                stroke="#9a6f0b" stroke-width="1" fill="none" />
+          <!-- barra de perforación -->
+          <path d="M252 46 V170" stroke="#6e7378" stroke-width="2.4" />
+          <!-- cabezal de rotación -->
+          <rect x="241" y="86" width="22" height="16" rx="2.5" fill="#2d3236" stroke="#111" stroke-width="1" />
+          <rect x="246" y="90" width="12" height="3" rx="1" fill="#e9b31c" />
+          <!-- polea en la corona -->
+          <circle cx="252" cy="44" r="5" fill="#3a3f44" stroke="#111" stroke-width="1" />
+          <!-- mordazas al pie -->
+          <rect x="243" y="158" width="18" height="8" rx="1.5" fill="#3a3f44" />
+        </g>
+
+        <!-- caja de testigos de madera -->
+        <g transform="translate(380 74)">
+          <rect width="100" height="60" rx="5" fill="#b8895a" stroke="#7d5a36" stroke-width="1.5" />
+          <path d="M6 20 H94 M6 40 H94" stroke="#7d5a36" stroke-width="1.2" />
           <g stroke-linecap="round" stroke-width="7">
-            <path d="M12 14 H70" stroke="#b2c6eb" /><path d="M76 14 H92" stroke="#88a4dd" />
-            <path d="M12 31 H40" stroke="#88a4dd" /><path d="M46 31 H92" stroke="#fbbf24" />
-            <path d="M12 48 H58" stroke="#fbbf24" /><path d="M64 48 H92" stroke="#c7d6f1" />
+            <path d="M12 11 H58" stroke="#c8b58f" /><path d="M63 11 H88" stroke="#b07a45" />
+            <path d="M12 30 H34" stroke="#8c8d80" /><path d="M39 30 H88" stroke="#c9a227" />
+            <path d="M12 49 H50" stroke="#c9a227" /><path d="M55 49 H88" stroke="#6d6c63" />
           </g>
         </g>
       </g>
 
-      <rect x="20" y="20" width="480" height="480" rx="28" fill="none" stroke="#cbd5e1" stroke-width="1.5" />
+      <rect x="20" y="20" width="480" height="480" rx="28" fill="none" stroke="#c9c3b8" stroke-width="1.5" />
     </svg>
-
-    <p class="auth-art__caption">
-      Del collar al reporte diario: cada metro perforado se registra una sola vez.
-    </p>
   </aside>
 
   <main class="auth-panel">
