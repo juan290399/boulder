@@ -1,18 +1,34 @@
-<h1 class="auth-title">Iniciar sesión</h1>
-<p class="auth-sub">Entra con la cuenta que te dio el administrador.</p>
+<h1 class="auth-title">Control de sondajes en un solo lugar</h1>
+<p class="auth-sub">Ingresa tus datos para <strong>iniciar sesión</strong>.</p>
 
 <form [formGroup]="loginForm" (ngSubmit)="onLogin($event)" novalidate>
   <div class="mb-3">
     <label for="usuario" class="form-label">Usuario</label>
-    <input type="text" id="usuario" formControlName="usuario" class="form-control"
-           autocomplete="username" autocapitalize="none" spellcheck="false" />
+    <div class="campo">
+      <input type="text" id="usuario" formControlName="usuario" class="form-control"
+             placeholder="Ingresa tu usuario" aria-describedby="usuario-ayuda"
+             autocomplete="username" autocapitalize="none" spellcheck="false" />
+      <i class="bi bi-person campo__icono" aria-hidden="true"></i>
+    </div>
+    <div id="usuario-ayuda" class="form-text">
+      <i class="bi bi-info-circle me-1" aria-hidden="true"></i>El usuario que te asignó el administrador, por ejemplo <span class="mono">jperez</span>.
+    </div>
   </div>
 
-  <div class="mb-3">
+  <div class="mb-2">
     <label for="contrasenia" class="form-label">Contraseña</label>
-    <input type="password" id="contrasenia" formControlName="contrasenia" class="form-control"
-           autocomplete="current-password" />
+    <div class="campo">
+      <input [type]="verContrasenia ? 'text' : 'password'" id="contrasenia" formControlName="contrasenia"
+             class="form-control" placeholder="Ingresa tu contraseña" autocomplete="current-password" />
+      <button type="button" class="campo__boton" (click)="verContrasenia = !verContrasenia"
+              [attr.aria-label]="verContrasenia ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              [attr.aria-pressed]="verContrasenia">
+        <i class="bi" [class.bi-eye]="!verContrasenia" [class.bi-eye-slash]="verContrasenia" aria-hidden="true"></i>
+      </button>
+    </div>
   </div>
+
+  <p class="olvido">¿Olvidaste tu contraseña? Pide al administrador que la restablezca.</p>
 
   @if (errorMessage) {
     <div class="alert alert-danger py-2 small" role="alert">

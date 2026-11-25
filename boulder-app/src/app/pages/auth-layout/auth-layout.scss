@@ -1,25 +1,61 @@
-/* Pantallas sin sesión: inicio, registro y elección de rol. Usan los mismos
-   tokens que el resto de la aplicación; los formularios son de Bootstrap. */
+/* Pantallas sin sesión: inicio, registro y elección de rol. Dos columnas: la
+   ilustración a la izquierda y el formulario a la derecha. Debajo de 992 px
+   queda solo el formulario. Usan los mismos tokens que el resto de la
+   aplicación; los formularios son de Bootstrap. */
 
 .auth-shell {
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem 1rem;
-  background: var(--bo-canvas);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  background: var(--bo-surface);
 }
 
-.auth-panel {
+/* --------------------------------------------------------- ilustración */
+
+.auth-art {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 3rem;
+  background: #eaf0fb;
+  border-right: 1px solid var(--bo-border);
+}
+
+.auth-art__svg {
   width: 100%;
-  max-width: 420px;
+  max-width: 460px;
+  height: auto;
+}
+
+.auth-art__caption {
+  max-width: 34ch;
+  margin: 0;
+  text-align: center;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--bo-ink-2);
+  text-wrap: balance;
+}
+
+/* ---------------------------------------------------------- formulario */
+
+.auth-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
 }
 
 .auth-brand {
   display: flex;
   align-items: center;
   gap: 0.875rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2.25rem;
 }
 
 .auth-brand__mark {
@@ -38,7 +74,7 @@
 
 .auth-brand__name {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.35rem;
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.01em;
@@ -47,25 +83,37 @@
 
 .auth-brand__tag {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: var(--bo-ink-2);
 }
 
-.auth-card {
-  background: var(--bo-surface);
-  border: 1px solid var(--bo-border);
-  border-radius: var(--bo-r-lg);
-  box-shadow: var(--bo-shadow-md);
-  padding: 2rem;
-}
-
 .auth-foot {
-  margin: 1.25rem 0 0;
-  text-align: center;
+  margin: 2.5rem 0 0;
   font-size: 0.78rem;
   color: var(--bo-ink-2);
 }
 
-@media (max-width: 480px) {
-  .auth-card { padding: 1.5rem 1.25rem; }
+@media (max-width: 991.98px) {
+  .auth-shell {
+    grid-template-columns: 1fr;
+    background: var(--bo-canvas);
+  }
+
+  .auth-art {
+    display: none;
+  }
+
+  .auth-panel {
+    background: var(--bo-surface);
+    border: 1px solid var(--bo-border);
+    border-radius: var(--bo-r-lg);
+    box-shadow: var(--bo-shadow-md);
+    margin: 2rem auto;
+    padding: 2rem 1.5rem;
+    width: calc(100% - 2rem);
+    align-self: center;
+  }
+
+  .auth-brand { margin-bottom: 1.5rem; }
+  .auth-foot { margin-top: 1.5rem; text-align: center; }
 }
