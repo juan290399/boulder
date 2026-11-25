@@ -4,23 +4,24 @@
   </div>
 
   <div class="page-head__actions">
+    <!-- Interruptor: el rótulo no cambia; aria-pressed y el color dicen si está activo. -->
     <button type="button" class="btn btn-sm"
             [class.btn-primary]="soloActivos()"
             [class.btn-outline-secondary]="!soloActivos()"
+            [attr.aria-pressed]="soloActivos()"
             (click)="alternarActivos()">
-      <i class="bi bi-funnel me-1"></i>
-      {{ soloActivos() ? 'Solo activos' : 'Todos los sondajes' }}
+      <i class="bi bi-funnel me-1" aria-hidden="true"></i>Solo activos
     </button>
     <button type="button" class="btn btn-sm btn-outline-secondary"
             (click)="cargarFrente()" [disabled]="cargando()">
-      <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
+      <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i>Actualizar
     </button>
   </div>
 </div>
 
 @if (error(); as mensaje) {
-  <div class="alert-inline">
-    <i class="bi bi-exclamation-triangle"></i>{{ mensaje }}
+  <div class="alert-inline" role="alert">
+    <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>{{ mensaje }}
   </div>
 }
 
@@ -162,16 +163,16 @@
 @if (seleccionado(); as fila) {
   <div id="detalle-sondaje">
   @if (formulario(); as fm) {
-    <div class="panel">
+    <div class="panel" id="formulario-parte">
       @if (fm.clave === 'perforacion') {
         <app-parte-perforacion
           [sondajeId]="fila.sondajeId" [sondajeCodigo]="fila.sondajeCodigo" [parte]="comoPerforacion(fm.parte)"
-          (guardado)="parteGuardado($event)" (cancelado)="formulario.set(null)" />
+          (guardado)="parteGuardado($event)" (cancelado)="cancelarParte()" />
       } @else {
         <app-parte-operativo
           [clave]="fm.clave" [etiqueta]="tipoActual.etiqueta" [anteriores]="partes()"
           [sondajeId]="fila.sondajeId" [sondajeCodigo]="fila.sondajeCodigo" [parte]="fm.parte"
-          (guardado)="parteGuardado($event)" (cancelado)="formulario.set(null)" />
+          (guardado)="parteGuardado($event)" (cancelado)="cancelarParte()" />
       }
     </div>
   }
@@ -196,8 +197,8 @@
     </div>
 
     @if (aviso(); as a) {
-      <div class="alert alert-success py-2 mx-3 mt-3 mb-0 d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-check-circle me-1"></i>{{ a }}</span>
+      <div class="alert-inline alert-inline--ok mx-3 mt-3 mb-0 d-flex justify-content-between align-items-center" role="status">
+        <span><i class="bi bi-check-circle me-1" aria-hidden="true"></i>{{ a }}</span>
         <button type="button" class="btn-close" aria-label="Cerrar" (click)="aviso.set(null)"></button>
       </div>
     }
@@ -240,7 +241,7 @@
             @for (parte of partes(); track parte.id) {
               <tr>
                 <td class="num text-muted">{{ parte.numeroInterno }}</td>
-                <td>{{ parte.fecha }}</td>
+                <td class="text-nowrap">{{ parte.fecha }}</td>
                 <td>{{ parte.turno ?? '—' }}</td>
                 @for (col of tipoActual.columnas; track col.campo) {
                   <td [class.num]="col.numerica">{{ valor(parte, col.campo) ?? '—' }}</td>
@@ -250,7 +251,7 @@
                   @if (puedeRegistrar) {
                   <button type="button" class="btn btn-sm btn-link" title="Corregir" (click)="editarParte(parte)"
                           [attr.aria-label]="'Corregir parte ' + parte.numeroInterno">
-                    <i class="bi bi-pencil"></i>
+                    <i class="bi bi-pencil" aria-hidden="true"></i>
                   </button>
                   }
                 </td>

@@ -4,14 +4,14 @@
       {{ editando ? 'Corregir parte' : 'Nuevo parte' }} de {{ etiqueta() | lowercase }}
       · <span class="mono">{{ sondajeCodigo() }}</span>
     </h2>
-    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cancelado.emit()" aria-label="Cerrar">
-      <i class="bi bi-x-lg"></i>
+    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cancelado.emit()" aria-label="Cerrar formulario">
+      <i class="bi bi-x-lg" aria-hidden="true"></i>
     </button>
   </div>
 
   <div class="panel__body">
     @if (error(); as mensaje) {
-      <div class="alert-inline"><i class="bi bi-exclamation-triangle"></i>{{ mensaje }}</div>
+      <div class="alert-inline" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i>{{ mensaje }}</div>
     }
 
     <fieldset class="bloque">

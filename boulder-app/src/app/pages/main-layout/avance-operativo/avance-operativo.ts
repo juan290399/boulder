@@ -263,11 +263,32 @@ export class AvanceOperativoPage implements OnInit {
   nuevoParte(): void {
     this.aviso.set(null);
     this.formulario.set({ clave: this.tipoActivo(), parte: null });
+    this.irAlFormulario();
   }
 
   editarParte(parte: AvanceOperativo): void {
     this.aviso.set(null);
     this.formulario.set({ clave: this.tipoActivo(), parte });
+    this.irAlFormulario();
+  }
+
+  cancelarParte(): void {
+    this.formulario.set(null);
+    setTimeout(() => irA('detalle-sondaje', 'detalle-sondaje-titulo'));
+  }
+
+  /**
+   * El formulario aparece encima de la tabla de partes: «Corregir» en una fila
+   * de abajo lo dejaba fuera de la vista. Se lleva la vista y el foco al primer
+   * campo.
+   */
+  private irAlFormulario(): void {
+    setTimeout(() => {
+      irA('formulario-parte');
+      document.querySelector<HTMLElement>(
+        '#formulario-parte input:not([type=hidden]):not([disabled]), #formulario-parte select',
+      )?.focus({ preventScroll: true });
+    });
   }
 
   /** El parte de perforación es otro modelo; el formulario lo pide con su tipo. */
@@ -282,6 +303,7 @@ export class AvanceOperativoPage implements OnInit {
     this.aviso.set(`Parte N.º ${parte.numeroInterno} de ${etiqueta} ${abierto?.parte ? 'corregido' : 'registrado'}.`);
     this.cargarPartes();
     this.cargarFrente(true);
+    setTimeout(() => irA('detalle-sondaje', 'detalle-sondaje-titulo'));
   }
 
   private cargarPartes(): void {

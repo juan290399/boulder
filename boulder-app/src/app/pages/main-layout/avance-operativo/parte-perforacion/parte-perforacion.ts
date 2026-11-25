@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, input, output, signal } from '@angular/core';
+import { mensajeDeError } from '../../../../util/interfaz';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { forkJoin, of } from 'rxjs';
@@ -93,7 +94,7 @@ export class PartePerforacionForm implements OnInit {
         this.cargando.set(false);
       },
       error: (e: HttpErrorResponse) => {
-        this.error.set(e.error?.message ?? 'No se pudo preparar el parte.');
+        this.error.set(mensajeDeError(e, 'No se pudo preparar el parte'));
         this.cargando.set(false);
       },
     });
@@ -178,7 +179,7 @@ export class PartePerforacionForm implements OnInit {
       },
       error: (e: HttpErrorResponse) => {
         this.guardando.set(false);
-        this.error.set(e.error?.message ?? 'No se pudo guardar el parte.');
+        this.error.set(mensajeDeError(e, 'No se pudo guardar el parte'));
       },
     });
   }
