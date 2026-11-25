@@ -583,6 +583,13 @@ body {
   overflow-y: auto;
 }
 
+/* Códigos y valores técnicos (sondaje, usuario, rol, RUC) fuera de las tablas:
+   campos de formulario, títulos de panel, notas. */
+.mono {
+  font-family: var(--bo-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
 /* Chip de estado. Una sola forma para todos los estados del sistema. */
 .chip {
   display: inline-flex;
