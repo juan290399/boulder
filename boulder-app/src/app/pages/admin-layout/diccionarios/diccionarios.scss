@@ -23,4 +23,12 @@
 tr.inactiva td { color: var(--bo-ink-2); }
 
 .tenue { color: var(--bo-ink-2); font-size: 0.8rem; }
-.mono { font-family: var(--bo-mono); }
+/* El formulario acompaña al desplazarse por catálogos largos. */
+.dicc-form {
+  position: sticky;
+  top: calc(var(--bo-topbar-h) + 1rem);
+
+  @media (max-width: 1000px) {
+    position: static;
+  }
+}

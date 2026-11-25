@@ -79,15 +79,8 @@
                   </td>
                 }
                 <td class="text-end text-nowrap">
-                  <button type="button" class="btn btn-sm btn-link" (click)="editar(c)" title="Editar">
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                  @if (tieneEstado()) {
-                    <button type="button" class="btn btn-sm btn-link" (click)="alternarEstado(c)"
-                            [title]="c.estaActivo ? 'Desactivar' : 'Activar'">
-                      <i class="bi" [class.bi-toggle-on]="c.estaActivo" [class.bi-toggle-off]="!c.estaActivo"></i>
-                    </button>
-                  }
+                  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="editar(c)"
+                          [attr.aria-label]="'Editar ' + c.codigo">Editar</button>
                 </td>
               </tr>
             }
@@ -97,7 +90,7 @@
     }
   </div>
 
-  <div class="panel">
+  <div class="panel dicc-form" id="dicc-formulario">
     <div class="panel__head">
       <h2 class="panel__title">{{ form().id ? 'Editar código' : 'Nuevo código' }} · {{ nombre(tipo()) }}</h2>
     </div>
@@ -107,20 +100,22 @@
         <div class="alert-inline"><i class="bi bi-exclamation-triangle"></i>{{ mensaje }}</div>
       }
 
-      <label class="form-label" for="codigo">Código *</label>
-      <input id="codigo" name="codigo" class="form-control mb-1 mono text-uppercase"
+      <label class="form-label" for="codigo">Código</label>
+      <input id="codigo" name="codigo" class="form-control mono text-uppercase"
              [maxlength]="forma().largoCodigo"
-             [ngModel]="form().codigo" (ngModelChange)="actualizarForm({ codigo: $event })">
+             [ngModel]="form().codigo" (ngModelChange)="actualizarForm({ codigo: $event })"
+             aria-describedby="codigo-ayuda">
+      <div id="codigo-ayuda" class="form-text mb-3">Letras y números, hasta {{ forma().largoCodigo }} caracteres.</div>
 
-      <label class="form-label" for="nombre">Nombre *</label>
+      <label class="form-label" for="nombre">Nombre</label>
       <input id="nombre" name="nombre" class="form-control mb-3" maxlength="150"
              [ngModel]="form().nombre" (ngModelChange)="actualizarForm({ nombre: $event })">
 
       @if (tieneGrupo()) {
-        <label class="form-label" for="grupo">Grupo litológico *</label>
+        <label class="form-label" for="grupo">Grupo litológico</label>
         <select id="grupo" name="grupo" class="form-select mb-3"
                 [ngModel]="form().grupoId" (ngModelChange)="actualizarForm({ grupoId: $event })">
-          <option [ngValue]="null">— Elige un grupo —</option>
+          <option [ngValue]="null" disabled>Elige un grupo</option>
           @for (g of gruposLitologicos(); track g.id) {
             <option [ngValue]="g.id">{{ g.codigo }} · {{ g.nombre }}</option>
           }
@@ -128,26 +123,31 @@
       }
 
       @if (tieneColor()) {
-        <div class="form-check mb-2">
-          <input class="form-check-input" type="checkbox" id="conColor" name="conColor"
-                 [ngModel]="form().conColor" (ngModelChange)="actualizarForm({ conColor: $event })">
-          <label class="form-check-label" for="conColor">Color para el strip log</label>
-        </div>
-        @if (form().conColor) {
-          <input type="color" name="color" class="form-control form-control-color mb-3"
+        <label class="form-label" for="color">Color para el strip log</label>
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <input type="color" id="color" name="color" class="form-control form-control-color"
                  [ngModel]="form().color" (ngModelChange)="actualizarForm({ color: $event })">
-        }
+          <span class="mono small text-secondary">{{ form().color }}</span>
+        </div>
       }
 
-      <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary" [disabled]="!form().codigo.trim() || !form().nombre.trim()">
+      <div class="d-flex flex-wrap gap-2">
+        <button type="submit" class="btn btn-primary text-nowrap" [disabled]="!form().codigo.trim() || !form().nombre.trim()">
           {{ form().id ? 'Guardar cambios' : 'Agregar' }}
         </button>
         @if (form().id) {
           <button type="button" class="btn btn-outline-secondary" (click)="nuevo()">Cancelar</button>
+          @if (tieneEstado()) {
+            <button type="button" class="btn ms-auto"
+                    [class.btn-outline-danger]="form().estaActivo" [class.btn-outline-success]="!form().estaActivo"
+                    (click)="alternarEstado()">
+              {{ form().estaActivo ? 'Desactivar' : 'Activar' }}
+            </button>
+          }
         }
       </div>
-      @if (tieneEstado()) {
+      @if (form().id && tieneEstado()) {
+        <p class="form-text mb-0 mt-2">Desactivarlo lo marca como en desuso; los registros que ya lo usan se conservan.</p>
       }
     </form>
   </div>

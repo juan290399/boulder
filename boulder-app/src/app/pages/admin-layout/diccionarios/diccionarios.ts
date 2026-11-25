@@ -38,10 +38,11 @@ interface Formulario {
   nombre: string;
   grupoId: string | null;
   color: string;
-  conColor: boolean;
+  /** Estado del código que se edita, para ofrecer activarlo o desactivarlo. */
+  estaActivo?: boolean;
 }
 
-const VACIO = (): Formulario => ({ codigo: '', nombre: '', grupoId: null, color: '#a0a0a0', conColor: false });
+const VACIO = (): Formulario => ({ codigo: '', nombre: '', grupoId: null, color: '#a0a0a0' });
 
 /**
  * Diccionarios geológicos (P15, RF04): los códigos que el quicklog y el logueo
@@ -131,6 +132,8 @@ export class Diccionarios implements OnInit {
 
   elegirTipo(t: string): void {
     this.tipo.set(t);
+    // La búsqueda de un catálogo no tiene sentido en el siguiente.
+    this.busqueda.set('');
     this.nuevo();
   }
 
@@ -146,9 +149,12 @@ export class Diccionarios implements OnInit {
       codigo: c.codigo,
       nombre: c.nombre,
       grupoId: c.grupoId ?? null,
-      conColor: c.colorR != null,
+      estaActivo: c.estaActivo,
       color: c.colorR != null ? this.hex(c.colorR, c.colorG!, c.colorB!) : '#a0a0a0',
     });
+    // En pantallas angostas el formulario queda debajo de la tabla.
+    document.getElementById('dicc-formulario')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    document.getElementById('nombre')?.focus({ preventScroll: true });
   }
 
   actualizarForm(cambio: Partial<Formulario>): void {
@@ -161,7 +167,8 @@ export class Diccionarios implements OnInit {
     if (this.tieneGrupo()) {
       datos.grupoId = f.grupoId;
     }
-    if (this.tieneColor() && f.conColor) {
+    // En los catálogos con color la columna es obligatoria en la base.
+    if (this.tieneColor()) {
       const [r, g, b] = this.canales(f.color);
       Object.assign(datos, { colorR: r, colorG: g, colorB: b });
     }
@@ -177,23 +184,30 @@ export class Diccionarios implements OnInit {
     });
   }
 
-  alternarEstado(c: CatalogoGeologia): void {
-    const activar = !c.estaActivo;
-    this.servicio.cambiarEstado(this.tipo(), c.id, activar).subscribe({
+  /** Activa o desactiva el código que está en el formulario. */
+  alternarEstado(): void {
+    const f = this.form();
+    if (!f.id) {
+      return;
+    }
+    const activar = !f.estaActivo;
+    this.servicio.cambiarEstado(this.tipo(), f.id, activar).subscribe({
       next: () => {
-        this.aviso.set(`Código ${c.codigo} ${activar ? 'activado' : 'desactivado'}.`);
+        this.aviso.set(`Código ${f.codigo} ${activar ? 'activado' : 'desactivado'}.`);
+        this.nuevo();
         this.cargar();
       },
       error: (e: HttpErrorResponse) => this.error.set(this.motivo(e)),
     });
   }
 
+  /** Prefiere el mensaje del servidor: un 409 no siempre es un código repetido. */
   private motivo(e: HttpErrorResponse): string {
-    if (e.status === 409) {
-      return 'Ese código ya existe en este catálogo.';
-    }
     if (e.status === 403) {
       return 'Solo el administrador puede modificar los diccionarios.';
+    }
+    if (e.status === 409 && !e.error?.message) {
+      return 'Ese código ya existe en este catálogo.';
     }
     return e.error?.message ?? 'No se pudo guardar.';
   }
