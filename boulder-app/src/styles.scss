@@ -110,6 +110,9 @@
   --bs-link-color: var(--bo-brand-600);
   --bs-link-hover-color: var(--bo-brand-500);
   --bs-secondary-color: var(--bo-ink-2);
+  /* Los códigos (usuario, rol, empleado) son datos, no errores: sin el rosa
+     que Bootstrap da a <code>. */
+  --bs-code-color: var(--bo-ink-2);
 }
 
 html, body {
@@ -284,7 +287,8 @@ body {
 .app-sidebar__link.active-link {
   background: var(--bo-brand-soft);
   color: #fff;
-  box-shadow: inset 3px 0 0 0 var(--bo-brand-400);
+
+  i { color: var(--bo-brand-400); }
 
   i { opacity: 1; }
 }

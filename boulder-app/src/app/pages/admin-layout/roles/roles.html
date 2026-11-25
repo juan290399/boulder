@@ -1,42 +1,40 @@
-<div class="panel panel__body">
-
-  <div class="mb-4">
-    <h1 class="page-head__title mb-1">Roles</h1>
+<div class="page">
+  <div class="page-head">
+    <h1 class="page-head__title">Roles</h1>
   </div>
 
   <div *ngIf="error" class="alert-inline">{{ error }}</div>
 
-
-  <div class="table-scroll" *ngIf="roles.length > 0; else vacio">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Código</th>
-          <th>Nombre</th>
-          <th class="text-end">Cuentas activas</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let r of roles">
-          <td><code>{{ r.codigo }}</code></td>
-          <td>{{ r.nombre }}</td>
-          <td class="text-end">
-            <span class="badge"
-                  [class.text-bg-secondary]="(cuentasPorRol[r.codigo] ?? 0) > 0"
-                  [class.text-bg-light]="(cuentasPorRol[r.codigo] ?? 0) === 0">
-              {{ cuentasPorRol[r.codigo] ?? 0 }}
-            </span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <ng-template #vacio>
-    <div class="empty-state">
-      <span *ngIf="loading">Cargando catálogo…</span>
-      <span *ngIf="!loading">No hay roles registrados.</span>
+  <section class="panel">
+    <div class="panel__head">
+      <h2 class="panel__title">Roles del sistema</h2>
+      <span class="text-secondary small">Se asignan a cada cuenta desde Usuarios</span>
     </div>
-  </ng-template>
 
+    <div class="table-scroll" *ngIf="roles.length > 0; else vacio">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th class="num">Cuentas activas</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of roles">
+            <td class="mono">{{ r.codigo }}</td>
+            <td>{{ r.nombre }}</td>
+            <td class="num">{{ cuentasPorRol[r.codigo] ?? 0 }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #vacio>
+      <div class="empty-state">
+        <span *ngIf="loading">Cargando roles…</span>
+        <span *ngIf="!loading">No hay roles registrados.</span>
+      </div>
+    </ng-template>
+  </section>
 </div>

@@ -1,137 +1,148 @@
-<div class="panel panel__body">
-
-  <div class="d-flex justify-content-between align-items-start mb-4">
-    <div>
-      <h1 class="page-head__title mb-1">Usuarios</h1>
-    </div>
-
-    <span *ngIf="totalPendientes > 0" class="badge text-bg-warning">
+<div class="page">
+  <div class="page-head">
+    <h1 class="page-head__title">Usuarios</h1>
+    <span *ngIf="totalPendientes > 0" class="chip chip--warn">
+      <i class="bi bi-hourglass-split"></i>
       {{ totalPendientes }} pendiente{{ totalPendientes === 1 ? '' : 's' }} de activación
     </span>
   </div>
 
   <!-- ------------------------------------------------------------- formulario -->
-  <fieldset class="border rounded p-3 mb-4">
-    <legend class="float-none w-auto px-2 fs-6 text-muted">
-      {{ form.id ? 'Editar cuenta: ' + form.usuario : 'Nueva cuenta' }}
-    </legend>
+  <section class="panel">
+    <div class="panel__head">
+      <h2 class="panel__title">
+        {{ form.id ? 'Editar cuenta' : 'Nueva cuenta' }}
+        <span *ngIf="form.id" class="mono text-secondary fw-normal ms-1">{{ form.usuario }}</span>
+      </h2>
+    </div>
+    <div class="panel__body">
+      <div class="row g-3 mb-3">
+        <div class="col-md-3">
+          <label for="usr-nombres" class="form-label">Nombres</label>
+          <input id="usr-nombres" class="form-control" [(ngModel)]="form.nombres" autocomplete="off" />
+        </div>
+        <div class="col-md-3">
+          <label for="usr-apellidos" class="form-label">Apellidos</label>
+          <input id="usr-apellidos" class="form-control" [(ngModel)]="form.apellidos" autocomplete="off" />
+        </div>
+        <div class="col-md-4">
+          <label for="usr-correo" class="form-label">Correo</label>
+          <input id="usr-correo" class="form-control" type="email" [(ngModel)]="form.correo" autocomplete="off" />
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="estadoNuevo" [(ngModel)]="form.estado" />
+            <label class="form-check-label" for="estadoNuevo">Activa</label>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <label for="usr-usuario" class="form-label">Usuario</label>
+          <!-- El identificador de acceso no se puede cambiar: el backend no lo
+               actualiza y es el `sub` de los tokens ya emitidos. -->
+          <input id="usr-usuario" class="form-control" [(ngModel)]="form.usuario" [disabled]="!!form.id"
+                 autocomplete="off" autocapitalize="none" spellcheck="false" />
+        </div>
+        <div class="col-md-3">
+          <label for="usr-contrasenia" class="form-label">Contraseña</label>
+          <input id="usr-contrasenia" class="form-control" type="password" [(ngModel)]="form.contrasenia"
+                 autocomplete="new-password" />
+          <div *ngIf="form.id" class="form-text">En blanco, no se cambia.</div>
+        </div>
+      </div>
 
-    <div class="row g-2 mb-2">
-      <div class="col-md-3">
-        <input class="form-control" placeholder="Nombres" [(ngModel)]="form.nombres" />
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-success" (click)="guardar()">
+          {{ form.id ? 'Guardar cambios' : 'Crear cuenta' }}
+        </button>
+        <button type="button" class="btn btn-outline-secondary" (click)="limpiar()">
+          {{ form.id ? 'Cancelar' : 'Limpiar' }}
+        </button>
       </div>
-      <div class="col-md-3">
-        <input class="form-control" placeholder="Apellidos" [(ngModel)]="form.apellidos" />
-      </div>
-      <div class="col-md-4">
-        <input class="form-control" type="email" placeholder="Correo" [(ngModel)]="form.correo" />
-      </div>
-      <div class="col-md-2">
-        <div class="form-check form-switch mt-2">
-          <input class="form-check-input" type="checkbox" id="estadoNuevo" [(ngModel)]="form.estado" />
-          <label class="form-check-label small" for="estadoNuevo">Activa</label>
+
+      <div *ngIf="mensaje" class="alert-inline alert-inline--ok mt-3 mb-0">{{ mensaje }}</div>
+      <div *ngIf="error" class="alert-inline mt-3 mb-0">{{ error }}</div>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------------- listado -->
+  <section class="panel">
+    <div class="panel__head">
+      <h2 class="panel__title">Cuentas</h2>
+      <button type="button" class="btn btn-sm btn-outline-secondary" [disabled]="loading" (click)="listar()">
+        <i class="bi bi-arrow-clockwise me-1"></i>Refrescar
+      </button>
+    </div>
+    <div class="panel__body">
+      <div class="row g-2">
+        <div class="col-md-8">
+          <label for="usr-buscar" class="form-label">Buscar</label>
+          <input id="usr-buscar" class="form-control" type="search" placeholder="Nombre, usuario o correo"
+                 [(ngModel)]="busqueda" />
+        </div>
+        <div class="col-md-4">
+          <label for="usr-filtro" class="form-label">Estado</label>
+          <select id="usr-filtro" class="form-select" [(ngModel)]="filtroEstado">
+            <option value="todos">Todas las cuentas</option>
+            <option value="activos">Solo activas</option>
+            <option value="inactivos">Solo inactivas</option>
+            <option value="pendientes">Pendientes de activación</option>
+          </select>
         </div>
       </div>
     </div>
 
-    <div class="row g-2 mb-3">
-      <div class="col-md-3">
-        <!-- El identificador de acceso no se puede cambiar: el backend no lo
-             actualiza y es el `sub` de los tokens ya emitidos. -->
-        <input class="form-control" placeholder="Usuario" [(ngModel)]="form.usuario"
-               [disabled]="!!form.id" />
-      </div>
-      <div class="col-md-3">
-        <input class="form-control" type="password" [(ngModel)]="form.contrasenia"
-               [placeholder]="form.id ? 'Contraseña (en blanco = no cambiar)' : 'Contraseña'" />
-      </div>
-    </div>
-
-    <button class="btn btn-success me-2" (click)="guardar()">
-      {{ form.id ? 'Actualizar' : 'Crear' }}
-    </button>
-    <button class="btn btn-secondary" (click)="limpiar()">Limpiar</button>
-
-  </fieldset>
-
-  <div *ngIf="mensaje" class="alert-inline alert-inline--ok">{{ mensaje }}</div>
-  <div *ngIf="error" class="alert-inline">{{ error }}</div>
-
-  <!-- ---------------------------------------------------------------- filtros -->
-  <div class="row g-2 mb-3">
-    <div class="col-md-6">
-      <input class="form-control" placeholder="Buscar por nombre, usuario o correo"
-             [(ngModel)]="busqueda" />
-    </div>
-    <div class="col-md-4">
-      <select class="form-select" [(ngModel)]="filtroEstado">
-        <option value="todos">Todas las cuentas</option>
-        <option value="activos">Solo activas</option>
-        <option value="inactivos">Solo inactivas</option>
-        <option value="pendientes">Pendientes de activación</option>
-      </select>
-    </div>
-    <div class="col-md-2">
-      <button class="btn btn-outline-primary w-100" [disabled]="loading" (click)="listar()">
-        Refrescar
-      </button>
-    </div>
-  </div>
-
-  <!-- ---------------------------------------------------------------- listado -->
-  <div class="table-scroll" *ngIf="usuariosFiltrados.length > 0; else vacio">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Usuario</th>
-          <th>Correo</th>
-          <th>Roles</th>
-          <th>Estado</th>
-          <th class="text-end">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <ng-container *ngFor="let u of usuariosFiltrados">
+    <div class="table-scroll" *ngIf="usuariosFiltrados.length > 0; else vacio">
+      <table class="data-table">
+        <thead>
           <tr>
-            <td>
-              {{ u.nombres }} {{ u.apellidos }}
-              <span *ngIf="esUsuarioActual(u)" class="badge text-bg-light border ms-1">tú</span>
-            </td>
-            <td><code>{{ u.usuario }}</code></td>
-            <td class="small">{{ u.correo }}</td>
-            <td>
-              <span *ngFor="let r of u.roles" class="badge text-bg-secondary me-1">{{ r }}</span>
-              <span *ngIf="(u.roles?.length ?? 0) === 0" class="text-muted small">sin roles</span>
-            </td>
-            <td>
-              <span class="badge" [class.text-bg-success]="u.estado" [class.text-bg-danger]="!u.estado">
-                {{ u.estado ? 'Activa' : 'Inactiva' }}
-              </span>
-            </td>
-            <td class="text-end text-nowrap">
-              <button class="btn btn-sm btn-outline-secondary me-1" (click)="editar(u)">
-                Editar
-              </button>
-              <button class="btn btn-sm btn-outline-primary me-1" (click)="abrirRoles(u)">
-                Roles
-              </button>
-              <!-- Desactivarse a uno mismo lo rechaza el backend; no se ofrece. -->
-              <button *ngIf="u.estado && !esUsuarioActual(u)"
-                      class="btn btn-sm btn-outline-danger" (click)="cambiarEstado(u, false)">
-                Desactivar
-              </button>
-              <button *ngIf="!u.estado"
-                      class="btn btn-sm btn-outline-success" (click)="cambiarEstado(u, true)">
-                Activar
-              </button>
-            </td>
+            <th>Nombre</th>
+            <th>Usuario</th>
+            <th>Correo</th>
+            <th>Roles</th>
+            <th>Estado</th>
+            <th class="text-end">Acciones</th>
           </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let u of usuariosFiltrados">
+            <tr>
+              <td class="text-nowrap">
+                {{ u.nombres }} {{ u.apellidos }}
+                <span *ngIf="esUsuarioActual(u)" class="chip ms-1">tú</span>
+              </td>
+              <td class="mono">{{ u.usuario }}</td>
+              <td class="small">{{ u.correo }}</td>
+              <td>
+                <span *ngFor="let r of u.roles" class="chip me-1 mb-1">{{ r }}</span>
+                <span *ngIf="(u.roles?.length ?? 0) === 0" class="text-secondary small">sin roles</span>
+              </td>
+              <td>
+                <span class="chip" [class.chip--ok]="u.estado" [class.chip--danger]="!u.estado">
+                  {{ u.estado ? 'Activa' : 'Inactiva' }}
+                </span>
+              </td>
+              <td class="text-end text-nowrap">
+                <button type="button" class="btn btn-sm btn-outline-secondary me-1" (click)="editar(u)">
+                  Editar
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary me-1" (click)="abrirRoles(u)">
+                  Roles
+                </button>
+                <!-- Desactivarse a uno mismo lo rechaza el backend; no se ofrece. -->
+                <button type="button" *ngIf="u.estado && !esUsuarioActual(u)"
+                        class="btn btn-sm btn-outline-danger" (click)="cambiarEstado(u, false)">
+                  Desactivar
+                </button>
+                <button type="button" *ngIf="!u.estado"
+                        class="btn btn-sm btn-outline-success" (click)="cambiarEstado(u, true)">
+                  Activar
+                </button>
+              </td>
+            </tr>
 
-          <!-- Editor de roles, desplegado bajo su propia fila -->
-          <tr *ngIf="editandoRolesDe?.id === u.id">
-            <td colspan="6" class="bg-light">
-              <div class="p-2">
+            <!-- Editor de roles, desplegado bajo su propia fila -->
+            <tr *ngIf="editandoRolesDe?.id === u.id" class="fila-roles">
+              <td colspan="6">
                 <p class="fw-semibold mb-2">
                   Roles de {{ u.nombres }} {{ u.apellidos }}
                 </p>
@@ -142,31 +153,29 @@
                          [checked]="tieneRolSeleccionado(r.codigo)"
                          (change)="alternarRol(r.codigo)" />
                   <label class="form-check-label" [for]="'rol-' + u.id + '-' + r.codigo">
-                    {{ r.nombre }} <span class="text-muted small">({{ r.codigo }})</span>
+                    {{ r.nombre }} <span class="mono text-secondary small">{{ r.codigo }}</span>
                   </label>
                 </div>
 
-                <div class="mt-3">
-                  <button class="btn btn-sm btn-success me-2" (click)="guardarRoles()">
+                <div class="mt-3 d-flex gap-2">
+                  <button type="button" class="btn btn-sm btn-success" (click)="guardarRoles()">
                     Guardar roles
                   </button>
-                  <button class="btn btn-sm btn-secondary" (click)="cerrarRoles()">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cerrarRoles()">
                     Cancelar
                   </button>
                 </div>
-
-              </div>
-            </td>
-          </tr>
-        </ng-container>
-      </tbody>
-    </table>
-  </div>
-
-  <ng-template #vacio>
-    <div class="empty-state">
-      No hay cuentas que coincidan con el filtro.
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
     </div>
-  </ng-template>
 
+    <ng-template #vacio>
+      <div class="empty-state">
+        No hay cuentas que coincidan con el filtro.
+      </div>
+    </ng-template>
+  </section>
 </div>

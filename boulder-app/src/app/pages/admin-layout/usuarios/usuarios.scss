@@ -1,6 +1,7 @@
 // Los estilos generales del panel viven en admin-layout.scss.
-// Aquí solo lo específico de la pantalla de usuarios.
+// Aqui solo lo especifico de la pantalla de usuarios.
 
-code {
-  color: inherit;
+.fila-roles td {
+  background: var(--bo-surface-2);
+  padding: 1rem 1.25rem;
 }
