@@ -5,3 +5,18 @@
   background: var(--bo-surface-2);
   padding: 1rem 1.25rem;
 }
+
+.fila-roles fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* El aviso de pendientes es también un atajo al filtro. */
+.chip--boton {
+  border: 0;
+  cursor: pointer;
+
+  &:hover { filter: brightness(0.96); }
+  &:focus-visible { outline: 2px solid var(--bo-warn); outline-offset: 2px; }
+}

@@ -1,14 +1,19 @@
 <div class="page">
   <div class="page-head">
     <h1 class="page-head__title">Usuarios</h1>
-    <span *ngIf="totalPendientes > 0" class="chip chip--warn">
-      <i class="bi bi-hourglass-split"></i>
+    <button *ngIf="totalPendientes > 0" type="button" class="chip chip--warn chip--boton" (click)="verPendientes()">
+      <i class="bi bi-hourglass-split" aria-hidden="true"></i>
       {{ totalPendientes }} pendiente{{ totalPendientes === 1 ? '' : 's' }} de activación
-    </span>
+    </button>
   </div>
 
+  <!-- Avisos arriba de todo: las acciones de la tabla (activar, roles) los
+       disparan desde lejos y tienen que verse sin desplazarse. -->
+  <div *ngIf="mensaje" class="alert-inline alert-inline--ok" role="status">{{ mensaje }}</div>
+  <div *ngIf="error" class="alert-inline" role="alert">{{ error }}</div>
+
   <!-- ------------------------------------------------------------- formulario -->
-  <section class="panel">
+  <section class="panel" id="usr-formulario">
     <div class="panel__head">
       <h2 class="panel__title">
         {{ form.id ? 'Editar cuenta' : 'Nueva cuenta' }}
@@ -19,15 +24,15 @@
       <div class="row g-3 mb-3">
         <div class="col-md-3">
           <label for="usr-nombres" class="form-label">Nombres</label>
-          <input id="usr-nombres" class="form-control" [(ngModel)]="form.nombres" autocomplete="off" />
+          <input id="usr-nombres" class="form-control" [(ngModel)]="form.nombres" autocomplete="off" required />
         </div>
         <div class="col-md-3">
           <label for="usr-apellidos" class="form-label">Apellidos</label>
-          <input id="usr-apellidos" class="form-control" [(ngModel)]="form.apellidos" autocomplete="off" />
+          <input id="usr-apellidos" class="form-control" [(ngModel)]="form.apellidos" autocomplete="off" required />
         </div>
         <div class="col-md-4">
           <label for="usr-correo" class="form-label">Correo</label>
-          <input id="usr-correo" class="form-control" type="email" [(ngModel)]="form.correo" autocomplete="off" />
+          <input id="usr-correo" class="form-control" type="email" [(ngModel)]="form.correo" autocomplete="off" required />
         </div>
         <div class="col-md-2 d-flex align-items-end">
           <div class="form-check form-switch mb-2">
@@ -40,13 +45,18 @@
           <!-- El identificador de acceso no se puede cambiar: el backend no lo
                actualiza y es el `sub` de los tokens ya emitidos. -->
           <input id="usr-usuario" class="form-control" [(ngModel)]="form.usuario" [disabled]="!!form.id"
-                 autocomplete="off" autocapitalize="none" spellcheck="false" />
+                 autocomplete="off" autocapitalize="none" spellcheck="false" required aria-describedby="usr-usuario-ayuda" />
+          <div id="usr-usuario-ayuda" class="form-text">
+            {{ form.id ? 'No se puede cambiar.' : 'Mínimo 4 caracteres.' }}
+          </div>
         </div>
         <div class="col-md-3">
           <label for="usr-contrasenia" class="form-label">Contraseña</label>
           <input id="usr-contrasenia" class="form-control" type="password" [(ngModel)]="form.contrasenia"
-                 autocomplete="new-password" />
-          <div *ngIf="form.id" class="form-text">En blanco, no se cambia.</div>
+                 autocomplete="new-password" [required]="!form.id" aria-describedby="usr-contrasenia-ayuda" />
+          <div id="usr-contrasenia-ayuda" class="form-text">
+            {{ form.id ? 'En blanco, no se cambia.' : 'Mínimo 6 caracteres.' }}
+          </div>
         </div>
       </div>
 
@@ -58,16 +68,16 @@
           {{ form.id ? 'Cancelar' : 'Limpiar' }}
         </button>
       </div>
-
-      <div *ngIf="mensaje" class="alert-inline alert-inline--ok mt-3 mb-0">{{ mensaje }}</div>
-      <div *ngIf="error" class="alert-inline mt-3 mb-0">{{ error }}</div>
     </div>
   </section>
 
   <!-- ---------------------------------------------------------------- listado -->
-  <section class="panel">
+  <section class="panel" id="usr-listado">
     <div class="panel__head">
-      <h2 class="panel__title">Cuentas</h2>
+      <h2 class="panel__title">
+        Cuentas
+        <span class="text-secondary fw-normal small ms-1">{{ usuariosFiltrados.length }} de {{ usuarios.length }}</span>
+      </h2>
       <button type="button" class="btn btn-sm btn-outline-secondary" [disabled]="loading" (click)="listar()">
         <i class="bi bi-arrow-clockwise me-1"></i>Refrescar
       </button>
@@ -95,9 +105,7 @@
       <table class="data-table">
         <thead>
           <tr>
-            <th>Nombre</th>
-            <th>Usuario</th>
-            <th>Correo</th>
+            <th>Cuenta</th>
             <th>Roles</th>
             <th>Estado</th>
             <th class="text-end">Acciones</th>
@@ -106,15 +114,18 @@
         <tbody>
           <ng-container *ngFor="let u of usuariosFiltrados">
             <tr>
-              <td class="text-nowrap">
-                {{ u.nombres }} {{ u.apellidos }}
-                <span *ngIf="esUsuarioActual(u)" class="chip ms-1">tú</span>
+              <td>
+                <div class="fw-semibold">
+                  {{ u.nombres }} {{ u.apellidos }}
+                  <span *ngIf="esUsuarioActual(u)" class="chip ms-1">tú</span>
+                </div>
+                <div class="small text-secondary">
+                  <span class="mono">{{ u.usuario }}</span> · {{ u.correo }}
+                </div>
               </td>
-              <td class="mono">{{ u.usuario }}</td>
-              <td class="small">{{ u.correo }}</td>
               <td>
                 <span *ngFor="let r of u.roles" class="chip me-1 mb-1">{{ r }}</span>
-                <span *ngIf="(u.roles?.length ?? 0) === 0" class="text-secondary small">sin roles</span>
+                <span *ngIf="(u.roles?.length ?? 0) === 0" class="text-secondary small">Sin roles</span>
               </td>
               <td>
                 <span class="chip" [class.chip--ok]="u.estado" [class.chip--danger]="!u.estado">
@@ -125,7 +136,8 @@
                 <button type="button" class="btn btn-sm btn-outline-secondary me-1" (click)="editar(u)">
                   Editar
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-primary me-1" (click)="abrirRoles(u)">
+                <button type="button" class="btn btn-sm btn-outline-primary me-1" (click)="abrirRoles(u)"
+                        [attr.aria-expanded]="editandoRolesDe?.id === u.id">
                   Roles
                 </button>
                 <!-- Desactivarse a uno mismo lo rechaza el backend; no se ofrece. -->
@@ -142,20 +154,21 @@
 
             <!-- Editor de roles, desplegado bajo su propia fila -->
             <tr *ngIf="editandoRolesDe?.id === u.id" class="fila-roles">
-              <td colspan="6">
-                <p class="fw-semibold mb-2">
-                  Roles de {{ u.nombres }} {{ u.apellidos }}
-                </p>
+              <td colspan="4">
+                <fieldset>
+                  <legend class="fs-6 fw-semibold mb-2">Roles de {{ u.nombres }} {{ u.apellidos }}</legend>
 
-                <div class="form-check form-check-inline" *ngFor="let r of roles">
-                  <input class="form-check-input" type="checkbox"
-                         [id]="'rol-' + u.id + '-' + r.codigo"
-                         [checked]="tieneRolSeleccionado(r.codigo)"
-                         (change)="alternarRol(r.codigo)" />
-                  <label class="form-check-label" [for]="'rol-' + u.id + '-' + r.codigo">
-                    {{ r.nombre }} <span class="mono text-secondary small">{{ r.codigo }}</span>
-                  </label>
-                </div>
+                  <div class="form-check form-check-inline" *ngFor="let r of roles">
+                    <input class="form-check-input" type="checkbox"
+                           [id]="'rol-' + u.id + '-' + r.codigo"
+                           [checked]="tieneRolSeleccionado(r.codigo)"
+                           (change)="alternarRol(r.codigo)" />
+                    <label class="form-check-label" [for]="'rol-' + u.id + '-' + r.codigo">
+                      {{ r.nombre }} <span class="mono text-secondary small">{{ r.codigo }}</span>
+                    </label>
+                  </div>
+                  <p class="form-text mb-0 mt-1">El cambio rige desde el próximo inicio de sesión de la persona.</p>
+                </fieldset>
 
                 <div class="mt-3 d-flex gap-2">
                   <button type="button" class="btn btn-sm btn-success" (click)="guardarRoles()">
@@ -174,7 +187,12 @@
 
     <ng-template #vacio>
       <div class="empty-state">
-        No hay cuentas que coincidan con el filtro.
+        <ng-container *ngIf="loading; else sinCoincidencias">Cargando cuentas…</ng-container>
+        <ng-template #sinCoincidencias>
+          No hay cuentas que coincidan con el filtro.
+          <button *ngIf="busqueda || filtroEstado !== 'todos'" type="button" class="btn btn-link btn-sm p-0 ms-1 align-baseline"
+                  (click)="busqueda = ''; filtroEstado = 'todos'">Ver todas</button>
+        </ng-template>
       </div>
     </ng-template>
   </section>

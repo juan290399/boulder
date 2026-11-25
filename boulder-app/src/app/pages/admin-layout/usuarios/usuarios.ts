@@ -44,7 +44,8 @@ export class Usuarios implements OnInit {
   busqueda = '';
   filtroEstado: FiltroEstado = 'todos';
 
-  loading = false;
+  /** Arranca en true: el listado se pide en ngOnInit y así el primer render ya muestra «Cargando». */
+  loading = true;
   mensaje = '';
   error = '';
 
@@ -145,6 +146,17 @@ export class Usuarios implements OnInit {
     this.form = { ...u, contrasenia: '' };
     this.limpiarAvisos();
     this.cdr.detectChanges();
+    // El formulario está arriba y el botón Editar puede quedar lejos, al final
+    // de la tabla: se lleva la vista al formulario y el foco al primer campo.
+    document.getElementById('usr-formulario')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('usr-nombres')?.focus({ preventScroll: true });
+  }
+
+  verPendientes(): void {
+    this.filtroEstado = 'pendientes';
+    this.busqueda = '';
+    this.cdr.detectChanges();
+    document.getElementById('usr-listado')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   limpiar(): void {
@@ -233,7 +245,11 @@ export class Usuarios implements OnInit {
       if (err.status === 403) {
         detalle = 'No tienes permiso para esta operación.';
       } else {
-        detalle = err.error?.errores ?? err.error?.message ?? '';
+        // `errores` llega como mapa campo -> mensaje cuando falla @Valid.
+        const errores = err.error?.errores;
+        detalle = errores && typeof errores === 'object'
+          ? Object.values(errores as Record<string, string>).join(' · ')
+          : (errores ?? err.error?.message ?? '');
       }
     }
 
