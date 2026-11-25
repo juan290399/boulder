@@ -125,7 +125,12 @@
                 </button>
               </td>
 
-              <td class="num">{{ fila.etapas[0].profundidad | number:'1.0-2' }} m</td>
+              <td class="num">
+                {{ fila.etapas[0].profundidad | number:'1.0-2' }} m
+                <div class="text-muted small text-nowrap">
+                  {{ fila.fechaFin ? 'fin ' + fila.fechaFin : 'en perforación' }}
+                </div>
+              </td>
 
               <td class="num">
                 {{ fila.profundidadFinal | number:'1.0-1' }} m
