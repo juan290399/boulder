@@ -150,9 +150,11 @@ export class AuthService {
 
     try {
       const payloadBase64 = token.split('.')[1];
-      // El payload viene en base64url: hay que normalizarlo antes de atob().
+      // El payload viene en base64url y en UTF-8: atob() devuelve bytes, que se
+      // decodifican aparte para no romper las tildes de los nombres.
       const normalized = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
-      return JSON.parse(atob(normalized));
+      const bytes = Uint8Array.from(atob(normalized), c => c.charCodeAt(0));
+      return JSON.parse(new TextDecoder().decode(bytes));
     } catch (error) {
       console.error('Error parseando JWT:', error);
       return null;
