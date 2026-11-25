@@ -37,14 +37,23 @@ export class Empresa implements OnInit {
   error = '';
   /** El listado muestra el resultado de una búsqueda, no todas las empresas. */
   filtrado = false;
+  /** Explicación del listado vacío tras una búsqueda sin coincidencias. */
+  sinCoincidencias = '';
 
   ngOnInit(): void {
+    this.listar();
+  }
+
+  /** Botón «Refrescar / Ver todos»: además de recargar, quita los avisos de la búsqueda. */
+  verTodos(): void {
+    this.limpiarAvisos();
     this.listar();
   }
 
   listar(): void {
     this.loading = true;
     this.filtrado = false;
+    this.sinCoincidencias = '';
     this.busquedaRuc = '';
     this.busquedaId = '';
     this.service.listar().subscribe({
@@ -73,7 +82,7 @@ export class Empresa implements OnInit {
     this.loading = true;
     this.service.obtenerPorRuc(this.busquedaRuc.trim()).subscribe({
       next: (e) => { this.filtrado = true; this.setLista(e ? [e] : []); },
-      error: (err) => this.sinResultados(err, `No hay ninguna empresa con el RUC ${this.busquedaRuc.trim()}`),
+      error: (err) => this.sinResultados(err, `No hay ninguna empresa con el RUC ${this.busquedaRuc.trim()}.`),
     });
   }
 
@@ -82,7 +91,7 @@ export class Empresa implements OnInit {
     this.loading = true;
     this.service.obtenerPorId(this.busquedaId.trim()).subscribe({
       next: (e) => { this.filtrado = true; this.setLista(e ? [e] : []); },
-      error: (err) => this.sinResultados(err, 'No hay ninguna empresa con ese ID'),
+      error: (err) => this.sinResultados(err, 'No hay ninguna empresa con ese ID.'),
     });
   }
 
@@ -114,8 +123,8 @@ export class Empresa implements OnInit {
   private sinResultados(err: unknown, texto: string): void {
     if (err instanceof HttpErrorResponse && err.status === 404) {
       this.filtrado = true;
+      this.sinCoincidencias = texto;
       this.setLista([]);
-      this.mensaje = texto;
       return;
     }
     this.fallo('No se pudo hacer la búsqueda', err);

@@ -63,7 +63,7 @@
         Proyectos registrados
         <span class="text-secondary fw-normal small ms-1">{{ proyectos.length }}</span>
       </h2>
-      <button type="button" class="btn btn-sm btn-outline-secondary" [disabled]="loading" (click)="listar()">
+      <button type="button" class="btn btn-sm btn-outline-secondary" [disabled]="loading" (click)="verTodos()">
         <i class="bi bi-arrow-clockwise me-1"></i>{{ filtrado ? 'Ver todos' : 'Refrescar' }}
       </button>
     </div>
@@ -112,7 +112,7 @@
     <ng-template #vacio>
       <div class="empty-state">
         <span *ngIf="loading">Cargando proyectos…</span>
-        <span *ngIf="!loading && filtrado">Sin resultados. <button type="button" class="btn btn-link btn-sm p-0 align-baseline" (click)="listar()">Ver todos</button></span>
+        <span *ngIf="!loading && filtrado">{{ sinCoincidencias || 'Sin resultados.' }} <button type="button" class="btn btn-link btn-sm p-0 align-baseline" (click)="verTodos()">Ver todos</button></span>
         <span *ngIf="!loading && !filtrado">Aún no hay proyectos registrados.</span>
       </div>
     </ng-template>

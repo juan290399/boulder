@@ -48,6 +48,8 @@ export class Proyecto implements OnInit {
   error = '';
   /** El listado muestra el resultado de una búsqueda, no todos los proyectos. */
   filtrado = false;
+  /** Explicación del listado vacío tras una búsqueda sin coincidencias. */
+  sinCoincidencias = '';
 
   ngOnInit(): void {
     this.empresaService.listar().subscribe({
@@ -60,9 +62,16 @@ export class Proyecto implements OnInit {
     this.listar();
   }
 
+  /** Botón «Refrescar / Ver todos»: además de recargar, quita los avisos de la búsqueda. */
+  verTodos(): void {
+    this.limpiarAvisos();
+    this.listar();
+  }
+
   listar(): void {
     this.loading = true;
     this.filtrado = false;
+    this.sinCoincidencias = '';
     this.busquedaCodigo = '';
     this.busquedaId = '';
     this.service.listar().subscribe({
@@ -95,7 +104,7 @@ export class Proyecto implements OnInit {
     this.limpiarAvisos();
     this.service.obtenerPorCodigo(codigo).subscribe({
       next: (p) => { this.filtrado = true; this.setLista(p ? [p] : []); },
-      error: (err) => this.sinResultados(err, `No hay ningún proyecto con el código ${codigo}`),
+      error: (err) => this.sinResultados(err, `No hay ningún proyecto con el código ${codigo}.`),
     });
   }
 
@@ -105,7 +114,7 @@ export class Proyecto implements OnInit {
     this.limpiarAvisos();
     this.service.obtenerPorId(this.busquedaId.trim()).subscribe({
       next: (p) => { this.filtrado = true; this.setLista(p ? [p] : []); },
-      error: (err) => this.sinResultados(err, 'No hay ningún proyecto con ese ID'),
+      error: (err) => this.sinResultados(err, 'No hay ningún proyecto con ese ID.'),
     });
   }
 
@@ -145,8 +154,8 @@ export class Proyecto implements OnInit {
   private sinResultados(err: unknown, texto: string): void {
     if (err instanceof HttpErrorResponse && err.status === 404) {
       this.filtrado = true;
+      this.sinCoincidencias = texto;
       this.setLista([]);
-      this.mensaje = texto;
       return;
     }
     this.fallo('No se pudo hacer la búsqueda', err);
