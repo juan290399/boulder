@@ -92,10 +92,55 @@ class UsuarioServiceTest {
 
     private static UsuarioDTO alta(String usuario, String correo) {
         UsuarioDTO dto = new UsuarioDTO();
+        dto.setNombres("Nombre");
+        dto.setApellidos("Apellido");
         dto.setUsuario(usuario);
         dto.setCorreo(correo);
         dto.setContrasenia("Clave2026");
         return dto;
+    }
+
+    @Test
+    @DisplayName("El alta de un administrador rechaza una cuenta sin datos y no la guarda")
+    void altaSinDatos() {
+        UsuarioDTO vacio = new UsuarioDTO();
+        vacio.setNombres("");
+        vacio.setApellidos(" ");
+        vacio.setCorreo("");
+        vacio.setUsuario("");
+        vacio.setContrasenia("");
+
+        assertThatThrownBy(() -> servicio.guardar(vacio))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("nombres").hasMessageContaining("usuario").hasMessageContaining("contraseña");
+        verify(usuarios, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("El alta rechaza un correo sin formato, un usuario corto y una contraseña corta")
+    void altaConFormatoInvalido() {
+        UsuarioDTO dto = alta("ab", "no-es-correo");
+        dto.setContrasenia("123");
+
+        assertThatThrownBy(() -> servicio.guardar(dto))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("correo").hasMessageContaining("4").hasMessageContaining("6");
+        verify(usuarios, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Editar una cuenta rechaza dejar vacíos los datos personales o una contraseña nueva corta")
+    void actualizarSinDatos() {
+        UsuarioDTO dto = new UsuarioDTO();
+        dto.setNombres("");
+        dto.setApellidos("Apellido");
+        dto.setCorreo("carlos@boulder.pe");
+        dto.setContrasenia("12");
+
+        assertThatThrownBy(() -> servicio.actualizar(carlos.getId(), dto))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("nombres").hasMessageContaining("6");
+        verify(usuarios, never()).saveAndFlush(any());
     }
 
     @Test
@@ -199,6 +244,8 @@ class UsuarioServiceTest {
         carlos.setContrasenia("{bcrypt}vieja");
         UsuarioDTO dto = new UsuarioDTO();
         dto.setNombres("Carlos");
+        dto.setApellidos("Rojas");
+        dto.setCorreo("carlos@boulder.pe");
         dto.setContrasenia("   ");
 
         servicio.actualizar(carlos.getId(), dto);
