@@ -49,7 +49,8 @@ export class Empleados implements OnInit {
   filtroArea = '';
   soloActivos = false;
 
-  loading = false;
+  /** Arranca en true: el listado se pide en ngOnInit. */
+  loading = true;
   mensaje = '';
   error = '';
 
@@ -140,6 +141,9 @@ export class Empleados implements OnInit {
     this.form = { ...e };
     this.limpiarAvisos();
     this.cdr.detectChanges();
+    // El formulario está arriba y el botón Editar puede quedar lejos en la tabla.
+    document.getElementById('emp-formulario')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('emp-codigo')?.focus({ preventScroll: true });
   }
 
   limpiar(): void {
@@ -177,7 +181,12 @@ export class Empleados implements OnInit {
       if (err.status === 403) {
         detalle = 'No tienes permiso para esta operación.';
       } else {
-        detalle = err.error?.errores ?? err.error?.message ?? '';
+        // `errores` llega como mapa campo -> mensaje o como texto «campo: mensaje; ...»;
+        // al usuario le basta el mensaje.
+        const errores = err.error?.errores;
+        detalle = errores && typeof errores === 'object'
+          ? Object.values(errores as Record<string, string>).join(' · ')
+          : String(errores ?? err.error?.message ?? '').replace(/(^|; )\w+: /g, '$1').replace(/; (\p{Lu})/gu, (_m: string, c: string) => '; ' + c.toLowerCase());
       }
     }
 
