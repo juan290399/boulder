@@ -3,35 +3,44 @@
     <h1 class="page-head__title">Empresas</h1>
   </div>
 
-  <section class="panel">
+  <div *ngIf="mensaje" class="alert-inline alert-inline--ok" role="status">{{ mensaje }}</div>
+  <div *ngIf="error" class="alert-inline" role="alert">{{ error }}</div>
+
+  <section class="panel" id="emp-formulario">
     <div class="panel__head">
-      <h2 class="panel__title">{{ form.id ? 'Editar empresa' : 'Nueva empresa' }}</h2>
+      <h2 class="panel__title">
+        {{ form.id ? 'Editar empresa' : 'Nueva empresa' }}
+        <span *ngIf="form.id" class="mono text-secondary fw-normal ms-1">{{ form.codigo }}</span>
+      </h2>
     </div>
     <div class="panel__body">
       <div class="row g-3 mb-3">
         <div class="col-md-2">
           <label for="emp-codigo" class="form-label">Código</label>
-          <input id="emp-codigo" class="form-control" [(ngModel)]="form.codigo" />
+          <input id="emp-codigo" class="form-control mono" [(ngModel)]="form.codigo" maxlength="50" required
+                 autocapitalize="characters" spellcheck="false" />
         </div>
         <div class="col-md-4">
           <label for="emp-nombre" class="form-label">Razón social</label>
-          <input id="emp-nombre" class="form-control" [(ngModel)]="form.nombre" />
+          <input id="emp-nombre" class="form-control" [(ngModel)]="form.nombre" maxlength="100" required />
         </div>
         <div class="col-md-2">
           <label for="emp-ruc" class="form-label">RUC</label>
-          <input id="emp-ruc" class="form-control" inputmode="numeric" [(ngModel)]="form.ruc" />
+          <input id="emp-ruc" class="form-control mono" inputmode="numeric" maxlength="11" pattern="\d{11}" required
+                 [(ngModel)]="form.ruc" aria-describedby="emp-ruc-ayuda" />
+          <div id="emp-ruc-ayuda" class="form-text">11 dígitos.</div>
         </div>
         <div class="col-md-4">
-          <label for="emp-direccion" class="form-label">Dirección</label>
+          <label for="emp-direccion" class="form-label">Dirección <span class="text-secondary fw-normal">(opcional)</span></label>
           <input id="emp-direccion" class="form-control" [(ngModel)]="form.direccion" />
         </div>
         <div class="col-md-3">
-          <label for="emp-telefono" class="form-label">Teléfono</label>
-          <input id="emp-telefono" class="form-control" type="tel" [(ngModel)]="form.telefono" />
+          <label for="emp-telefono" class="form-label">Teléfono <span class="text-secondary fw-normal">(opcional)</span></label>
+          <input id="emp-telefono" class="form-control" type="tel" [(ngModel)]="form.telefono" maxlength="50" />
         </div>
         <div class="col-md-4">
-          <label for="emp-correo" class="form-label">Correo</label>
-          <input id="emp-correo" class="form-control" type="email" [(ngModel)]="form.correo" />
+          <label for="emp-correo" class="form-label">Correo <span class="text-secondary fw-normal">(opcional)</span></label>
+          <input id="emp-correo" class="form-control" type="email" [(ngModel)]="form.correo" maxlength="100" />
         </div>
       </div>
 
@@ -43,16 +52,17 @@
           {{ form.id ? 'Cancelar' : 'Limpiar' }}
         </button>
       </div>
-
-      <div *ngIf="mensaje" class="alert-inline alert-inline--info mt-3 mb-0">{{ mensaje }}</div>
     </div>
   </section>
 
   <section class="panel">
     <div class="panel__head">
-      <h2 class="panel__title">Empresas registradas</h2>
+      <h2 class="panel__title">
+        Empresas registradas
+        <span class="text-secondary fw-normal small ms-1">{{ empresas.length }}</span>
+      </h2>
       <button type="button" class="btn btn-sm btn-outline-secondary" [disabled]="loading" (click)="listar()">
-        <i class="bi bi-arrow-clockwise me-1"></i>Refrescar
+        <i class="bi bi-arrow-clockwise me-1"></i>{{ filtrado ? 'Ver todas' : 'Refrescar' }}
       </button>
     </div>
     <div class="panel__body">
@@ -60,7 +70,7 @@
         <div class="col-md-6">
           <label for="emp-buscar-ruc" class="form-label">Buscar por RUC</label>
           <div class="input-group">
-            <input id="emp-buscar-ruc" class="form-control" inputmode="numeric" [(ngModel)]="busquedaRuc"
+            <input id="emp-buscar-ruc" class="form-control mono" inputmode="numeric" maxlength="11" [(ngModel)]="busquedaRuc"
                    (keyup.enter)="buscarPorRuc()" />
             <button type="button" class="btn btn-primary" (click)="buscarPorRuc()">Buscar</button>
           </div>
@@ -68,7 +78,7 @@
         <div class="col-md-6">
           <label for="emp-buscar-id" class="form-label">Buscar por ID</label>
           <div class="input-group">
-            <input id="emp-buscar-id" class="form-control" [(ngModel)]="busquedaId" (keyup.enter)="buscarPorId()" />
+            <input id="emp-buscar-id" class="form-control mono" [(ngModel)]="busquedaId" (keyup.enter)="buscarPorId()" />
             <button type="button" class="btn btn-outline-primary" (click)="buscarPorId()">Buscar</button>
           </div>
         </div>
@@ -79,15 +89,22 @@
       <table class="data-table">
         <thead>
           <tr>
-            <th>Código</th><th>Razón social</th><th>RUC</th><th>Dirección</th><th><span class="visually-hidden">Acciones</span></th>
+            <th>Empresa</th><th>RUC</th><th>Dirección</th><th>Contacto</th><th><span class="visually-hidden">Acciones</span></th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let e of empresas">
-            <td class="mono">{{ e.codigo }}</td>
-            <td>{{ e.nombre }}</td>
-            <td class="num">{{ e.ruc || '—' }}</td>
+            <td>
+              <div class="fw-semibold">{{ e.nombre }}</div>
+              <div class="mono small text-secondary">{{ e.codigo }}</div>
+            </td>
+            <td class="mono">{{ e.ruc || '—' }}</td>
             <td>{{ e.direccion || '—' }}</td>
+            <td class="small">
+              <div *ngIf="e.telefono">{{ e.telefono }}</div>
+              <div *ngIf="e.correo" class="text-secondary">{{ e.correo }}</div>
+              <span *ngIf="!e.telefono && !e.correo" class="text-secondary">—</span>
+            </td>
             <td class="text-end">
               <button type="button" class="btn btn-sm btn-outline-primary" (click)="editar(e)">Editar</button>
             </td>
@@ -97,7 +114,11 @@
     </div>
 
     <ng-template #vacio>
-      <div class="empty-state">No hay empresas para mostrar.</div>
+      <div class="empty-state">
+        <span *ngIf="loading">Cargando empresas…</span>
+        <span *ngIf="!loading && filtrado">Sin resultados. <button type="button" class="btn btn-link btn-sm p-0 align-baseline" (click)="listar()">Ver todas</button></span>
+        <span *ngIf="!loading && !filtrado">Aún no hay empresas registradas.</span>
+      </div>
     </ng-template>
   </section>
 </div>

@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { EmpresaService } from '../../../services/empresa.service';
 import { Empresa as EmpresaModel } from '../../../models/operacional';
@@ -30,8 +31,12 @@ export class Empresa implements OnInit {
 
   busquedaRuc = '';
   busquedaId = '';
-  loading = false;
+  /** Arranca en true: el listado se pide en ngOnInit. */
+  loading = true;
   mensaje = '';
+  error = '';
+  /** El listado muestra el resultado de una búsqueda, no todas las empresas. */
+  filtrado = false;
 
   ngOnInit(): void {
     this.listar();
@@ -39,6 +44,9 @@ export class Empresa implements OnInit {
 
   listar(): void {
     this.loading = true;
+    this.filtrado = false;
+    this.busquedaRuc = '';
+    this.busquedaId = '';
     this.service.listar().subscribe({
       next: (data) => this.setLista(data),
       error: (err) => this.fallo('No se pudo cargar el listado de empresas', err),
@@ -46,6 +54,7 @@ export class Empresa implements OnInit {
   }
 
   guardar(): void {
+    this.limpiarAvisos();
     const op$ = this.form.id
       ? this.service.actualizar(this.form.id, this.form)
       : this.service.crear(this.form);
@@ -63,8 +72,8 @@ export class Empresa implements OnInit {
     if (!this.busquedaRuc.trim()) return;
     this.loading = true;
     this.service.obtenerPorRuc(this.busquedaRuc.trim()).subscribe({
-      next: (e) => this.setLista(e ? [e] : []),
-      error: (err) => this.fallo('Sin resultados por RUC', err),
+      next: (e) => { this.filtrado = true; this.setLista(e ? [e] : []); },
+      error: (err) => this.sinResultados(err, `No hay ninguna empresa con el RUC ${this.busquedaRuc.trim()}`),
     });
   }
 
@@ -72,14 +81,17 @@ export class Empresa implements OnInit {
     if (!this.busquedaId.trim()) return;
     this.loading = true;
     this.service.obtenerPorId(this.busquedaId.trim()).subscribe({
-      next: (e) => this.setLista(e ? [e] : []),
-      error: (err) => this.fallo('Sin resultados por ID', err),
+      next: (e) => { this.filtrado = true; this.setLista(e ? [e] : []); },
+      error: (err) => this.sinResultados(err, 'No hay ninguna empresa con ese ID'),
     });
   }
 
   editar(empresa: EmpresaModel): void {
     this.form = { ...empresa };
+    this.limpiarAvisos();
     this.cdr.detectChanges();
+    document.getElementById('emp-formulario')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('emp-codigo')?.focus({ preventScroll: true });
   }
 
   limpiar(): void {
@@ -93,9 +105,35 @@ export class Empresa implements OnInit {
     this.cdr.detectChanges();
   }
 
+  private limpiarAvisos(): void {
+    this.mensaje = '';
+    this.error = '';
+  }
+
+  /** Un 404 de una búsqueda no es un error: es una lista vacía con su explicación. */
+  private sinResultados(err: unknown, texto: string): void {
+    if (err instanceof HttpErrorResponse && err.status === 404) {
+      this.filtrado = true;
+      this.setLista([]);
+      this.mensaje = texto;
+      return;
+    }
+    this.fallo('No se pudo hacer la búsqueda', err);
+  }
+
+  /** Prefiere el mensaje del servidor, que dice qué campo corregir. */
   private fallo(msg: string, err: unknown): void {
     console.error(msg, err);
-    this.mensaje = msg;
+    let detalle = '';
+    if (err instanceof HttpErrorResponse) {
+      const errores = err.error?.errores;
+      detalle = err.status === 403
+        ? 'No tienes permiso para esta operación.'
+        : errores && typeof errores === 'object'
+          ? Object.values(errores as Record<string, string>).join(' · ')
+          : (err.error?.message ?? '');
+    }
+    this.error = detalle ? `${msg}: ${detalle}` : msg;
     this.loading = false;
     this.cdr.detectChanges();
   }
