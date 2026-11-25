@@ -1,3 +1,4 @@
+import { presentacionRol } from '../../../models/roles';
 import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,13 +7,6 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 
 /** Etiquetas amigables por código de rol; los no listados se muestran tal cual. */
-/** Nombre, ícono (Bootstrap Icons) y alcance de cada rol en la pantalla de elección. */
-const ROLES: Record<string, { etiqueta: string; icono: string; detalle: string }> = {
-  ADMIN: { etiqueta: 'Administrador', icono: 'bi-shield-lock', detalle: 'Cuentas, roles y datos maestros.' },
-  GEOLOGO: { etiqueta: 'Geólogo', icono: 'bi-person-badge', detalle: 'Revisa los partes y mantiene los catálogos.' },
-  ASISTENTE_GEOLOGIA: { etiqueta: 'Asistente de geología', icono: 'bi-clipboard-check', detalle: 'Registra los partes del turno.' },
-  VISITANTE: { etiqueta: 'Visitante', icono: 'bi-eye', detalle: 'Consulta avances y reportes, sin editar.' },
-};
 
 @Component({
   selector: 'app-role-selection',
@@ -50,15 +44,15 @@ export class RoleSelection implements OnInit {
   }
 
   etiqueta(rol: string): string {
-    return ROLES[rol]?.etiqueta ?? rol;
+    return presentacionRol(rol).etiqueta;
   }
 
   icono(rol: string): string {
-    return ROLES[rol]?.icono ?? 'bi-person';
+    return presentacionRol(rol).icono;
   }
 
   detalle(rol: string): string {
-    return ROLES[rol]?.detalle ?? '';
+    return presentacionRol(rol).detalle;
   }
 
   onRoleSelected(): void {
