@@ -353,13 +353,6 @@ body {
   i { opacity: 1; }
 }
 
-.app-sidebar__link--disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-
-  &:hover { background: transparent; color: var(--bo-ink-invert-2); }
-}
-
 .app-sidebar__link--danger {
   color: #fca5a5;
 
