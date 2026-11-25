@@ -1,17 +1,6 @@
 // Los estilos generales del panel viven en admin-layout.scss.
 // Aqui solo lo especifico de la pantalla de usuarios.
 
-.fila-roles td {
-  background: var(--bo-surface-2);
-  padding: 1rem 1.25rem;
-}
-
-.fila-roles fieldset {
-  border: 0;
-  margin: 0;
-  padding: 0;
-}
-
 /* El aviso de pendientes es también un atajo al filtro. */
 .chip--boton {
   border: 0;

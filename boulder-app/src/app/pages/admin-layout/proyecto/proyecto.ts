@@ -6,7 +6,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ProyectoService } from '../../../services/proyecto.service';
 import { EmpresaService } from '../../../services/empresa.service';
 import { Proyecto as ProyectoModel, Empresa } from '../../../models/operacional';
-import { irA, mensajeDeError } from '../../../util/interfaz';
+import { mensajeDeError } from '../../../util/interfaz';
+import { Ficha } from '../../../components/ficha/ficha';
 
 const FORM_VACIO = (): ProyectoModel => ({
   empresaId: '',
@@ -23,10 +24,11 @@ export const ZONAS_UTM = [
   { srid: 32719, etiqueta: 'UTM 19S (32719)' },
 ];
 
+/** Proyectos: lista a pantalla completa; alta y edición en la ficha de la derecha. */
 @Component({
   selector: 'app-proyecto',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Ficha],
   templateUrl: './proyecto.html',
   styleUrl: './proyecto.scss',
 })
@@ -41,12 +43,20 @@ export class Proyecto implements OnInit {
   empresas: Empresa[] = [];
   form: ProyectoModel & { id?: string } = FORM_VACIO();
 
+  /** La ficha de alta o edición está abierta. */
+  fichaAbierta = false;
+  /** Filtro en vivo por nombre, código, empresa o ubicación. */
+  filtro = '';
   busquedaCodigo = '';
   busquedaId = '';
   /** Arranca en true: el listado se pide en ngOnInit. */
   loading = true;
+  guardando = false;
   mensaje = '';
+  /** Errores de la lista (carga, búsquedas). */
   error = '';
+  /** Errores del formulario: se muestran dentro de la ficha. */
+  errorFormulario = '';
   /** El listado muestra el resultado de una búsqueda, no todos los proyectos. */
   filtrado = false;
   /** Explicación del listado vacío tras una búsqueda sin coincidencias. */
@@ -66,6 +76,7 @@ export class Proyecto implements OnInit {
   /** Botón «Refrescar / Ver todos»: además de recargar, quita los avisos de la búsqueda. */
   verTodos(): void {
     this.limpiarAvisos();
+    this.filtro = '';
     this.listar();
   }
 
@@ -81,22 +92,69 @@ export class Proyecto implements OnInit {
     });
   }
 
-  guardar(): void {
+  /** Lista filtrada en el navegador: son pocos proyectos. */
+  get proyectosVisibles(): ProyectoModel[] {
+    const q = this.filtro.trim().toLowerCase();
+    return !q ? this.proyectos : this.proyectos.filter(p =>
+      [p.nombre, p.codigo, p.ubicacion, this.nombreEmpresa(p.empresaId)]
+        .some(v => (v ?? '').toLowerCase().includes(q)));
+  }
+
+  // ------------------------------------------------------------------ ficha
+
+  nuevo(): void {
+    this.form = FORM_VACIO();
+    this.abrirFicha();
+  }
+
+  editar(proyecto: ProyectoModel): void {
+    this.form = { ...proyecto };
+    this.abrirFicha();
+  }
+
+  cerrarFicha(): void {
+    this.fichaAbierta = false;
+    this.errorFormulario = '';
+    this.cdr.detectChanges();
+  }
+
+  private abrirFicha(): void {
     this.limpiarAvisos();
+    this.errorFormulario = '';
+    this.fichaAbierta = true;
+    this.cdr.detectChanges();
+  }
+
+  esSeleccionado(p: ProyectoModel & { id?: string }): boolean {
+    return this.fichaAbierta && !!this.form.id && p.id === this.form.id;
+  }
+
+  guardar(): void {
+    this.errorFormulario = '';
+    this.guardando = true;
+    const esEdicion = !!this.form.id;
     // Un select sin elegir deja '', que el servidor no puede leer como UUID.
     const cuerpo = { ...this.form, empresaId: this.form.empresaId || null } as ProyectoModel;
-    const op$ = this.form.id
-      ? this.service.actualizar(this.form.id, cuerpo)
+    const op$ = esEdicion
+      ? this.service.actualizar(this.form.id!, cuerpo)
       : this.service.crear(cuerpo);
     op$.subscribe({
-      next: () => {
-        this.mensaje = this.form.id ? 'Proyecto actualizado' : 'Proyecto creado';
-        this.limpiar();
+      next: (guardado) => {
+        this.guardando = false;
+        this.mensaje = `${guardado?.nombre ?? 'Proyecto'} ${esEdicion ? 'actualizado' : 'creado'}.`;
+        this.cerrarFicha();
         this.listar();
       },
-      error: (err) => this.fallo('No se pudo guardar el proyecto', err),
+      error: (err) => {
+        console.error('No se pudo guardar el proyecto', err);
+        this.guardando = false;
+        this.errorFormulario = mensajeDeError(err, 'No se pudo guardar');
+        this.cdr.detectChanges();
+      },
     });
   }
+
+  // ---------------------------------------------------------- búsqueda exacta
 
   buscarPorCodigo(): void {
     const codigo = this.busquedaCodigo.trim().toUpperCase();
@@ -125,18 +183,6 @@ export class Proyecto implements OnInit {
 
   zona(srid?: number): string {
     return this.zonas.find((z) => z.srid === srid)?.etiqueta ?? (srid ? String(srid) : '—');
-  }
-
-  editar(proyecto: ProyectoModel): void {
-    this.form = { ...proyecto };
-    this.limpiarAvisos();
-    this.cdr.detectChanges();
-    irA('pro-formulario', 'pro-nombre');
-  }
-
-  limpiar(): void {
-    this.form = FORM_VACIO();
-    this.cdr.detectChanges();
   }
 
   private setLista(data: ProyectoModel[]): void {

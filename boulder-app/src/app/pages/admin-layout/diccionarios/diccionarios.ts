@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
 
-import { irA, mensajeDeError } from '../../../util/interfaz';
+import { mensajeDeError } from '../../../util/interfaz';
+import { Ficha } from '../../../components/ficha/ficha';
 
 import { CatalogoGeologia } from '../../../services/logueo.service';
 import { DiccionarioService, EstructuraCatalogo } from '../../../services/diccionario.service';
@@ -53,11 +54,14 @@ const VACIO = (): Formulario => ({ codigo: '', nombre: '', grupoId: null, color:
  * El formulario se arma con la estructura que publica el backend: el largo del
  * código y si el catálogo lleva grupo, color o estado. No se repite ese
  * conocimiento aquí, así un catálogo nuevo en la base aparece solo.
+ *
+ * Maestro-detalle como las demás pantallas de administración: la lista del
+ * catálogo a la izquierda y la ficha del código a la derecha.
  */
 @Component({
   selector: 'app-admin-diccionarios',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Ficha],
   templateUrl: './diccionarios.html',
   styleUrl: './diccionarios.scss',
 })
@@ -73,6 +77,8 @@ export class Diccionarios implements OnInit {
   readonly error = signal<string | null>(null);
   readonly aviso = signal<string | null>(null);
   readonly form = signal<Formulario>(VACIO());
+  /** La ficha de alta o edición está abierta. */
+  readonly fichaAbierta = signal(false);
 
   /** Catálogos agrupados para el selector, en el orden de NOMBRES. */
   readonly grupos = computed(() => {
@@ -136,16 +142,30 @@ export class Diccionarios implements OnInit {
     this.tipo.set(t);
     // La búsqueda de un catálogo no tiene sentido en el siguiente.
     this.busqueda.set('');
-    this.nuevo();
+    this.cerrarFicha();
   }
 
   nuevo(): void {
     this.form.set(VACIO());
+    this.abrirFicha();
+  }
+
+  cerrarFicha(): void {
+    this.fichaAbierta.set(false);
     this.error.set(null);
   }
 
-  editar(c: CatalogoGeologia): void {
+  private abrirFicha(): void {
+    this.aviso.set(null);
     this.error.set(null);
+    this.fichaAbierta.set(true);
+  }
+
+  esSeleccionado(c: CatalogoGeologia): boolean {
+    return this.fichaAbierta() && this.form().id === c.id;
+  }
+
+  editar(c: CatalogoGeologia): void {
     this.form.set({
       id: c.id,
       codigo: c.codigo,
@@ -154,8 +174,7 @@ export class Diccionarios implements OnInit {
       estaActivo: c.estaActivo,
       color: c.colorR != null ? this.hex(c.colorR, c.colorG!, c.colorB!) : '#a0a0a0',
     });
-    // En pantallas angostas el formulario queda debajo de la tabla.
-    irA('dicc-formulario', 'nombre');
+    this.abrirFicha();
   }
 
   actualizarForm(cambio: Partial<Formulario>): void {
@@ -178,7 +197,7 @@ export class Diccionarios implements OnInit {
     peticion.subscribe({
       next: () => {
         this.aviso.set(f.id ? `Código ${f.codigo.toUpperCase()} actualizado.` : `Código ${f.codigo.toUpperCase()} agregado.`);
-        this.nuevo();
+        this.cerrarFicha();
         this.cargar();
       },
       error: (e: HttpErrorResponse) => this.error.set(this.motivo(e)),
@@ -195,7 +214,7 @@ export class Diccionarios implements OnInit {
     this.servicio.cambiarEstado(this.tipo(), f.id, activar).subscribe({
       next: () => {
         this.aviso.set(`Código ${f.codigo} ${activar ? 'activado' : 'desactivado'}.`);
-        this.nuevo();
+        this.cerrarFicha();
         this.cargar();
       },
       error: (e: HttpErrorResponse) => this.error.set(this.motivo(e)),

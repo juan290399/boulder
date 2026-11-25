@@ -859,9 +859,105 @@ body {
 }
 
 
-/* ------------------------------------------------- lista con panel lateral */
+/* ------------------------------------------------------- maestro-detalle */
 
-/* Filas que abren su registro en el panel lateral. */
+/* Pantallas de mantenimiento: la lista a la izquierda y la ficha del registro
+   elegido a la derecha (componente app-ficha). En pantallas angostas se apilan
+   y, con la ficha abierta, la lista se oculta hasta pulsar «Volver a la lista». */
+.maestro-detalle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+  gap: 1.25rem;
+  align-items: start;
+
+  > .panel { margin: 0; }
+}
+
+.ficha {
+  display: block;
+  position: sticky;
+  top: calc(var(--bo-topbar-h) + 1rem);
+}
+
+.ficha__caja {
+  display: flex;
+  flex-direction: column;
+  /* Cabe en la pantalla desde su posición inicial (bajo el título de la
+     página), así el pie con Guardar se ve sin desplazarse. */
+  max-height: calc(100vh - var(--bo-topbar-h) - 7rem);
+  background: var(--bo-surface);
+  border: 1px solid var(--bo-border);
+  border-radius: var(--bo-r-lg);
+  box-shadow: var(--bo-shadow-sm);
+  overflow: hidden;
+}
+
+.ficha--vacia .ficha__caja {
+  background: transparent;
+  border-style: dashed;
+  box-shadow: none;
+}
+
+.ficha__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--bo-border);
+}
+.ficha__titulos { flex: 1 1 auto; min-width: 0; }
+.ficha__titulo { margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--bo-ink); }
+.ficha__subtitulo { margin: 0.15rem 0 0; font-size: 0.8rem; color: var(--bo-ink-2); }
+.ficha__volver { display: none; flex: 1 0 100%; padding: 0; text-align: left; }
+
+.ficha__body { padding: 1.25rem; overflow-y: auto; }
+
+.ficha__pie {
+  padding: 0.875rem 1.25rem;
+  border-top: 1px solid var(--bo-border);
+  background: var(--bo-surface-2);
+}
+
+.ficha__vacio {
+  padding: 2rem 1.5rem;
+  text-align: center;
+  color: var(--bo-ink-2);
+  font-size: 0.9rem;
+
+  p { margin: 0; }
+}
+
+/* Grupos de campos dentro de la ficha. */
+.ficha__grupo {
+  margin: 1.25rem 0 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--bo-border);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--bo-ink);
+}
+.ficha__nota {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--bo-border);
+  border-radius: var(--bo-r-md, 0.5rem);
+  background: var(--bo-surface-2);
+  font-size: 0.875rem;
+  color: var(--bo-ink-2);
+}
+
+@media (max-width: 1199.98px) {
+  .maestro-detalle { grid-template-columns: minmax(0, 1fr); }
+  .maestro-detalle.con-ficha > .panel { display: none; }
+  .maestro-detalle .ficha--vacia { display: none; }
+  .ficha { position: static; }
+  .ficha__caja { max-height: none; }
+  .ficha__volver { display: inline-block; }
+  .ficha__cerrar { display: none; }
+}
+
+/* Filas que abren su registro en la ficha. */
 .data-table tbody tr.fila-editable { cursor: pointer; }
 .data-table tbody tr.fila-seleccionada td { background: var(--bo-brand-soft); }
 

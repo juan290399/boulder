@@ -6,7 +6,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { EmpresaService } from '../../../services/empresa.service';
 import { Empresa as EmpresaModel } from '../../../models/operacional';
 import { mensajeDeError } from '../../../util/interfaz';
-import { PanelLateral } from '../../../components/panel-lateral/panel-lateral';
+import { Ficha } from '../../../components/ficha/ficha';
 
 const FORM_VACIO = (): EmpresaModel => ({
   codigo: '',
@@ -18,13 +18,13 @@ const FORM_VACIO = (): EmpresaModel => ({
 });
 
 /**
- * Empresas: la lista ocupa la pantalla y el alta o la edición se hacen en un
- * panel lateral, así no se pierde de vista la fila que se está corrigiendo.
+ * Empresas en maestro-detalle: la lista a la izquierda y el alta o la edición
+ * en la ficha de la derecha, así no se pierde de vista la lista.
  */
 @Component({
   selector: 'app-empresa',
   standalone: true,
-  imports: [CommonModule, FormsModule, PanelLateral],
+  imports: [CommonModule, FormsModule, Ficha],
   templateUrl: './empresa.html',
   styleUrl: './empresa.scss',
 })
@@ -35,8 +35,8 @@ export class Empresa implements OnInit {
   empresas: EmpresaModel[] = [];
   form: EmpresaModel & { id?: string } = FORM_VACIO();
 
-  /** El panel de alta o edición está abierto. */
-  panelAbierto = false;
+  /** La ficha de alta o edición está abierta. */
+  fichaAbierta = false;
   /** Filtro en vivo sobre la lista por nombre, código o RUC. */
   filtro = '';
   busquedaRuc = '';
@@ -47,7 +47,7 @@ export class Empresa implements OnInit {
   mensaje = '';
   /** Errores de la lista (carga, búsquedas). */
   error = '';
-  /** Errores del formulario: se muestran dentro del panel, junto a los campos. */
+  /** Errores del formulario: se muestran dentro de la ficha, junto a los campos. */
   errorFormulario = '';
   /** El listado muestra el resultado de una búsqueda exacta, no todas las empresas. */
   filtrado = false;
@@ -84,28 +84,28 @@ export class Empresa implements OnInit {
     });
   }
 
-  // ------------------------------------------------------------------ panel
+  // ------------------------------------------------------------------ ficha
 
   nueva(): void {
     this.form = FORM_VACIO();
-    this.abrirPanel();
+    this.abrirFicha();
   }
 
   editar(empresa: EmpresaModel): void {
     this.form = { ...empresa };
-    this.abrirPanel();
+    this.abrirFicha();
   }
 
-  cerrarPanel(): void {
-    this.panelAbierto = false;
+  cerrarFicha(): void {
+    this.fichaAbierta = false;
     this.errorFormulario = '';
     this.cdr.detectChanges();
   }
 
-  private abrirPanel(): void {
+  private abrirFicha(): void {
     this.limpiarAvisos();
     this.errorFormulario = '';
-    this.panelAbierto = true;
+    this.fichaAbierta = true;
     this.cdr.detectChanges();
   }
 
@@ -120,7 +120,7 @@ export class Empresa implements OnInit {
       next: (guardada) => {
         this.guardando = false;
         this.mensaje = `${guardada?.nombre ?? 'Empresa'} ${esEdicion ? 'actualizada' : 'creada'}.`;
-        this.cerrarPanel();
+        this.cerrarFicha();
         this.listar();
       },
       error: (err) => {
@@ -133,7 +133,7 @@ export class Empresa implements OnInit {
   }
 
   esSeleccionada(e: EmpresaModel): boolean {
-    return this.panelAbierto && !!this.form.id && (e as EmpresaModel & { id?: string }).id === this.form.id;
+    return this.fichaAbierta && !!this.form.id && (e as EmpresaModel & { id?: string }).id === this.form.id;
   }
 
   // ---------------------------------------------------------- búsqueda exacta
