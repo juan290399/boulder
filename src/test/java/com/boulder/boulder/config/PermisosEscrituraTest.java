@@ -96,4 +96,17 @@ class PermisosEscrituraTest {
     void sinRoles() {
         assertThat(PermisosEscritura.permite("PUT", "/api/logueo/quicklog", Set.of())).isFalse();
     }
+
+    @ParameterizedTest(name = "{0} {1} como {2}")
+    @CsvSource({
+            "POST, /api/operacional/empresas,      ROLE_GEOLOGO",
+            "PUT,  /api/operacional/empresas/1,    ROLE_ASISTENTE_GEOLOGIA",
+            "POST, /api/operacional/proyectos,     ROLE_GEOLOGO",
+            "PUT,  /api/operacional/proyectos/4,   ROLE_ASISTENTE_GEOLOGIA",
+    })
+    @DisplayName("Empresas y proyectos son del panel de administración: solo ADMIN los escribe")
+    void empresasYProyectosSoloAdmin(String metodo, String ruta, String rol) {
+        assertThat(PermisosEscritura.permite(metodo, ruta, roles(rol))).isFalse();
+        assertThat(PermisosEscritura.permite(metodo, ruta, roles("ROLE_ADMIN"))).isTrue();
+    }
 }
