@@ -857,3 +857,24 @@ body {
   html { scroll-behavior: auto; }
   .btn:active { transform: none; }
 }
+
+
+/* ------------------------------------------------- lista con panel lateral */
+
+/* Filas que abren su registro en el panel lateral. */
+.data-table tbody tr.fila-editable { cursor: pointer; }
+.data-table tbody tr.fila-seleccionada td { background: var(--bo-brand-soft); }
+
+/* Búsqueda exacta plegada bajo la lista. */
+.busqueda-exacta {
+  padding: 0.75rem 1.25rem 1rem;
+  border-top: 1px solid var(--bo-border);
+
+  summary {
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--bo-ink-2);
+    width: fit-content;
+  }
+}

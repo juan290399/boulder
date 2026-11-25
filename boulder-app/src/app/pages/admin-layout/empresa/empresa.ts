@@ -5,7 +5,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 import { EmpresaService } from '../../../services/empresa.service';
 import { Empresa as EmpresaModel } from '../../../models/operacional';
-import { irA, mensajeDeError } from '../../../util/interfaz';
+import { mensajeDeError } from '../../../util/interfaz';
+import { PanelLateral } from '../../../components/panel-lateral/panel-lateral';
 
 const FORM_VACIO = (): EmpresaModel => ({
   codigo: '',
@@ -16,10 +17,14 @@ const FORM_VACIO = (): EmpresaModel => ({
   correo: '',
 });
 
+/**
+ * Empresas: la lista ocupa la pantalla y el alta o la edición se hacen en un
+ * panel lateral, así no se pierde de vista la fila que se está corrigiendo.
+ */
 @Component({
   selector: 'app-empresa',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PanelLateral],
   templateUrl: './empresa.html',
   styleUrl: './empresa.scss',
 })
@@ -30,13 +35,21 @@ export class Empresa implements OnInit {
   empresas: EmpresaModel[] = [];
   form: EmpresaModel & { id?: string } = FORM_VACIO();
 
+  /** El panel de alta o edición está abierto. */
+  panelAbierto = false;
+  /** Filtro en vivo sobre la lista por nombre, código o RUC. */
+  filtro = '';
   busquedaRuc = '';
   busquedaId = '';
   /** Arranca en true: el listado se pide en ngOnInit. */
   loading = true;
+  guardando = false;
   mensaje = '';
+  /** Errores de la lista (carga, búsquedas). */
   error = '';
-  /** El listado muestra el resultado de una búsqueda, no todas las empresas. */
+  /** Errores del formulario: se muestran dentro del panel, junto a los campos. */
+  errorFormulario = '';
+  /** El listado muestra el resultado de una búsqueda exacta, no todas las empresas. */
   filtrado = false;
   /** Explicación del listado vacío tras una búsqueda sin coincidencias. */
   sinCoincidencias = '';
@@ -45,9 +58,17 @@ export class Empresa implements OnInit {
     this.listar();
   }
 
-  /** Botón «Refrescar / Ver todos»: además de recargar, quita los avisos de la búsqueda. */
+  /** Lista filtrada en el navegador: son pocas empresas. */
+  get empresasVisibles(): EmpresaModel[] {
+    const q = this.filtro.trim().toLowerCase();
+    return !q ? this.empresas : this.empresas.filter(e =>
+      [e.nombre, e.codigo, e.ruc].some(v => (v ?? '').toLowerCase().includes(q)));
+  }
+
+  /** Botón «Refrescar / Ver todas»: además de recargar, quita avisos y filtros. */
   verTodos(): void {
     this.limpiarAvisos();
+    this.filtro = '';
     this.listar();
   }
 
@@ -63,20 +84,59 @@ export class Empresa implements OnInit {
     });
   }
 
-  guardar(): void {
+  // ------------------------------------------------------------------ panel
+
+  nueva(): void {
+    this.form = FORM_VACIO();
+    this.abrirPanel();
+  }
+
+  editar(empresa: EmpresaModel): void {
+    this.form = { ...empresa };
+    this.abrirPanel();
+  }
+
+  cerrarPanel(): void {
+    this.panelAbierto = false;
+    this.errorFormulario = '';
+    this.cdr.detectChanges();
+  }
+
+  private abrirPanel(): void {
     this.limpiarAvisos();
-    const op$ = this.form.id
-      ? this.service.actualizar(this.form.id, this.form)
+    this.errorFormulario = '';
+    this.panelAbierto = true;
+    this.cdr.detectChanges();
+  }
+
+  guardar(): void {
+    this.errorFormulario = '';
+    this.guardando = true;
+    const esEdicion = !!this.form.id;
+    const op$ = esEdicion
+      ? this.service.actualizar(this.form.id!, this.form)
       : this.service.crear(this.form);
     op$.subscribe({
-      next: () => {
-        this.mensaje = this.form.id ? 'Empresa actualizada' : 'Empresa creada';
-        this.limpiar();
+      next: (guardada) => {
+        this.guardando = false;
+        this.mensaje = `${guardada?.nombre ?? 'Empresa'} ${esEdicion ? 'actualizada' : 'creada'}.`;
+        this.cerrarPanel();
         this.listar();
       },
-      error: (err) => this.fallo('No se pudo guardar la empresa', err),
+      error: (err) => {
+        console.error('No se pudo guardar la empresa', err);
+        this.guardando = false;
+        this.errorFormulario = mensajeDeError(err, 'No se pudo guardar');
+        this.cdr.detectChanges();
+      },
     });
   }
+
+  esSeleccionada(e: EmpresaModel): boolean {
+    return this.panelAbierto && !!this.form.id && (e as EmpresaModel & { id?: string }).id === this.form.id;
+  }
+
+  // ---------------------------------------------------------- búsqueda exacta
 
   buscarPorRuc(): void {
     if (!this.busquedaRuc.trim()) return;
@@ -94,18 +154,6 @@ export class Empresa implements OnInit {
       next: (e) => { this.filtrado = true; this.setLista(e ? [e] : []); },
       error: (err) => this.sinResultados(err, 'No hay ninguna empresa con ese ID.'),
     });
-  }
-
-  editar(empresa: EmpresaModel): void {
-    this.form = { ...empresa };
-    this.limpiarAvisos();
-    this.cdr.detectChanges();
-    irA('emp-formulario', 'emp-codigo');
-  }
-
-  limpiar(): void {
-    this.form = FORM_VACIO();
-    this.cdr.detectChanges();
   }
 
   private setLista(data: EmpresaModel[]): void {
