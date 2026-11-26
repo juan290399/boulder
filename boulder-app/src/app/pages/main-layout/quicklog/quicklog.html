@@ -5,71 +5,54 @@
   <div class="page-head__actions">
     <button type="button" class="btn btn-sm btn-outline-secondary" (click)="descargarHoja()"
             [disabled]="!sondajeId || descargando()">
-      <i class="bi bi-file-earmark-excel me-1"></i>{{ descargando() ? 'Descargando…' : 'Hoja de registro' }}
+      <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i>{{ descargando() ? 'Descargando…' : 'Hoja de registro' }}
     </button>
     <span class="en-vivo" [class.en-vivo--on]="canal() === 'conectado'"
           [title]="canal() === 'conectado' ? 'Los tramos que suban los tablets aparecen solos' : 'Sin conexión en vivo: recarga para ver lo nuevo'">
-      <span class="en-vivo__punto"></span>
+      <span class="en-vivo__punto" aria-hidden="true"></span>
       {{ canal() === 'conectado' ? 'En vivo' : (canal() === 'reconectando' ? 'Reconectando…' : 'Sin conexión en vivo') }}
     </span>
   </div>
 </div>
 
 @if (ultimoAviso(); as a) {
-  <div class="alert-inline alert-inline--ok">
-    <i class="bi bi-tablet"></i>
+  <div class="alert-inline alert-inline--ok" role="status">
+    <i class="bi bi-tablet" aria-hidden="true"></i>
     Llegaron {{ a.filas }} tramo(s) {{ a.origen === 'tablet' ? 'desde un tablet' : '' }} a las {{ a.momento | date:'HH:mm:ss' }}. La tabla ya está actualizada.
   </div>
 }
 
 @if (error(); as mensaje) {
-  <div class="alert-inline"><i class="bi bi-exclamation-triangle"></i>{{ mensaje }}</div>
+  <div class="alert-inline" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i>{{ mensaje }}</div>
 }
 
 <div class="panel">
   <div class="panel__head">
-    <div class="toolbar">
+    <div class="toolbar w-100">
       <div class="toolbar__field" style="min-width: 300px;">
         <label class="form-label" for="sel-sondaje">Sondaje</label>
         <select id="sel-sondaje" class="form-select form-select-sm"
-                [(ngModel)]="sondajeId" (change)="cargar()">
+                [ngModel]="sondajeId" (ngModelChange)="elegirSondaje($event)">
           <option value="">— Elige un sondaje —</option>
           @for (s of sondajes(); track s.id) {
             <option [value]="s.id">{{ s.codigo }} · {{ s.nombre }}</option>
           }
         </select>
       </div>
+      <span class="toolbar__spacer"></span>
+      <!-- Resumen en una línea: las cuatro tarjetas repetían el mismo número
+           (metros descritos y profundidad alcanzada coinciden si no hay huecos). -->
+      @if (tramos().length) {
+        <p class="resumen-ql">
+          <strong>{{ resumen().tramos }}</strong> tramos ·
+          <strong>{{ resumen().metros | number:'1.0-1' }} m</strong> descritos hasta {{ resumen().hasta | number:'1.0-1' }} m ·
+          <strong>{{ resumen().litologias }}</strong> litologías
+          @if (resumen().huecos > 0.05) {
+            <span class="chip chip--warn ms-1">{{ resumen().huecos | number:'1.0-1' }} m sin describir</span>
+          }
+        </p>
+      }
     </div>
-    @if (tramos().length) {
-      <span class="text-muted small">{{ resumen().tramos }} tramos</span>
-    }
-  </div>
-</div>
-
-@if (tramos().length) {
-  <div class="metric-grid">
-    <div class="metric">
-      <div class="metric__label"><i class="bi bi-layers"></i>Tramos descritos</div>
-      <div class="metric__value">{{ resumen().tramos }}</div>
-    </div>
-    <div class="metric">
-      <div class="metric__label"><i class="bi bi-rulers"></i>Metros descritos</div>
-      <div class="metric__value">{{ resumen().metros | number:'1.0-2' }} m</div>
-    </div>
-    <div class="metric">
-      <div class="metric__label"><i class="bi bi-arrow-down"></i>Profundidad alcanzada</div>
-      <div class="metric__value">{{ resumen().hasta | number:'1.0-2' }} m</div>
-    </div>
-    <div class="metric">
-      <div class="metric__label"><i class="bi bi-gem"></i>Litologías distintas</div>
-      <div class="metric__value">{{ resumen().litologias }}</div>
-    </div>
-  </div>
-}
-
-<div class="panel">
-  <div class="panel__head">
-    <h2 class="panel__title">Tramos</h2>
   </div>
 
   @if (cargando()) {
@@ -89,7 +72,7 @@
       <table class="data-table">
         <thead>
           <tr>
-            <th>Foto</th>
+            @if (fotos().length) { <th>Foto</th> }
             <th class="num">Desde</th>
             <th class="num">Hasta</th>
             <th class="num">Long.</th>
@@ -106,20 +89,23 @@
         <tbody>
           @for (t of tramos(); track t.id) {
             <tr>
+              @if (fotos().length) {
               <td class="celda-foto">
                 @if (fotoPorTramo().get(t.id); as f) {
                   <button type="button" class="mini" (click)="ampliar(f)"
+                          [attr.aria-label]="'Ver foto de las cajas ' + f.cajaDesde + ' a ' + f.cajaHasta"
                           [title]="'Cajas ' + f.cajaDesde + '–' + f.cajaHasta + ' · ' + f.desde + '–' + f.hasta + ' m'">
                     @if (miniaturas()[f.id]) {
                       <img [src]="miniaturas()[f.id]" alt="">
                     } @else {
-                      <i class="bi bi-image"></i>
+                      <i class="bi bi-image" aria-hidden="true"></i>
                     }
                   </button>
                 } @else {
                   <span class="sin-foto" title="Sin foto que cubra este tramo">—</span>
                 }
               </td>
+              }
               <td class="num">{{ t.desde | number:'1.0-2' }}</td>
               <td class="num">{{ t.hasta | number:'1.0-2' }}</td>
               <td class="num">{{ t.longitud | number:'1.0-2' }}</td>

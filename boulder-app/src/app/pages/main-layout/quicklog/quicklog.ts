@@ -3,6 +3,7 @@ import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angula
 import { Visor } from '../../../components/visor/visor';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError, debounceTime } from 'rxjs/operators';
 
@@ -12,6 +13,7 @@ import { Foto, FotoService } from '../../../services/foto.service';
 import { SondajeService } from '../../../services/sondaje.service';
 import { Sondaje } from '../../../models/operacional';
 import { ReporteService } from '../../../services/reporte.service';
+import { mensajeDeError } from '../../../util/interfaz';
 
 /**
  * Quicklog: el logueo rápido que sube la aplicación móvil desde el almacén de
@@ -43,6 +45,8 @@ export class Quicklog implements OnInit {
   readonly miniaturas = signal<Record<string, string>>({});
   readonly ampliada = signal<{ foto: Foto; url: string | null } | null>(null);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
+  private readonly ruta = inject(ActivatedRoute);
 
   /** Estado del canal en vivo, para el indicador de la cabecera. */
   readonly canal = this.eventos.estado;
@@ -68,7 +72,9 @@ export class Quicklog implements OnInit {
     const metros = filas.reduce((t, f) => t + Number(f.longitud ?? 0), 0);
     const hasta = filas.reduce((m, f) => Math.max(m, Number(f.hasta ?? 0)), 0);
     const litologias = new Set(filas.map(f => f.litoId).filter(Boolean)).size;
-    return { tramos: filas.length, metros, hasta, litologias };
+    // Lo que falta describir entre la boca y el tramo más profundo.
+    const huecos = Math.max(0, hasta - metros);
+    return { tramos: filas.length, metros, hasta, litologias, huecos };
   });
 
   ngOnInit(): void {
@@ -79,7 +85,14 @@ export class Quicklog implements OnInit {
     }).subscribe(({ sondajes, catalogo }) => {
       this.sondajes.set(sondajes);
       this.catalogo.set(catalogo);
+      this.aplicarSondajePedido();
     });
+
+    // ?sondaje=CÓDIGO elige el sondaje (se puede enlazar y volver con Atrás).
+    // Sin parámetro se retoma el último que se miró en este navegador.
+    this.ruta.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.aplicarSondajePedido());
     this.cargarDispositivos();
 
     // En vivo: cuando un tablet sube quicklog del sondaje que se está
@@ -181,6 +194,29 @@ export class Quicklog implements OnInit {
    * @param silencioso recarga en vivo: sin el cartel de «Cargando…», que
    *   haría parpadear la tabla cada vez que llega un tramo.
    */
+  /** El selector solo cambia la URL; la URL elige el sondaje. */
+  elegirSondaje(id: string): void {
+    const codigo = this.sondajes().find(s => s.id === id)?.codigo;
+    this.router.navigate([], { relativeTo: this.ruta, queryParams: { sondaje: codigo ?? null } });
+  }
+
+  private aplicarSondajePedido(): void {
+    if (!this.sondajes().length) { return; }
+    let codigo = this.ruta.snapshot.queryParamMap.get('sondaje');
+    if (!codigo) {
+      const recordado = leerRecordado();
+      if (recordado && this.sondajes().some(s => s.codigo === recordado)) {
+        this.router.navigate([], { relativeTo: this.ruta, queryParams: { sondaje: recordado }, replaceUrl: true });
+        return;
+      }
+    }
+    const id = this.sondajes().find(s => s.codigo === codigo)?.id ?? '';
+    if (id === this.sondajeId) { return; }
+    this.sondajeId = id;
+    guardarRecordado(codigo ?? '');
+    this.cargar();
+  }
+
   cargar(silencioso = false): void {
     if (!this.sondajeId) {
       this.tramos.set([]);
@@ -241,10 +277,23 @@ export class Quicklog implements OnInit {
         URL.revokeObjectURL(url);
         this.descargando.set(false);
       },
-      error: () => {
+      error: (e: unknown) => {
         this.descargando.set(false);
-        this.error.set('No se pudo descargar la hoja de registro.');
+        this.error.set(mensajeDeError(e, 'No se pudo descargar la hoja de registro'));
       },
     });
   }
+}
+
+/** Último sondaje mirado en este navegador: comodidad, no dato del sistema. */
+const CLAVE_RECORDADO = 'boulder.quicklog.sondaje';
+
+function leerRecordado(): string | null {
+  try { return localStorage.getItem(CLAVE_RECORDADO); } catch { return null; }
+}
+
+function guardarRecordado(codigo: string): void {
+  try {
+    if (codigo) { localStorage.setItem(CLAVE_RECORDADO, codigo); } else { localStorage.removeItem(CLAVE_RECORDADO); }
+  } catch { /* sin almacenamiento: no pasa nada */ }
 }
