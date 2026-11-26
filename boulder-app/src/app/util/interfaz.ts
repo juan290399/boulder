@@ -3,7 +3,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 /**
  * Texto para el usuario a partir de un error HTTP del backend.
  *
- * GlobalExceptionHandler responde `{ message, errores? }`, donde `errores` llega
+ * GlobalExceptionHandler responde `{ message, errores? }` (las fotos y la
+ * importación responden `{ mensaje }`), donde `errores` llega
  * como mapa campo -> mensaje o como texto «campo: mensaje; ...». Al usuario le
  * sirve el mensaje, no el nombre del campo en Java, así que se quita.
  *
@@ -21,7 +22,7 @@ export function mensajeDeError(err: unknown, contexto: string): string {
       const errores = err.error?.errores;
       detalle = errores && typeof errores === 'object'
         ? Object.values(errores as Record<string, string>).join('; ')
-        : String(errores ?? err.error?.message ?? '');
+        : String(errores ?? err.error?.message ?? err.error?.mensaje ?? '');
       detalle = detalle
         .replace(/(^|; )\w+: /g, '$1')
         .replace(/; (\p{Lu})/gu, (_m: string, c: string) => '; ' + c.toLowerCase());

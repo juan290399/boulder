@@ -10,6 +10,11 @@ describe('mensajeDeError', () => {
       .toBe('No se pudo guardar: El RUC debe tener 11 dígitos.');
   });
 
+  it('también lee la clave «mensaje» que usan las fotos y la importación', () => {
+    expect(mensajeDeError(error(400, { mensaje: 'La imagen supera los 20 MB.' }), 'No se pudo subir'))
+      .toBe('No se pudo subir: La imagen supera los 20 MB.');
+  });
+
   it('quita los nombres de campo del texto de @Valid y deja la frase en minúscula', () => {
     const cuerpo = { errores: 'codigo: El código es obligatorio; nombres: Los nombres son obligatorios' };
     expect(mensajeDeError(error(400, cuerpo), 'No se pudo guardar'))

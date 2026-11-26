@@ -93,3 +93,22 @@
 }
 .en-vivo__punto { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: #9ca3af; }
 .en-vivo--on { color: #065f46; background: var(--bo-ok-soft); .en-vivo__punto { background: var(--bo-ok); } }
+
+/* Resumen de la galería en la cabecera del panel. */
+.resumen-fotos {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--bo-ink-2);
+
+  strong { color: var(--bo-ink); font-variant-numeric: tabular-nums; }
+}
+
+/* Confirmación de «Quitar» dentro del visor. */
+.confirmar {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--bo-ink);
+}

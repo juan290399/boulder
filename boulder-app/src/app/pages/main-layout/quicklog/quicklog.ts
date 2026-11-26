@@ -14,6 +14,7 @@ import { SondajeService } from '../../../services/sondaje.service';
 import { Sondaje } from '../../../models/operacional';
 import { ReporteService } from '../../../services/reporte.service';
 import { mensajeDeError } from '../../../util/interfaz';
+import { guardarSondajeRecordado, leerSondajeRecordado } from '../../../util/sondaje-recordado';
 
 /**
  * Quicklog: el logueo rápido que sube la aplicación móvil desde el almacén de
@@ -204,7 +205,7 @@ export class Quicklog implements OnInit {
     if (!this.sondajes().length) { return; }
     let codigo = this.ruta.snapshot.queryParamMap.get('sondaje');
     if (!codigo) {
-      const recordado = leerRecordado();
+      const recordado = leerSondajeRecordado();
       if (recordado && this.sondajes().some(s => s.codigo === recordado)) {
         this.router.navigate([], { relativeTo: this.ruta, queryParams: { sondaje: recordado }, replaceUrl: true });
         return;
@@ -213,7 +214,7 @@ export class Quicklog implements OnInit {
     const id = this.sondajes().find(s => s.codigo === codigo)?.id ?? '';
     if (id === this.sondajeId) { return; }
     this.sondajeId = id;
-    guardarRecordado(codigo ?? '');
+    guardarSondajeRecordado(codigo ?? '');
     this.cargar();
   }
 
@@ -283,17 +284,4 @@ export class Quicklog implements OnInit {
       },
     });
   }
-}
-
-/** Último sondaje mirado en este navegador: comodidad, no dato del sistema. */
-const CLAVE_RECORDADO = 'boulder.quicklog.sondaje';
-
-function leerRecordado(): string | null {
-  try { return localStorage.getItem(CLAVE_RECORDADO); } catch { return null; }
-}
-
-function guardarRecordado(codigo: string): void {
-  try {
-    if (codigo) { localStorage.setItem(CLAVE_RECORDADO, codigo); } else { localStorage.removeItem(CLAVE_RECORDADO); }
-  } catch { /* sin almacenamiento: no pasa nada */ }
 }

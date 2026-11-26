@@ -1,9 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { mensajeDeError } from '../../../util/interfaz';
+import { guardarSondajeRecordado, leerSondajeRecordado } from '../../../util/sondaje-recordado';
 import { Visor } from '../../../components/visor/visor';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { HttpErrorResponse } from '@angular/common/http';
+import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom, of } from 'rxjs';
 import { catchError, debounceTime } from 'rxjs/operators';
 
@@ -66,6 +68,10 @@ export class Fotos implements OnInit {
   condicionLote: 'seco' | 'humedo' | '' = '';
 
   readonly ampliada = signal<{ foto: Foto; url: string | null } | null>(null);
+  /** El visor pregunta antes de quitar la foto (en vez del confirm() del navegador). */
+  readonly confirmandoQuitar = signal(false);
+  private readonly router = inject(Router);
+  private readonly ruta = inject(ActivatedRoute);
 
   sondajeId = '';
 
@@ -85,11 +91,43 @@ export class Fotos implements OnInit {
 
   ngOnInit(): void {
     this.sondajeService.listar().pipe(catchError(() => of([] as Sondaje[])))
-      .subscribe(s => this.sondajes.set(s));
+      .subscribe(s => {
+        this.sondajes.set(s);
+        this.aplicarSondajePedido();
+      });
+
+    // ?sondaje=CÓDIGO elige el sondaje; sin parámetro se retoma el último
+    // mirado en este navegador (el mismo que recuerda Quicklog).
+    this.ruta.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.aplicarSondajePedido());
 
     this.eventos.cambiosDe(['foto'], () => this.sondajeId || null)
       .pipe(debounceTime(500), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.cargar(true));
+  }
+
+  /** El selector solo cambia la URL; la URL elige el sondaje. */
+  elegirSondaje(id: string): void {
+    const codigo = this.sondajes().find(s => s.id === id)?.codigo;
+    this.router.navigate([], { relativeTo: this.ruta, queryParams: { sondaje: codigo ?? null } });
+  }
+
+  private aplicarSondajePedido(): void {
+    if (!this.sondajes().length) { return; }
+    const codigo = this.ruta.snapshot.queryParamMap.get('sondaje');
+    if (!codigo) {
+      const recordado = leerSondajeRecordado();
+      if (recordado && this.sondajes().some(s => s.codigo === recordado)) {
+        this.router.navigate([], { relativeTo: this.ruta, queryParams: { sondaje: recordado }, replaceUrl: true });
+        return;
+      }
+    }
+    const id = this.sondajes().find(s => s.codigo === codigo)?.id ?? '';
+    if (id === this.sondajeId) { return; }
+    this.sondajeId = id;
+    guardarSondajeRecordado(codigo ?? '');
+    this.cargar();
   }
 
   cargar(silencioso = false): void {
@@ -114,8 +152,8 @@ export class Fotos implements OnInit {
           }
         }
       },
-      error: () => {
-        this.error.set('No se pudieron cargar las fotos de este sondaje.');
+      error: (e: unknown) => {
+        this.error.set(mensajeDeError(e, 'No se pudieron cargar las fotos de este sondaje'));
         this.cargando.set(false);
       },
     });
@@ -167,8 +205,7 @@ export class Fotos implements OnInit {
         await firstValueFrom(this.fotoService.subir(p.archivo, m, p.id));
         this.marcar(p, { estado: 'subida' });
       } catch (e) {
-        const msg = (e as HttpErrorResponse)?.error?.mensaje ?? 'No se pudo subir.';
-        this.marcar(p, { estado: 'error', error: msg });
+        this.marcar(p, { estado: 'error', error: mensajeDeError(e, 'No se pudo subir') });
       }
     }
     this.subiendo.set(false);
@@ -183,6 +220,7 @@ export class Fotos implements OnInit {
   }
 
   ampliar(foto: Foto): void {
+    this.confirmandoQuitar.set(false);
     this.ampliada.set({ foto, url: null });
     this.fotoService.imagen(foto.id, 'contenido').subscribe(url => {
       if (this.ampliada()?.foto.id === foto.id) {
@@ -192,15 +230,16 @@ export class Fotos implements OnInit {
   }
 
   eliminar(foto: Foto): void {
-    if (!confirm(`¿Quitar la foto de las cajas ${foto.cajaDesde ?? '?'}–${foto.cajaHasta ?? '?'}? El archivo se conserva en el servidor.`)) {
-      return;
-    }
     this.fotoService.eliminar(foto.id).subscribe({
       next: () => {
+        this.confirmandoQuitar.set(false);
         this.ampliada.set(null);
         this.cargar(true);
       },
-      error: () => this.error.set('No se pudo quitar la foto.'),
+      error: (e: unknown) => {
+        this.confirmandoQuitar.set(false);
+        this.error.set(mensajeDeError(e, 'No se pudo quitar la foto'));
+      },
     });
   }
 
