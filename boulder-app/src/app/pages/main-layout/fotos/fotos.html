@@ -2,11 +2,6 @@
   <div>
     <h1 class="page-head__title">Fotos de testigo</h1>
   </div>
-  <div class="page-head__actions">
-    <span class="en-vivo" [class.en-vivo--on]="canal() === 'conectado'">
-      <span class="en-vivo__punto" aria-hidden="true"></span>{{ canal() === 'conectado' ? 'En vivo' : 'Sin conexión en vivo' }}
-    </span>
-  </div>
 </div>
 
 @if (error(); as mensaje) {
@@ -126,7 +121,7 @@
   } @else if (!sondajeId) {
     <div class="empty-state"><i class="bi bi-camera"></i><p>Elige un sondaje para ver sus fotos.</p></div>
   } @else if (!fotos().length) {
-    <div class="empty-state"><i class="bi bi-image"></i><p>Este sondaje todavía no tiene fotos. {{ puedeRegistrar ? 'Agrégalas con «Agregar fotos» o desde un tablet.' : 'Se agregan desde un tablet o desde esta pantalla.' }}</p></div>
+    <div class="empty-state"><i class="bi bi-image"></i><p>Este sondaje todavía no tiene fotos. {{ puedeRegistrar ? 'Agrégalas con «Agregar fotos».' : 'Las agrega quien registra el sondaje.' }}</p></div>
   } @else {
     <div class="galeria">
       @for (f of fotos(); track f.id) {

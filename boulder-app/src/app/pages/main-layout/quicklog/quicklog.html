@@ -7,20 +7,8 @@
             [disabled]="!sondajeId || descargando()">
       <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i>{{ descargando() ? 'Descargando…' : 'Hoja de registro' }}
     </button>
-    <span class="en-vivo" [class.en-vivo--on]="canal() === 'conectado'"
-          [title]="canal() === 'conectado' ? 'Los tramos que suban los tablets aparecen solos' : 'Sin conexión en vivo: recarga para ver lo nuevo'">
-      <span class="en-vivo__punto" aria-hidden="true"></span>
-      {{ canal() === 'conectado' ? 'En vivo' : (canal() === 'reconectando' ? 'Reconectando…' : 'Sin conexión en vivo') }}
-    </span>
   </div>
 </div>
-
-@if (ultimoAviso(); as a) {
-  <div class="alert-inline alert-inline--ok" role="status">
-    <i class="bi bi-tablet" aria-hidden="true"></i>
-    Llegaron {{ a.filas }} tramo(s) {{ a.origen === 'tablet' ? 'desde un tablet' : '' }} a las {{ a.momento | date:'HH:mm:ss' }}. La tabla ya está actualizada.
-  </div>
-}
 
 @if (error(); as mensaje) {
   <div class="alert-inline" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i>{{ mensaje }}</div>
@@ -125,41 +113,6 @@
               <td>{{ nombre(t.minTipo1Id) }}</td>
               <td>{{ nombre(t.minTipo2Id) }}</td>
               <td>{{ nombre(t.minTipo3Id) }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  }
-</div>
-
-<div class="panel">
-  <div class="panel__head">
-    <h2 class="panel__title">Tablets de GeoLog</h2>
-  </div>
-  @if (!dispositivos().length) {
-    <div class="empty-state">
-      <i class="bi bi-tablet"></i>
-      <p>Ningún tablet ha sincronizado todavía.</p>
-    </div>
-  } @else {
-    <div class="table-scroll">
-      <table class="data-table">
-        <thead>
-          <tr><th>Tablet</th><th>Geólogo</th><th>Última subida</th><th class="num">Filas subidas</th><th>Versión</th></tr>
-        </thead>
-        <tbody>
-          @for (d of dispositivos(); track d.dispositivo) {
-            <tr>
-              <td class="mono">{{ d.dispositivo }}</td>
-              <td>{{ d.usuario ?? '—' }}</td>
-              <td>
-                <span class="chip" [class.chip--ok]="!atrasado(d.ultimaSubida)" [class.chip--warn]="atrasado(d.ultimaSubida)">
-                  {{ hace(d.ultimaSubida) }}
-                </span>
-              </td>
-              <td class="num">{{ d.filasSubidas | number }}</td>
-              <td class="mono">{{ d.versionApp ?? '—' }}</td>
             </tr>
           }
         </tbody>

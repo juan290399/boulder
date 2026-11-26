@@ -52,12 +52,11 @@ export class Navbar {
       ],
     },
     {
-      // La carga vive aparte y no dentro de Operación: no es una pantalla de
-      // consulta más, es por donde entra el dato. Mientras no haya formularios
-      // de captura, es la única puerta que tiene la plataforma.
-      titulo: 'Datos',
+      // «Cargar datos» (importación de plantillas Excel) queda fuera del menú
+      // en esta etapa: la evaluación trabaja con una base de demostración. La
+      // pantalla sigue en pages/main-layout/importacion para volver a usarla.
+      titulo: 'Reportes',
       items: [
-        { etiqueta: 'Cargar datos', ruta: '/importar', icono: 'bi-upload' },
         { etiqueta: 'Reporte diario', ruta: '/reportes', icono: 'bi-file-earmark-bar-graph' },
         { etiqueta: 'Reporte de periodo', ruta: '/reportes/periodo', icono: 'bi-calendar-range' },
       ],

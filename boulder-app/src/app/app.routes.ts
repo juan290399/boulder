@@ -48,7 +48,6 @@ export const routes: Routes = [
       { path: 'desvios', loadComponent: () => import('./pages/main-layout/desvio/desvio').then(m => m.Desvio) },
       { path: 'quicklog', loadComponent: () => import('./pages/main-layout/quicklog/quicklog').then(m => m.Quicklog) },
       { path: 'fotos', loadComponent: () => import('./pages/main-layout/fotos/fotos').then(m => m.Fotos) },
-      { path: 'importar', loadComponent: () => import('./pages/main-layout/importacion/importacion').then(m => m.Importacion) },
       { path: 'reportes', loadComponent: () => import('./pages/main-layout/reporte-diario/reporte-diario').then(m => m.ReporteDiarioPage) },
       { path: 'reportes/periodo', loadComponent: () => import('./pages/main-layout/reporte-periodo/reporte-periodo').then(m => m.ReportePeriodoPage) },
       { path: 'plataformas', loadComponent: () => import('./pages/main-layout/plataforma/plataforma').then(m => m.Plataforma) },
