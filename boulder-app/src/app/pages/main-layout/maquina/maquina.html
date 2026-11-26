@@ -43,7 +43,7 @@
               <td class="num">{{ m.alcanceHq || '—' }}</td>
               <td class="num">{{ m.alcanceNq || '—' }}</td>
               <td>
-                <span class="chip" [class.chip--ok]="(m.estado || '').toLowerCase().startsWith('operativ')">
+                <span class="chip" [ngClass]="chipEstado(m.estado)">
                   {{ m.estado || '—' }}
                 </span>
               </td>
@@ -98,27 +98,29 @@
         <div class="row g-3 mb-3">
           <div class="col-sm-7">
             <label for="maq-nombre" class="form-label">Nombre</label>
-            <input id="maq-nombre" name="nombre" class="form-control" [(ngModel)]="form.nombre" />
+            <input id="maq-nombre" name="nombre" class="form-control" [(ngModel)]="form.nombre" maxlength="100" required />
           </div>
           <div class="col-sm-5">
             <label for="maq-codigo" class="form-label">Código</label>
-            <input id="maq-codigo" name="codigo" class="form-control mono" [(ngModel)]="form.codigo" spellcheck="false" />
+            <input id="maq-codigo" name="codigo" class="form-control mono text-uppercase" [(ngModel)]="form.codigo" spellcheck="false"
+                   [disabled]="!!form.id" maxlength="10" required aria-describedby="maq-codigo-ayuda" />
+            <div id="maq-codigo-ayuda" class="form-text">{{ form.id ? 'No se puede cambiar.' : 'Hasta 10 caracteres.' }}</div>
           </div>
           <div class="col-sm-4">
-            <label for="maq-tipo" class="form-label">Tipo</label>
+            <label for="maq-tipo" class="form-label">Tipo <span class="text-secondary fw-normal">(opcional)</span></label>
             <input id="maq-tipo" name="tipo" class="form-control" [(ngModel)]="form.tipo" />
           </div>
           <div class="col-sm-4">
-            <label for="maq-marca" class="form-label">Marca</label>
+            <label for="maq-marca" class="form-label">Marca <span class="text-secondary fw-normal">(opcional)</span></label>
             <input id="maq-marca" name="marca" class="form-control" [(ngModel)]="form.marca" />
           </div>
           <div class="col-sm-4">
-            <label for="maq-motor" class="form-label">Motor</label>
+            <label for="maq-motor" class="form-label">Motor <span class="text-secondary fw-normal">(opcional)</span></label>
             <input id="maq-motor" name="motor" class="form-control" [(ngModel)]="form.motor" />
           </div>
         </div>
 
-        <h3 class="ficha__grupo">Alcance por diámetro</h3>
+        <h3 class="ficha__grupo">Alcance por diámetro <span class="text-secondary fw-normal">(opcional)</span></h3>
         <div class="row g-3 mb-3">
           <div class="col-4">
             <label for="maq-pq" class="form-label">PQ (m)</label>
@@ -136,7 +138,12 @@
 
         <div>
           <label for="maq-estado" class="form-label">Estado</label>
-          <input id="maq-estado" name="estado" class="form-control" [(ngModel)]="form.estado" />
+          <select id="maq-estado" name="estado" class="form-select" [(ngModel)]="form.estado">
+            @for (e of estados; track e.valor) { <option [value]="e.valor">{{ e.valor }}</option> }
+            @if (form.estado && !chipEstado(form.estado) && form.estado !== '') {
+              <option [value]="form.estado">{{ form.estado }}</option>
+            }
+          </select>
         </div>
       </form>
 

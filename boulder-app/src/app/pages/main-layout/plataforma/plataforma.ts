@@ -18,11 +18,18 @@ const FORM_VACIO = (): PlataformaModel => ({
   norte: undefined,
   elevacion: undefined,
   numeroPozas: 0,
-  estado: 'activa',
+  estado: 'En construccion',
   tipo: '',
   ubicacion: '',
   notas: '',
 });
+
+/** Estados de una plataforma, con el valor que guarda la base y su rótulo. */
+export const ESTADOS_PLATAFORMA = [
+  { valor: 'En construccion', rotulo: 'En construcción', chip: 'chip--warn' },
+  { valor: 'Operativo', rotulo: 'Operativa', chip: 'chip--ok' },
+  { valor: 'Concluido', rotulo: 'Concluida', chip: '' },
+];
 
 /** Plataformas en maestro-detalle: lista a todo el ancho y ficha al elegir una. */
 @Component({
@@ -38,6 +45,7 @@ export class Plataforma implements OnInit {
   private readonly proyectoService = inject(ProyectoService);
   private readonly cdr = inject(ChangeDetectorRef);
 
+  readonly estados = ESTADOS_PLATAFORMA;
   plataformas: PlataformaModel[] = [];
   proyectos: Proyecto[] = [];
   form: PlataformaModel & { id?: string } = FORM_VACIO();
@@ -168,6 +176,10 @@ export class Plataforma implements OnInit {
       next: (p) => { this.filtrado = true; this.setLista(p ? [p] : []); },
       error: (err) => this.sinResultados(err, 'No hay ninguna plataforma con ese ID.'),
     });
+  }
+
+  estadoDe(valor?: string | null) {
+    return this.estados.find(e => e.valor.toLowerCase() === (valor ?? '').toLowerCase());
   }
 
   nombreProyecto(id?: string): string {

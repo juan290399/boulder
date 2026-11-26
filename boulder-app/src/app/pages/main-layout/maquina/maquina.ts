@@ -15,8 +15,15 @@ const FORM_VACIO = (): MaquinaModel => ({
   tipo: '',
   marca: '',
   motor: '',
-  estado: 'operativa',
+  estado: 'Operativa',
 });
+
+/** Estados de una máquina, con su color en la lista. */
+export const ESTADOS_MAQUINA = [
+  { valor: 'Operativa', chip: 'chip--ok' },
+  { valor: 'En mantenimiento', chip: 'chip--warn' },
+  { valor: 'Fuera de servicio', chip: 'chip--danger' },
+];
 
 /** Flota en maestro-detalle: lista a todo el ancho y ficha al elegir una máquina. */
 @Component({
@@ -31,6 +38,7 @@ export class Maquina implements OnInit {
   readonly puedeEditar = inject(AuthService).puedeMantenerMaestros();
   private readonly cdr = inject(ChangeDetectorRef);
 
+  readonly estados = ESTADOS_MAQUINA;
   maquinas: MaquinaModel[] = [];
   form: MaquinaModel & { id?: string } = FORM_VACIO();
 
@@ -144,6 +152,10 @@ export class Maquina implements OnInit {
       next: (m) => { this.filtrado = true; this.setLista(m ? [m] : []); },
       error: (err) => this.sinResultados(err, 'No hay ninguna máquina con ese ID.'),
     });
+  }
+
+  chipEstado(valor?: string | null): string {
+    return this.estados.find(e => e.valor.toLowerCase() === (valor ?? '').toLowerCase())?.chip ?? '';
   }
 
   private setLista(data: MaquinaModel[]): void {

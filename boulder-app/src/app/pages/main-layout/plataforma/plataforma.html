@@ -50,8 +50,8 @@
               <td class="num">{{ pl.norte ?? '—' }}</td>
               <td class="num">{{ pl.elevacion ?? '—' }}</td>
               <td>
-                <span class="chip" [class.chip--ok]="(pl.estado || '').toLowerCase().startsWith('activ')">
-                  {{ pl.estado || '—' }}
+                <span class="chip" [ngClass]="estadoDe(pl.estado)?.chip ?? ''">
+                  {{ estadoDe(pl.estado)?.rotulo ?? (pl.estado || '—') }}
                 </span>
               </td>
               @if (puedeEditar) {
@@ -105,22 +105,24 @@
         <div class="row g-3 mb-3">
           <div class="col-sm-5">
             <label for="pla-codigo" class="form-label">Código</label>
-            <input id="pla-codigo" name="codigo" class="form-control mono" [(ngModel)]="form.codigo" spellcheck="false" />
+            <input id="pla-codigo" name="codigo" class="form-control mono text-uppercase" [(ngModel)]="form.codigo" spellcheck="false"
+                   [disabled]="!!form.id" maxlength="8" required aria-describedby="pla-codigo-ayuda" />
+            <div id="pla-codigo-ayuda" class="form-text">{{ form.id ? 'No se puede cambiar.' : 'Hasta 8 caracteres.' }}</div>
           </div>
           <div class="col-sm-7">
             <label for="pla-nombre" class="form-label">Nombre</label>
-            <input id="pla-nombre" name="nombre" class="form-control" [(ngModel)]="form.nombre" />
+            <input id="pla-nombre" name="nombre" class="form-control" [(ngModel)]="form.nombre" maxlength="50" required />
           </div>
           <div class="col-sm-7">
             <label for="pla-proyecto" class="form-label">Proyecto</label>
-            <select id="pla-proyecto" name="proyectoId" class="form-select" [(ngModel)]="form.proyectoId">
+            <select id="pla-proyecto" name="proyectoId" class="form-select" [(ngModel)]="form.proyectoId" required>
               <option [ngValue]="''">Elige un proyecto</option>
               <option *ngFor="let p of proyectos" [ngValue]="p.id">{{ p.nombre }}</option>
             </select>
           </div>
           <div class="col-sm-5">
-            <label for="pla-tipo" class="form-label">Tipo</label>
-            <input id="pla-tipo" name="tipo" class="form-control" [(ngModel)]="form.tipo" />
+            <label for="pla-tipo" class="form-label">Tipo <span class="text-secondary fw-normal">(opcional)</span></label>
+            <input id="pla-tipo" name="tipo" class="form-control" [(ngModel)]="form.tipo" maxlength="50" />
           </div>
         </div>
 
@@ -128,18 +130,18 @@
         <div class="row g-3 mb-3">
           <div class="col-6">
             <label for="pla-este" class="form-label">Este (m)</label>
-            <input id="pla-este" name="este" class="form-control" type="number" [(ngModel)]="form.este" />
+            <input id="pla-este" name="este" class="form-control" type="number" step="0.01" required [(ngModel)]="form.este" />
           </div>
           <div class="col-6">
             <label for="pla-norte" class="form-label">Norte (m)</label>
-            <input id="pla-norte" name="norte" class="form-control" type="number" [(ngModel)]="form.norte" />
+            <input id="pla-norte" name="norte" class="form-control" type="number" step="0.01" required [(ngModel)]="form.norte" />
           </div>
           <div class="col-6">
             <label for="pla-elevacion" class="form-label">Elevación (m s. n. m.)</label>
-            <input id="pla-elevacion" name="elevacion" class="form-control" type="number" [(ngModel)]="form.elevacion" />
+            <input id="pla-elevacion" name="elevacion" class="form-control" type="number" step="0.01" required [(ngModel)]="form.elevacion" />
           </div>
           <div class="col-6">
-            <label for="pla-pozas" class="form-label">N.° de pozas</label>
+            <label for="pla-pozas" class="form-label">N.° de pozas <span class="text-secondary fw-normal">(opcional)</span></label>
             <input id="pla-pozas" name="numeroPozas" class="form-control" type="number" min="0" [(ngModel)]="form.numeroPozas" />
           </div>
         </div>
@@ -148,10 +150,12 @@
         <div class="row g-3">
           <div class="col-sm-5">
             <label for="pla-estado" class="form-label">Estado</label>
-            <input id="pla-estado" name="estado" class="form-control" [(ngModel)]="form.estado" />
+            <select id="pla-estado" name="estado" class="form-select" [(ngModel)]="form.estado">
+              @for (e of estados; track e.valor) { <option [value]="e.valor">{{ e.rotulo }}</option> }
+            </select>
           </div>
           <div class="col-sm-7">
-            <label for="pla-ubicacion" class="form-label">Ubicación</label>
+            <label for="pla-ubicacion" class="form-label">Ubicación <span class="text-secondary fw-normal">(opcional)</span></label>
             <input id="pla-ubicacion" name="ubicacion" class="form-control" [(ngModel)]="form.ubicacion" />
           </div>
         </div>
