@@ -187,11 +187,17 @@ public class PlataformaServiceImpl implements PlataformaService {
         } else if (dto.getNombre().trim().length() > 50) {
             problemas.add("el nombre no puede superar los 50 caracteres");
         }
+        // Rango UTM del hemisferio sur (zonas 17S a 19S, las del Perú): fuera
+        // de él, el punto no cae en la zona o se escribió en otra unidad.
         if (dto.getEste() == null) {
             problemas.add("falta la coordenada este");
+        } else if (dto.getEste() < 160_000 || dto.getEste() > 840_000) {
+            problemas.add("la coordenada este debe estar entre 160 000 y 840 000 m");
         }
         if (dto.getNorte() == null) {
             problemas.add("falta la coordenada norte");
+        } else if (dto.getNorte() < 0 || dto.getNorte() > 10_000_000) {
+            problemas.add("la coordenada norte debe estar entre 0 y 10 000 000 m");
         }
         if (dto.getElevacion() == null) {
             problemas.add("falta la elevación");
