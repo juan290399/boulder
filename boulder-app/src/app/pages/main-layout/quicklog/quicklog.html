@@ -56,6 +56,74 @@
       <p>Este sondaje todavía no tiene quicklog cargado.</p>
     </div>
   } @else {
+    <div class="ql-barra">
+      <div class="btn-group btn-group-sm" role="group" aria-label="Vista">
+        <button type="button" class="btn" [class.btn-primary]="vista() === 'strip'" [class.btn-outline-secondary]="vista() !== 'strip'"
+                [attr.aria-pressed]="vista() === 'strip'" (click)="vista.set('strip')">
+          <i class="bi bi-bar-chart-steps me-1" aria-hidden="true"></i>Strip log
+        </button>
+        <button type="button" class="btn" [class.btn-primary]="vista() === 'tabla'" [class.btn-outline-secondary]="vista() !== 'tabla'"
+                [attr.aria-pressed]="vista() === 'tabla'" (click)="vista.set('tabla')">
+          <i class="bi bi-table me-1" aria-hidden="true"></i>Tabla
+        </button>
+      </div>
+      @if (vista() === 'strip') {
+        <div class="btn-group btn-group-sm" role="group" aria-label="Escala">
+          @for (e of escalas; track e.valor) {
+            <button type="button" class="btn" [class.btn-primary]="escala() === e.valor"
+                    [class.btn-outline-secondary]="escala() !== e.valor" [attr.aria-pressed]="escala() === e.valor"
+                    (click)="escala.set(e.valor)">{{ e.rotulo }}</button>
+          }
+        </div>
+      }
+    </div>
+
+    @if (vista() === 'strip') {
+      <div class="ql-strip">
+        <app-strip-log [tramos]="tramosStrip()" [fotos]="fotosStrip()" [escala]="escala()"
+                       [seleccionadoId]="seleccionado()?.id ?? null"
+                       (seleccionar)="elegirTramo($event)" (abrirFoto)="ampliarPorId($event)" />
+
+        <aside class="ql-detalle" aria-live="polite">
+          @if (seleccionado(); as t) {
+            <h2 class="ql-detalle__titulo"><span class="mono">{{ t.desde | number:'1.2-2' }} – {{ t.hasta | number:'1.2-2' }} m</span></h2>
+            <p class="ql-detalle__sub">{{ t.longitud | number:'1.2-2' }} m · {{ t.geologo ?? '—' }} · {{ t.fecha ?? '' }}</p>
+            <dl class="ql-dl">
+              <dt>Litología</dt>
+              <dd><span class="lito"><span class="lito__swatch" [style.background]="colorLito(t.litoId) ?? 'var(--bo-border-strong)'"></span>{{ nombre(t.litoId) }}</span></dd>
+              <dt>Alteración</dt>
+              <dd>{{ nombre(t.altTipo1Id) }} <span class="text-secondary">{{ t.altIntensidad1Id ? nombre(t.altIntensidad1Id).toLowerCase() : '' }}</span>
+                @if (t.altTipo2Id) { <br>{{ nombre(t.altTipo2Id) }} <span class="text-secondary">{{ nombre(t.altIntensidad2Id).toLowerCase() }}</span> }</dd>
+              <dt>Minerales</dt>
+              <dd>{{ nombre(t.minTipo1Id) }}@if (t.minTipo2Id) {, {{ nombre(t.minTipo2Id) }}}@if (t.minTipo3Id) {, {{ nombre(t.minTipo3Id) }}}</dd>
+              <dt>Zona mineral</dt><dd>{{ nombre(t.minZonaId) }}</dd>
+              <dt>Sulfuros</dt>
+              <dd class="mono">py {{ t.pcPy ?? '—' }} % · cu {{ t.pcCu ?? '—' }} % · mo {{ t.pcMo ?? '—' }} %</dd>
+            </dl>
+            @if (fotoPorTramo().get(t.id); as f) {
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="ampliar(f)">
+                <i class="bi bi-image me-1" aria-hidden="true"></i>Ver foto de las cajas {{ f.cajaDesde }}–{{ f.cajaHasta }}
+              </button>
+            }
+          } @else {
+            <p class="ql-detalle__vacio">Elige un tramo en el strip log para ver su descripción.</p>
+          }
+
+          <h3 class="ql-detalle__grupo">Litologías</h3>
+          <ul class="ql-leyenda">
+            @for (l of leyenda(); track l.codigo) {
+              <li><span class="lito__swatch" [style.background]="l.color ?? 'var(--bo-border-strong)'"></span>
+                <span class="mono">{{ l.codigo }}</span> {{ l.nombre }}</li>
+            }
+          </ul>
+          <p class="ql-detalle__nota">
+            Alteración: el ancho de la barra es la intensidad. Zona: <span class="zona zona--oxid">óxidos</span>
+            <span class="zona zona--sfsc">sulfuros secundarios</span> <span class="zona zona--sfpr">primarios</span>.
+            Rayado: tramo sin describir.
+          </p>
+        </aside>
+      </div>
+    } @else {
     <div class="table-scroll">
       <table class="data-table">
         <thead>
@@ -118,6 +186,7 @@
         </tbody>
       </table>
     </div>
+    }
   }
 </div>
 

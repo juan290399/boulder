@@ -7,7 +7,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError, debounceTime } from 'rxjs/operators';
 
-import { CatalogoGeologia, DispositivoSync, LogueoService, Quicklog as TramoQuicklog } from '../../../services/logueo.service';
+import { CatalogoGeologia, LogueoService, Quicklog as TramoQuicklog } from '../../../services/logueo.service';
+import { ESCALAS, FotoStrip, StripLog, TramoStrip } from '../../../components/strip-log/strip-log';
 import { EventosService } from '../../../services/eventos.service';
 import { Foto, FotoService } from '../../../services/foto.service';
 import { SondajeService } from '../../../services/sondaje.service';
@@ -28,7 +29,7 @@ import { guardarSondajeRecordado, leerSondajeRecordado } from '../../../util/son
 @Component({
   selector: 'app-quicklog',
   standalone: true,
-  imports: [CommonModule, FormsModule, Visor],
+  imports: [CommonModule, FormsModule, Visor, StripLog],
   templateUrl: './quicklog.html',
   styleUrl: './quicklog.scss',
 })
@@ -49,14 +50,12 @@ export class Quicklog implements OnInit {
   private readonly router = inject(Router);
   private readonly ruta = inject(ActivatedRoute);
 
-  /** Estado del canal en vivo, para el indicador de la cabecera. */
-  readonly canal = this.eventos.estado;
-
-  /** Tablets de GeoLog y su última sincronización. */
-  readonly dispositivos = signal<DispositivoSync[]>([]);
-
-  /** Cuándo llegó el último cambio desde un tablet, para avisarlo en pantalla. */
-  readonly ultimoAviso = signal<{ momento: Date; filas: number; origen: string } | null>(null);
+  /** Vista del quicklog: el strip log a escala o la tabla de tramos. */
+  readonly vista = signal<'strip' | 'tabla'>('strip');
+  readonly escalas = ESCALAS;
+  readonly escala = signal(500);
+  /** Tramo elegido en el strip log, para la ficha de detalle. */
+  readonly seleccionado = signal<TramoQuicklog | null>(null);
 
   readonly sondajes = signal<Sondaje[]>([]);
   readonly tramos = signal<TramoQuicklog[]>([]);
@@ -94,7 +93,6 @@ export class Quicklog implements OnInit {
     this.ruta.queryParamMap
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.aplicarSondajePedido());
-    this.cargarDispositivos();
 
     // En vivo: cuando un tablet sube quicklog del sondaje que se está
     // mirando, se recarga sin que nadie toque nada. El debounce agrupa la
@@ -105,15 +103,7 @@ export class Quicklog implements OnInit {
 
     this.eventos.cambiosDe(['quicklog'], () => this.sondajeId || null)
       .pipe(debounceTime(400), takeUntilDestroyed(this.destroyRef))
-      .subscribe(c => {
-        this.cargarDispositivos();
-        if (this.sondajeId) {
-          this.cargar(true);
-          if (c.origen !== 'reconexion') {
-            this.ultimoAviso.set({ momento: new Date(), filas: c.filas, origen: c.origen });
-          }
-        }
-      });
+      .subscribe(() => { if (this.sondajeId) { this.cargar(true); } });
   }
 
   cargarFotos(): void {
@@ -171,30 +161,6 @@ export class Quicklog implements OnInit {
     });
   }
 
-  cargarDispositivos(): void {
-    this.logueoService.dispositivos().pipe(catchError(() => of([] as DispositivoSync[])))
-      .subscribe(d => this.dispositivos.set(d));
-  }
-
-  /** «hace 5 min», «hace 3 h»: lo que importa es la distancia, no la hora. */
-  hace(iso: string | null): string {
-    if (!iso) { return 'nunca'; }
-    const min = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
-    if (min < 1) { return 'hace un momento'; }
-    if (min < 60) { return `hace ${min} min`; }
-    const h = Math.round(min / 60);
-    return h < 48 ? `hace ${h} h` : `hace ${Math.round(h / 24)} días`;
-  }
-
-  /** Un tablet que no sincroniza hace más de 6 h probablemente tiene trabajo sin subir. */
-  atrasado(iso: string | null): boolean {
-    return !iso || Date.now() - new Date(iso).getTime() > 6 * 3600 * 1000;
-  }
-
-  /**
-   * @param silencioso recarga en vivo: sin el cartel de «Cargando…», que
-   *   haría parpadear la tabla cada vez que llega un tramo.
-   */
   /** El selector solo cambia la URL; la URL elige el sondaje. */
   elegirSondaje(id: string): void {
     const codigo = this.sondajes().find(s => s.id === id)?.codigo;
@@ -221,12 +187,12 @@ export class Quicklog implements OnInit {
   cargar(silencioso = false): void {
     if (!this.sondajeId) {
       this.tramos.set([]);
-      this.ultimoAviso.set(null);
+      this.seleccionado.set(null);
       return;
     }
     if (!silencioso) {
+      this.seleccionado.set(null);
       this.cargando.set(true);
-      this.ultimoAviso.set(null);
       this.cargarFotos();
     }
     this.error.set(null);
@@ -242,6 +208,56 @@ export class Quicklog implements OnInit {
         this.cargando.set(false);
       },
     });
+  }
+
+  /** Tramos con nombres y colores del diccionario, listos para el strip log. */
+  readonly tramosStrip = computed<TramoStrip[]>(() => this.tramos().map(t => ({
+    id: t.id,
+    desde: Number(t.desde),
+    hasta: Number(t.hasta),
+    litoCodigo: this.codigo(t.litoId),
+    litoNombre: this.nombre(t.litoId),
+    litoColor: this.colorLito(t.litoId),
+    altCodigo: t.altTipo1Id ? this.codigo(t.altTipo1Id) : null,
+    altNombre: t.altTipo1Id ? this.nombre(t.altTipo1Id) : null,
+    intensidadCodigo: t.altIntensidad1Id ? this.codigo(t.altIntensidad1Id) : null,
+    intensidadNombre: t.altIntensidad1Id ? this.nombre(t.altIntensidad1Id) : null,
+    zonaCodigo: t.minZonaId ? this.codigo(t.minZonaId) : null,
+    zonaNombre: t.minZonaId ? this.nombre(t.minZonaId) : null,
+    pcCu: t.pcCu !== null && t.pcCu !== undefined ? Number(t.pcCu) : null,
+  })));
+
+  /** Fotos con tramo para la columna de fotos del strip log. */
+  readonly fotosStrip = computed<FotoStrip[]>(() => this.fotos().map(f => ({
+    id: f.id,
+    desde: Number(f.desde),
+    hasta: Number(f.hasta),
+    etiqueta: `Cajas ${f.cajaDesde ?? '?'}–${f.cajaHasta ?? '?'} · ${f.desde}–${f.hasta} m`,
+  })));
+
+  /** Litologías presentes, con su color, para la leyenda del strip log. */
+  readonly leyenda = computed(() => {
+    const vistos = new Map<string, { codigo: string; nombre: string; color: string | null }>();
+    for (const t of this.tramosStrip()) {
+      if (!vistos.has(t.litoCodigo)) {
+        vistos.set(t.litoCodigo, { codigo: t.litoCodigo, nombre: t.litoNombre, color: t.litoColor });
+      }
+    }
+    return [...vistos.values()];
+  });
+
+  elegirTramo(t: TramoStrip): void {
+    this.seleccionado.set(this.tramos().find(x => x.id === t.id) ?? null);
+  }
+
+  ampliarPorId(id: string): void {
+    const foto = this.fotos().find(f => f.id === id);
+    if (foto) { this.ampliar(foto); }
+  }
+
+  codigo(id: string | null | undefined): string {
+    if (!id) { return ''; }
+    return (this.catalogo().get(id)?.codigo ?? '').trim();
   }
 
   /** Nombre legible de una entrada del diccionario, o guion si no hay valor. */
