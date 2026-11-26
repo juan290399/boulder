@@ -113,6 +113,20 @@ class PlataformaServiceTest {
     }
 
     @Test
+    @DisplayName("El alta rechaza coordenadas fuera del rango UTM del hemisferio sur")
+    void altaRechazaCoordenadasFueraDeRango() {
+        PlataformaDTO dto = datos();
+        dto.setEste(12.0);
+        dto.setNorte(12_000_000.0);
+
+        assertThatThrownBy(() -> servicio.guardar(dto))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("este debe estar entre 160 000 y 840 000")
+                .hasMessageContaining("norte debe estar entre 0 y 10 000 000");
+        verify(plataformas, never()).save(any());
+    }
+
+    @Test
     @DisplayName("La edición guarda coordenadas, tipo, ubicación y pozas (antes se perdían)")
     void edicionGuardaTodo() {
         UUID id = UUID.randomUUID();
