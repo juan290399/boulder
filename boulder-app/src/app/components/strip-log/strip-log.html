@@ -45,7 +45,7 @@
           <!-- Litología -->
           <rect [attr.x]="x.lito" [attr.y]="y(t.desde)" [attr.width]="col.lito" [attr.height]="alto_(t)"
                 [attr.fill]="t.litoColor ?? '#cbd5e1'" class="strip__celda" />
-          @if (alto_(t) >= 13) {
+          @if (alto_(t) >= 14) {
             <text [attr.x]="x.lito + col.lito / 2" [attr.y]="y(t.desde) + alto_(t) / 2 + 4" class="strip__codigo"
                   [attr.fill]="tinta(t.litoColor)">{{ t.litoCodigo }}</text>
           }
@@ -53,7 +53,7 @@
           <rect [attr.x]="x.alt" [attr.y]="y(t.desde)" [attr.width]="col.alt" [attr.height]="alto_(t)" class="strip__fondo" />
           <rect [attr.x]="x.alt" [attr.y]="y(t.desde)" [attr.width]="anchoAlt(t)" [attr.height]="alto_(t)"
                 [attr.fill]="colorAlt(t)" class="strip__celda" />
-          @if (alto_(t) >= 13 && t.altCodigo) {
+          @if (alto_(t) >= 14 && t.altCodigo) {
             <text [attr.x]="x.alt + 4" [attr.y]="y(t.desde) + alto_(t) / 2 + 4" class="strip__codigo strip__codigo--izq">{{ t.altCodigo }}</text>
           }
           <!-- Zona mineral -->

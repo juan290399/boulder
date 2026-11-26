@@ -3,25 +3,28 @@
     <h1 class="page-head__title">Reporte de periodo</h1>
   </div>
   <div class="page-head__actions no-print">
-    <a class="btn btn-sm btn-outline-secondary" routerLink="/reportes">Diario</a>
-    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="semana()">7 días</button>
-    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="mes()">Mes</button>
+    <a class="btn btn-sm btn-link cambio-reporte" routerLink="/reportes">
+      <i class="bi bi-arrow-left" aria-hidden="true"></i> Reporte diario</a>
+    <div class="btn-group btn-group-sm" role="group" aria-label="Periodo rápido">
+      <button type="button" class="btn btn-outline-secondary" (click)="semana()">7 días</button>
+      <button type="button" class="btn btn-outline-secondary" (click)="mes()">Mes</button>
+    </div>
     <input type="date" class="form-control form-control-sm fecha" [max]="hasta()"
            aria-label="Desde" [ngModel]="desde()" (ngModelChange)="cambiarDesde($event)">
     <input type="date" class="form-control form-control-sm fecha" [min]="desde()" [max]="hoyIso"
            aria-label="Hasta" [ngModel]="hasta()" (ngModelChange)="cambiarHasta($event)">
     <button type="button" class="btn btn-sm btn-outline-secondary" (click)="exportarExcel()"
             [disabled]="!reporte() || descargando()">
-      <i class="bi bi-file-earmark-excel me-1"></i>{{ descargando() ? 'Descargando…' : 'Excel' }}
+      <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i>{{ descargando() ? 'Descargando…' : 'Excel' }}
     </button>
     <button type="button" class="btn btn-sm btn-primary" (click)="imprimir()" [disabled]="!reporte()">
-      <i class="bi bi-printer me-1"></i>Imprimir / PDF
+      <i class="bi bi-printer me-1" aria-hidden="true"></i>Imprimir
     </button>
   </div>
 </div>
 
 @if (error(); as mensaje) {
-  <div class="alert-inline"><i class="bi bi-exclamation-triangle"></i>{{ mensaje }}</div>
+  <div class="alert-inline" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i>{{ mensaje }}</div>
 }
 
 @if (cargando()) {
@@ -31,25 +34,27 @@
   <p class="solo-impresion">Reporte del {{ r.desde }} al {{ r.hasta }}</p>
 
   <div class="metric-grid">
-    <div class="metric"><div class="metric__label"><i class="bi bi-arrow-down-circle"></i>Perforado</div>
+    <div class="metric"><div class="metric__label"><i class="bi bi-arrow-down-circle" aria-hidden="true"></i>Perforado</div>
       <div class="metric__value">{{ r.totalPerforado | number:'1.2-2' }} m</div></div>
-    <div class="metric"><div class="metric__label"><i class="bi bi-journal-text"></i>Logueo geológico</div>
+    <div class="metric"><div class="metric__label"><i class="bi bi-journal-text" aria-hidden="true"></i>Logueo geológico</div>
       <div class="metric__value">{{ r.totalLogueado | number:'1.2-2' }} m</div></div>
-    <div class="metric"><div class="metric__label"><i class="bi bi-box-seam"></i>Cajas recibidas</div>
+    <div class="metric"><div class="metric__label"><i class="bi bi-box-seam" aria-hidden="true"></i>Cajas recibidas</div>
       <div class="metric__value">{{ r.totalCajas }}</div></div>
-    <div class="metric"><div class="metric__label"><i class="bi bi-eyedropper"></i>Muestras</div>
+    <div class="metric"><div class="metric__label"><i class="bi bi-eyedropper" aria-hidden="true"></i>Muestras</div>
       <div class="metric__value">{{ r.totalMuestras }}</div></div>
   </div>
 
   <div class="reporte-grid">
     <div class="panel">
       <div class="panel__head"><h2 class="panel__title">Metros perforados por día</h2></div>
-      <div class="grafico" role="img" aria-label="Metros perforados por día">
+      <div class="grafico" role="img" [attr.aria-label]="etiquetaGrafico()">
         @for (b of barras(); track b.fecha) {
           <div class="grafico__col">
-            <span class="grafico__valor">{{ b.perforado > 0 && barras().length <= 31 ? (b.perforado | number:'1.0-1') : '' }}</span>
+            <!-- Con muchos días las cifras se encimaban: se escriben solo si caben
+                 (hasta 10 barras) y la fecha cada tantos días. -->
+            <span class="grafico__valor">{{ b.perforado > 0 && barras().length <= 10 ? (b.perforado | number:'1.0-1') : '' }}</span>
             <div class="grafico__barra" [style.height.%]="b.alto"></div>
-            <span class="grafico__dia">{{ barras().length <= 31 ? diaCorto(b.fecha) : '' }}</span>
+            <span class="grafico__dia">{{ $index % pasoFechas() === 0 ? diaCorto(b.fecha) : '' }}</span>
           </div>
         }
       </div>
@@ -69,7 +74,7 @@
             <tbody>
               @for (s of r.sondajes; track s.codigo) {
                 <tr>
-                  <td class="mono">{{ s.codigo }}</td>
+                  <td class="mono sondaje" [title]="s.codigo">{{ corto(s.codigo) }}</td>
                   <td class="num">{{ s.perforado | number:'1.2-2' }}</td>
                   <td class="num">{{ s.logueado | number:'1.2-2' }}</td>
                   <td class="num">{{ s.cajas }}</td>

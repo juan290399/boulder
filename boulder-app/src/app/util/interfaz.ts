@@ -32,6 +32,16 @@ export function mensajeDeError(err: unknown, contexto: string): string {
 }
 
 /**
+ * Nombre corto de un sondaje para tablas angostas: «DDH-COND-N-007-26» → «DDH-007».
+ * Si el código no tiene la forma canónica, se devuelve tal cual.
+ */
+export function nombreCortoSondaje(codigo: string | null | undefined): string {
+  if (!codigo) { return '—'; }
+  const m = codigo.match(/^DDH-[A-Z]+-[A-Z]-(\d{3})-\d{2}$/);
+  return m ? `DDH-${m[1]}` : codigo;
+}
+
+/**
  * Lleva la vista a una sección (normalmente el formulario de edición) y el foco
  * a su primer campo. Respeta «reducir movimiento» del sistema operativo.
  */

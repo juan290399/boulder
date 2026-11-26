@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { nombreCortoSondaje } from '../../../util/interfaz';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
@@ -27,6 +28,15 @@ export class ReportePeriodoPage implements OnInit {
   readonly cargando = signal(false);
   readonly descargando = signal(false);
   readonly error = signal<string | null>(null);
+
+  readonly corto = nombreCortoSondaje;
+
+  /** Cada cuántas barras se escribe la fecha: todas hasta 10 días, luego una de cada 5 o 7. */
+  readonly pasoFechas = computed(() => { const n = this.barras().length; return n <= 10 ? 1 : n <= 31 ? 5 : 7; });
+
+  /** El gráfico también se lee con lector de pantalla: lleva los valores. */
+  readonly etiquetaGrafico = computed(() => 'Metros perforados por día: ' + this.barras()
+    .map(b => `${this.diaCorto(b.fecha)} ${b.perforado.toFixed(1)} m`).join('; '));
 
   readonly barras = computed(() => {
     const dias = this.reporte()?.dias ?? [];

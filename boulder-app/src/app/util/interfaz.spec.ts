@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
-import { mensajeDeError } from './interfaz';
+import { mensajeDeError, nombreCortoSondaje } from './interfaz';
 
 describe('mensajeDeError', () => {
   const error = (status: number, cuerpo: unknown) => new HttpErrorResponse({ status, error: cuerpo });
@@ -33,5 +33,13 @@ describe('mensajeDeError', () => {
 
   it('deja solo el contexto si no hay detalle', () => {
     expect(mensajeDeError(new Error('raro'), 'No se pudo cargar')).toBe('No se pudo cargar');
+  });
+});
+
+describe('nombreCortoSondaje', () => {
+  it('acorta el código canónico y deja igual el resto', () => {
+    expect(nombreCortoSondaje('DDH-COND-N-007-26')).toBe('DDH-007');
+    expect(nombreCortoSondaje('SONDAJE-RARO')).toBe('SONDAJE-RARO');
+    expect(nombreCortoSondaje(null)).toBe('—');
   });
 });

@@ -3,22 +3,23 @@
     <h1 class="page-head__title">Reporte diario consolidado</h1>
   </div>
   <div class="page-head__actions no-print">
-    <a class="btn btn-sm btn-outline-secondary" routerLink="/reportes/periodo">Periodo</a>
+    <a class="btn btn-sm btn-link cambio-reporte" routerLink="/reportes/periodo">
+      Ver reporte de periodo <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
     <input type="date" class="form-control form-control-sm fecha" [max]="hoyIso"
            aria-label="Fecha del reporte"
            [ngModel]="fecha()" (ngModelChange)="cambiarFecha($event)">
     <button type="button" class="btn btn-sm btn-outline-secondary" (click)="exportarExcel()"
             [disabled]="!reporte() || descargando()">
-      <i class="bi bi-file-earmark-excel me-1"></i>{{ descargando() ? 'Descargando…' : 'Excel' }}
+      <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i>{{ descargando() ? 'Descargando…' : 'Excel' }}
     </button>
     <button type="button" class="btn btn-sm btn-primary" (click)="imprimir()" [disabled]="!reporte()">
-      <i class="bi bi-printer me-1"></i>Imprimir / PDF
+      <i class="bi bi-printer me-1" aria-hidden="true"></i>Imprimir / PDF
     </button>
   </div>
 </div>
 
 @if (error(); as mensaje) {
-  <div class="alert-inline"><i class="bi bi-exclamation-triangle"></i>{{ mensaje }}</div>
+  <div class="alert-inline" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i>{{ mensaje }}</div>
 }
 
 @if (cargando()) {
@@ -27,21 +28,27 @@
 
   <p class="solo-impresion">Reporte del {{ r.fecha }}</p>
 
+  @if (aviso(); as a) {
+    <div class="alert-inline alert-inline--info aviso-dia no-print" role="status">
+      <i class="bi bi-info-circle" aria-hidden="true"></i>{{ a }}
+    </div>
+  }
+
   <div class="metric-grid">
-    <div class="metric"><div class="metric__label"><i class="bi bi-arrow-down-circle"></i>Perforado</div>
+    <div class="metric"><div class="metric__label"><i class="bi bi-arrow-down-circle" aria-hidden="true"></i>Perforado</div>
       <div class="metric__value">{{ r.totalPerforado | number:'1.2-2' }} m</div></div>
-    <div class="metric"><div class="metric__label"><i class="bi bi-journal-text"></i>Logueo geológico</div>
+    <div class="metric"><div class="metric__label"><i class="bi bi-journal-text" aria-hidden="true"></i>Logueo geológico</div>
       <div class="metric__value">{{ r.totalLogueado | number:'1.2-2' }} m</div></div>
-    <div class="metric"><div class="metric__label"><i class="bi bi-box-seam"></i>Cajas recibidas</div>
+    <div class="metric"><div class="metric__label"><i class="bi bi-box-seam" aria-hidden="true"></i>Cajas recibidas</div>
       <div class="metric__value">{{ r.totalCajas }}</div></div>
-    <div class="metric"><div class="metric__label"><i class="bi bi-eyedropper"></i>Muestras</div>
+    <div class="metric"><div class="metric__label"><i class="bi bi-eyedropper" aria-hidden="true"></i>Muestras</div>
       <div class="metric__value">{{ r.totalMuestras }}</div></div>
   </div>
 
   <div class="reporte-grid">
     <div class="panel">
       <div class="panel__head"><h2 class="panel__title">Metros perforados, últimos 7 días</h2></div>
-      <div class="grafico" role="img" aria-label="Metros perforados por día">
+      <div class="grafico" role="img" [attr.aria-label]="etiquetaGrafico()">
         @for (b of barras(); track b.fecha) {
           <div class="grafico__col" [class.hoy]="b.fecha === r.fecha">
             <span class="grafico__valor">{{ b.metros > 0 ? (b.metros | number:'1.0-1') : '' }}</span>
@@ -66,7 +73,7 @@
             <tbody>
               @for (s of r.sondajes; track s.codigo) {
                 <tr>
-                  <td class="mono">{{ s.codigo }}</td>
+                  <td class="mono sondaje" [title]="s.codigo">{{ corto(s.codigo) }}</td>
                   <td class="num">{{ s.perforado | number:'1.2-2' }}</td>
                   <td class="num">{{ s.logueado | number:'1.2-2' }}</td>
                   <td class="num">{{ s.cajas }}</td>
@@ -117,7 +124,7 @@
           <tbody>
             @for (c of r.campania; track c.codigo) {
               <tr>
-                <td class="mono">{{ c.codigo }}</td>
+                <td class="mono sondaje" [title]="c.codigo">{{ corto(c.codigo) }}</td>
                 <td>{{ c.maquina }}</td>
                 <td class="mono">{{ c.inicio }}</td>
                 <td class="mono">{{ c.fin }}</td>
@@ -149,7 +156,7 @@
           <tbody>
             @for (f of r.mensual.filas; track f.codigo) {
               <tr>
-                <td class="mono">{{ f.codigo }}</td>
+                <td class="mono sondaje" [title]="f.codigo">{{ corto(f.codigo) }}</td>
                 @for (m of f.metros; track $index) { <td class="num">{{ m ? (m | number:'1.1-1') : '' }}</td> }
               </tr>
             }
