@@ -109,7 +109,10 @@ public interface FrenteAvanceRepository extends Repository<Sondaje, UUID> {
                         UNION ALL SELECT max(fecha) FROM operacional.crt_densidad       WHERE sondaje_id = s.id
                    ) t)                                                AS "ultimaActividad"
               FROM operacional.prf_sondaje s
-             ORDER BY "ultimaActividad" DESC NULLS LAST, s.codigo
+             -- Orden por fin de perforación: primero los que siguen perforando
+             -- (sin fecha de fin; el más reciente en arrancar arriba) y después
+             -- los terminados, del más reciente al más antiguo.
+             ORDER BY s.fecha_fin DESC NULLS FIRST, s.fecha_inicio DESC NULLS LAST, s.codigo
             """, nativeQuery = true)
     List<FrenteAvanceProjection> consultarFrente();
 }

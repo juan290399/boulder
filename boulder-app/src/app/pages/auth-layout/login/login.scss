@@ -1,80 +1,74 @@
-h2 {
-  margin-top: 0;
-  color: #1e293b;
-  font-size: 1.75rem;
-  font-weight: 600;
+.auth-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--bo-ink);
 }
 
-.subtitle {
-  color: #64748b;
-  font-size: 0.95rem;
-  margin-bottom: 2rem;
-}
-
-.form-group {
-  margin-bottom: 1.25rem;
-  
-  label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #475569;
-    font-size: 0.85rem;
-    font-weight: 500;
-  }
-  
-  input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    font-size: 0.95rem;
-    box-sizing: border-box;
-    transition: border-color 0.2s;
-    
-    &:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-  }
-}
-
-.btn-primary {
-  width: 100%;
-  padding: 0.75rem;
-  background-color: #007bff; // Azul idéntico a tu botón "Actualizar"
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  margin-top: 0.5rem;
-
-  &:hover {
-    background-color: #0056b3;
-  }
-
-  &:disabled {
-    background-color: #94a3b8;
-    cursor: not-allowed;
-  }
-}
-
-.footer-links {
-  text-align: center;
-  margin-top: 1.5rem;
+.auth-sub {
+  margin: 0.35rem 0 1.5rem;
   font-size: 0.9rem;
-  color: #64748b;
+  color: var(--bo-ink-2);
+}
+
+.btn.w-100 {
+  padding-block: 0.6rem;
+}
+
+.auth-alt {
+  margin: 1.25rem 0 0;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--bo-ink-2);
 
   a {
-    color: #3b82f6;
-    text-decoration: none;
-    font-weight: 500;
-    
-    &:hover {
-      text-decoration: underline;
-    }
+    font-weight: 600;
+    text-underline-offset: 3px;
   }
+}
+
+.auth-title {
+  font-size: 1.5rem;
+  text-wrap: balance;
+}
+
+/* Campo con ícono o botón a la derecha, dentro del borde del input. */
+.campo {
+  position: relative;
+
+  .form-control { padding-right: 2.75rem; }
+}
+
+.campo__icono,
+.campo__boton {
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  transform: translateY(-50%);
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bo-ink-2);
+  font-size: 1.05rem;
+}
+
+.campo__icono { pointer-events: none; }
+
+.campo__boton {
+  border: 0;
+  background: transparent;
+  border-radius: var(--bo-r-sm);
+  cursor: pointer;
+
+  &:hover { color: var(--bo-ink); background: var(--bo-surface-2); }
+  &:focus-visible { outline: 2px solid var(--bo-brand-400); outline-offset: 1px; }
+}
+
+.olvido {
+  margin: 0 0 1.25rem;
+  font-size: 0.8rem;
+  color: var(--bo-ink-2);
 }

@@ -3,6 +3,7 @@
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.List;
 
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
@@ -12,6 +13,12 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import com.boulder.boulder.dto.EtapaAvanceDTO;
+import com.boulder.boulder.dto.FrenteAvanceDTO;
+import com.boulder.boulder.reportes.ReporteDiario.FilaCampania;
+import com.boulder.boulder.reportes.ReporteDiario.FilaMaquina;
+import com.boulder.boulder.reportes.ReporteDiario.FilaMensual;
+import com.boulder.boulder.reportes.ReporteDiario.Mensual;
 import com.boulder.boulder.reportes.ReporteDiario.FilaSondaje;
 
 /**
@@ -25,7 +32,9 @@ import com.boulder.boulder.reportes.ReporteDiario.FilaSondaje;
  */
 public final class ReporteDiarioExcel {
 
-<span class="fc" id="L28">    private static final String[] CABECERA = {&quot;Sondaje&quot;, &quot;Perforado (m)&quot;, &quot;Logueado (m)&quot;, &quot;Cajas&quot;, &quot;Muestras&quot;};</span>
+<span class="fc" id="L35">    private static final String[] CABECERA = {&quot;Sondaje&quot;, &quot;Perforado (m)&quot;, &quot;Logueado (m)&quot;, &quot;Cajas&quot;, &quot;Muestras&quot;};</span>
+<span class="fc" id="L36">    private static final String[] CAB_CAMPANIA = {&quot;Sondaje&quot;, &quot;Máquina&quot;, &quot;Inicio&quot;, &quot;Fin&quot;, &quot;Días&quot;, &quot;Avance total (m)&quot;,</span>
+            &quot;Estado&quot;};
 
     private ReporteDiarioExcel() {
     }
@@ -36,65 +45,180 @@ public final class ReporteDiarioExcel {
      * @throws IOException si no se puede escribir el libro
      */
     public static byte[] generar(ReporteDiario r) throws IOException {
-<span class="fc" id="L39">        try (XSSFWorkbook libro = new XSSFWorkbook(); ByteArrayOutputStream salida = new ByteArrayOutputStream()) {</span>
-<span class="fc" id="L40">            Sheet hoja = libro.createSheet(r.fecha().toString());</span>
-<span class="fc" id="L41">            CellStyle negrita = estiloNegrita(libro);</span>
-<span class="fc" id="L42">            CellStyle metros = libro.createCellStyle();</span>
-<span class="fc" id="L43">            metros.setDataFormat(libro.createDataFormat().getFormat(&quot;#,##0.00&quot;));</span>
+<span class="fc" id="L48">        return generar(r, List.of());</span>
+    }
 
-<span class="fc" id="L45">            texto(hoja.createRow(0), 0, &quot;Reporte diario consolidado del &quot; + r.fecha(), negrita);</span>
+    /**
+     * @param r      el reporte del día
+     * @param frente frente de avance actual, para la hoja de geología
+     * @return el libro .xlsx listo para descargar
+     * @throws IOException si no se puede escribir el libro
+     */
+    public static byte[] generar(ReporteDiario r, List&lt;FrenteAvanceDTO&gt; frente) throws IOException {
+<span class="fc" id="L58">        try (XSSFWorkbook libro = new XSSFWorkbook(); ByteArrayOutputStream salida = new ByteArrayOutputStream()) {</span>
+<span class="fc" id="L59">            Sheet hoja = libro.createSheet(r.fecha().toString());</span>
+<span class="fc" id="L60">            CellStyle negrita = estiloNegrita(libro);</span>
+<span class="fc" id="L61">            CellStyle metros = libro.createCellStyle();</span>
+<span class="fc" id="L62">            metros.setDataFormat(libro.createDataFormat().getFormat(&quot;#,##0.00&quot;));</span>
 
-<span class="fc" id="L47">            Row cab = hoja.createRow(2);</span>
-<span class="fc bfc" id="L48" title="All 2 branches covered.">            for (int i = 0; i &lt; CABECERA.length; i++) {</span>
-<span class="fc" id="L49">                texto(cab, i, CABECERA[i], negrita);</span>
+<span class="fc" id="L64">            texto(hoja.createRow(0), 0, &quot;Reporte diario consolidado del &quot; + r.fecha(), negrita);</span>
+
+<span class="fc" id="L66">            Row cab = hoja.createRow(2);</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">            for (int i = 0; i &lt; CABECERA.length; i++) {</span>
+<span class="fc" id="L68">                texto(cab, i, CABECERA[i], negrita);</span>
             }
 
-<span class="fc" id="L52">            int fila = 3;</span>
-<span class="fc bfc" id="L53" title="All 2 branches covered.">            for (FilaSondaje s : r.sondajes()) {</span>
-<span class="fc" id="L54">                Row row = hoja.createRow(fila++);</span>
-<span class="fc" id="L55">                texto(row, 0, s.codigo(), null);</span>
-<span class="fc" id="L56">                numero(row, 1, s.perforado(), metros);</span>
-<span class="fc" id="L57">                numero(row, 2, s.logueado(), metros);</span>
-<span class="fc" id="L58">                row.createCell(3).setCellValue(s.cajas());</span>
-<span class="fc" id="L59">                row.createCell(4).setCellValue(s.muestras());</span>
-<span class="fc" id="L60">            }</span>
+<span class="fc" id="L71">            int fila = 3;</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">            for (FilaSondaje s : r.sondajes()) {</span>
+<span class="fc" id="L73">                Row row = hoja.createRow(fila++);</span>
+<span class="fc" id="L74">                texto(row, 0, s.codigo(), null);</span>
+<span class="fc" id="L75">                numero(row, 1, s.perforado(), metros);</span>
+<span class="fc" id="L76">                numero(row, 2, s.logueado(), metros);</span>
+<span class="fc" id="L77">                row.createCell(3).setCellValue(s.cajas());</span>
+<span class="fc" id="L78">                row.createCell(4).setCellValue(s.muestras());</span>
+<span class="fc" id="L79">            }</span>
 
-<span class="fc" id="L62">            Row total = hoja.createRow(fila);</span>
-<span class="fc" id="L63">            texto(total, 0, &quot;Total&quot;, negrita);</span>
-<span class="fc" id="L64">            numero(total, 1, r.totalPerforado(), metros);</span>
-<span class="fc" id="L65">            numero(total, 2, r.totalLogueado(), metros);</span>
-<span class="fc" id="L66">            total.createCell(3).setCellValue(r.totalCajas());</span>
-<span class="fc" id="L67">            total.createCell(4).setCellValue(r.totalMuestras());</span>
+<span class="fc" id="L81">            Row total = hoja.createRow(fila);</span>
+<span class="fc" id="L82">            texto(total, 0, &quot;Total&quot;, negrita);</span>
+<span class="fc" id="L83">            numero(total, 1, r.totalPerforado(), metros);</span>
+<span class="fc" id="L84">            numero(total, 2, r.totalLogueado(), metros);</span>
+<span class="fc" id="L85">            total.createCell(3).setCellValue(r.totalCajas());</span>
+<span class="fc" id="L86">            total.createCell(4).setCellValue(r.totalMuestras());</span>
 
-<span class="fc bfc" id="L69" title="All 2 branches covered.">            for (int i = 0; i &lt; CABECERA.length; i++) {</span>
-<span class="fc" id="L70">                hoja.autoSizeColumn(i);</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">            if (!r.porMaquina().isEmpty()) {</span>
+<span class="fc" id="L89">                fila += 2;</span>
+<span class="fc" id="L90">                Row cabMaquina = hoja.createRow(fila++);</span>
+<span class="fc" id="L91">                texto(cabMaquina, 0, &quot;Máquina&quot;, negrita);</span>
+<span class="fc" id="L92">                texto(cabMaquina, 1, &quot;Perforado (m)&quot;, negrita);</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">                for (FilaMaquina m : r.porMaquina()) {</span>
+<span class="fc" id="L94">                    Row row = hoja.createRow(fila++);</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">                    texto(row, 0, m.maquina() != null ? m.maquina() : &quot;Sin máquina&quot;, null);</span>
+<span class="fc" id="L96">                    numero(row, 1, m.metros(), metros);</span>
+<span class="fc" id="L97">                }</span>
             }
-<span class="fc" id="L72">            libro.write(salida);</span>
-<span class="fc" id="L73">            return salida.toByteArray();</span>
+
+<span class="fc bfc" id="L100" title="All 2 branches covered.">            for (int i = 0; i &lt; CABECERA.length; i++) {</span>
+<span class="fc" id="L101">                hoja.autoSizeColumn(i);</span>
+            }
+
+<span class="fc" id="L104">            campania(libro, r, negrita, metros);</span>
+<span class="fc" id="L105">            mensual(libro, r, negrita, metros);</span>
+<span class="fc" id="L106">            geologia(libro, frente, negrita);</span>
+<span class="fc" id="L107">            libro.write(salida);</span>
+<span class="fc" id="L108">            return salida.toByteArray();</span>
         }
     }
 
-    private static void texto(Row fila, int col, String valor, CellStyle estilo) {
-<span class="fc" id="L78">        Cell c = fila.createCell(col);</span>
-<span class="fc" id="L79">        c.setCellValue(valor);</span>
-<span class="fc bfc" id="L80" title="All 2 branches covered.">        if (estilo != null) {</span>
-<span class="fc" id="L81">            c.setCellStyle(estilo);</span>
+    /** Hoja con el resumen de la campaña hasta la fecha del reporte. */
+    private static void campania(XSSFWorkbook libro, ReporteDiario r, CellStyle negrita, CellStyle metros) {
+<span class="fc" id="L114">        Sheet hoja = libro.createSheet(&quot;Campaña&quot;);</span>
+<span class="fc" id="L115">        CellStyle fecha = libro.createCellStyle();</span>
+<span class="fc" id="L116">        fecha.setDataFormat(libro.createDataFormat().getFormat(&quot;yyyy-mm-dd&quot;));</span>
+<span class="fc" id="L117">        texto(hoja.createRow(0), 0, &quot;Perforación de la campaña al &quot; + r.fecha(), negrita);</span>
+<span class="fc" id="L118">        Row cab = hoja.createRow(2);</span>
+<span class="fc bfc" id="L119" title="All 2 branches covered.">        for (int i = 0; i &lt; CAB_CAMPANIA.length; i++) {</span>
+<span class="fc" id="L120">            texto(cab, i, CAB_CAMPANIA[i], negrita);</span>
         }
-<span class="fc" id="L83">    }</span>
+<span class="fc" id="L122">        int fila = 3;</span>
+<span class="fc bfc" id="L123" title="All 2 branches covered.">        for (FilaCampania c : r.campania()) {</span>
+<span class="fc" id="L124">            Row row = hoja.createRow(fila++);</span>
+<span class="fc" id="L125">            texto(row, 0, c.codigo(), null);</span>
+<span class="fc bfc" id="L126" title="All 2 branches covered.">            if (c.maquina() != null) {</span>
+<span class="fc" id="L127">                texto(row, 1, c.maquina(), null);</span>
+            }
+<span class="fc" id="L129">            Cell inicio = row.createCell(2);</span>
+<span class="fc" id="L130">            inicio.setCellValue(c.inicio());</span>
+<span class="fc" id="L131">            inicio.setCellStyle(fecha);</span>
+<span class="fc" id="L132">            Cell fin = row.createCell(3);</span>
+<span class="fc" id="L133">            fin.setCellValue(c.fin());</span>
+<span class="fc" id="L134">            fin.setCellStyle(fecha);</span>
+<span class="fc" id="L135">            row.createCell(4).setCellValue(c.dias());</span>
+<span class="fc" id="L136">            numero(row, 5, c.avance(), metros);</span>
+<span class="fc" id="L137">            texto(row, 6, c.estado(), null);</span>
+<span class="fc" id="L138">        }</span>
+<span class="fc" id="L139">        Row total = hoja.createRow(fila);</span>
+<span class="fc" id="L140">        texto(total, 0, &quot;Total&quot;, negrita);</span>
+<span class="fc" id="L141">        numero(total, 5, r.totalCampania(), metros);</span>
+<span class="fc bfc" id="L142" title="All 2 branches covered.">        for (int i = 0; i &lt; CAB_CAMPANIA.length; i++) {</span>
+<span class="fc" id="L143">            hoja.autoSizeColumn(i);</span>
+        }
+<span class="fc" id="L145">    }</span>
+
+    /** Hoja con los metros perforados por sondaje y por mes hasta la fecha del reporte. */
+    private static void mensual(XSSFWorkbook libro, ReporteDiario r, CellStyle negrita, CellStyle metros) {
+<span class="fc" id="L149">        Sheet hoja = libro.createSheet(&quot;Por mes&quot;);</span>
+<span class="fc" id="L150">        Mensual m = r.mensual();</span>
+<span class="fc" id="L151">        texto(hoja.createRow(0), 0, &quot;Metros perforados por mes al &quot; + r.fecha(), negrita);</span>
+<span class="fc" id="L152">        Row cab = hoja.createRow(2);</span>
+<span class="fc" id="L153">        texto(cab, 0, &quot;Sondaje&quot;, negrita);</span>
+<span class="fc bfc" id="L154" title="All 2 branches covered.">        for (int i = 0; i &lt; m.meses().size(); i++) {</span>
+<span class="fc" id="L155">            texto(cab, i + 1, m.meses().get(i).toString(), negrita);</span>
+        }
+<span class="fc" id="L157">        int fila = 3;</span>
+<span class="fc bfc" id="L158" title="All 2 branches covered.">        for (FilaMensual f : m.filas()) {</span>
+<span class="fc" id="L159">            Row row = hoja.createRow(fila++);</span>
+<span class="fc" id="L160">            texto(row, 0, f.codigo(), null);</span>
+<span class="fc bfc" id="L161" title="All 2 branches covered.">            for (int i = 0; i &lt; f.metros().size(); i++) {</span>
+<span class="fc" id="L162">                numero(row, i + 1, f.metros().get(i), metros);</span>
+            }
+<span class="fc" id="L164">        }</span>
+<span class="fc" id="L165">        Row total = hoja.createRow(fila);</span>
+<span class="fc" id="L166">        texto(total, 0, &quot;Total&quot;, negrita);</span>
+<span class="fc bfc" id="L167" title="All 2 branches covered.">        for (int i = 0; i &lt; m.totales().size(); i++) {</span>
+<span class="fc" id="L168">            numero(total, i + 1, m.totales().get(i), metros);</span>
+        }
+<span class="fc bfc" id="L170" title="All 2 branches covered.">        for (int i = 0; i &lt;= m.meses().size(); i++) {</span>
+<span class="fc" id="L171">            hoja.autoSizeColumn(i);</span>
+        }
+<span class="fc" id="L173">    }</span>
+
+    /** Hoja con el estado actual de cada etapa de geología por sondaje (la perforación va aparte). */
+    private static void geologia(XSSFWorkbook libro, List&lt;FrenteAvanceDTO&gt; frente, CellStyle negrita) {
+<span class="fc" id="L177">        Sheet hoja = libro.createSheet(&quot;Geología&quot;);</span>
+<span class="fc" id="L178">        texto(hoja.createRow(0), 0, &quot;Estado actual de las etapas por sondaje&quot;, negrita);</span>
+<span class="fc" id="L179">        Row cab = hoja.createRow(2);</span>
+<span class="fc" id="L180">        texto(cab, 0, &quot;Sondaje&quot;, negrita);</span>
+<span class="fc" id="L181">        int columnas = 1;</span>
+<span class="fc bfc" id="L182" title="All 2 branches covered.">        if (!frente.isEmpty()) {</span>
+<span class="fc" id="L183">            List&lt;EtapaAvanceDTO&gt; etapas = frente.getFirst().getEtapas();</span>
+<span class="fc bfc" id="L184" title="All 2 branches covered.">            for (int i = 1; i &lt; etapas.size(); i++) {</span>
+<span class="fc" id="L185">                texto(cab, columnas++, etapas.get(i).getNombre(), negrita);</span>
+            }
+        }
+<span class="fc" id="L188">        int fila = 3;</span>
+<span class="fc bfc" id="L189" title="All 2 branches covered.">        for (FrenteAvanceDTO f : frente) {</span>
+<span class="fc" id="L190">            Row row = hoja.createRow(fila++);</span>
+<span class="fc" id="L191">            texto(row, 0, f.getSondajeCodigo(), null);</span>
+<span class="fc bfc" id="L192" title="All 2 branches covered.">            for (int i = 1; i &lt; f.getEtapas().size(); i++) {</span>
+<span class="fc" id="L193">                texto(row, i, EstadoEtapa.de(f.getEtapas().get(i), f), null);</span>
+            }
+<span class="fc" id="L195">        }</span>
+<span class="fc bfc" id="L196" title="All 2 branches covered.">        for (int i = 0; i &lt; columnas; i++) {</span>
+<span class="fc" id="L197">            hoja.autoSizeColumn(i);</span>
+        }
+<span class="fc" id="L199">    }</span>
+
+    private static void texto(Row fila, int col, String valor, CellStyle estilo) {
+<span class="fc" id="L202">        Cell c = fila.createCell(col);</span>
+<span class="fc" id="L203">        c.setCellValue(valor);</span>
+<span class="fc bfc" id="L204" title="All 2 branches covered.">        if (estilo != null) {</span>
+<span class="fc" id="L205">            c.setCellStyle(estilo);</span>
+        }
+<span class="fc" id="L207">    }</span>
 
     private static void numero(Row fila, int col, BigDecimal valor, CellStyle estilo) {
-<span class="fc" id="L86">        Cell c = fila.createCell(col);</span>
-<span class="fc" id="L87">        c.setCellValue(valor.doubleValue());</span>
-<span class="fc" id="L88">        c.setCellStyle(estilo);</span>
-<span class="fc" id="L89">    }</span>
+<span class="fc" id="L210">        Cell c = fila.createCell(col);</span>
+<span class="fc" id="L211">        c.setCellValue(valor.doubleValue());</span>
+<span class="fc" id="L212">        c.setCellStyle(estilo);</span>
+<span class="fc" id="L213">    }</span>
 
     private static CellStyle estiloNegrita(XSSFWorkbook libro) {
-<span class="fc" id="L92">        Font f = libro.createFont();</span>
-<span class="fc" id="L93">        f.setBold(true);</span>
-<span class="fc" id="L94">        CellStyle s = libro.createCellStyle();</span>
-<span class="fc" id="L95">        s.setFont(f);</span>
-<span class="fc" id="L96">        s.setBorderBottom(BorderStyle.THIN);</span>
-<span class="fc" id="L97">        return s;</span>
+<span class="fc" id="L216">        Font f = libro.createFont();</span>
+<span class="fc" id="L217">        f.setBold(true);</span>
+<span class="fc" id="L218">        CellStyle s = libro.createCellStyle();</span>
+<span class="fc" id="L219">        s.setFont(f);</span>
+<span class="fc" id="L220">        s.setBorderBottom(BorderStyle.THIN);</span>
+<span class="fc" id="L221">        return s;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

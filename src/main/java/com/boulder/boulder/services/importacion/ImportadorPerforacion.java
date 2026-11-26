@@ -96,7 +96,7 @@ public class ImportadorPerforacion extends ImportadorBase {
                     f.decimal("casing_desde"), f.decimal("casing_hasta")).forEach(f::error);
 
             AvancePerforacion e = new AvancePerforacion();
-            e.setSondajeCodigo(f.texto("sondaje_codigo", 30));
+            e.setSondajeCodigo(f.codigoSondaje(sondajeId, "sondaje_codigo"));
             e.setFecha(fecha);
             e.setTurno(turno);
             e.setResponsable(f.texto("responsable", 80));

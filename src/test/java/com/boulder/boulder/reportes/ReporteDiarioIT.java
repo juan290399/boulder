@@ -58,6 +58,8 @@ class ReporteDiarioIT {
 
         try (XSSFWorkbook libro = new XSSFWorkbook(new ByteArrayInputStream(cuerpo))) {
             assertThat(libro.getSheet("2026-09-07")).isNotNull();
+            assertThat(libro.getSheet("Campaña")).isNotNull();
+            assertThat(libro.getSheet("Geología").getPhysicalNumberOfRows()).isGreaterThan(3);
         }
     }
 

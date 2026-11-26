@@ -1,0 +1,73 @@
+:host { display: block; }
+
+.strip {
+  border: 1px solid var(--bo-border);
+  border-radius: var(--bo-r-md);
+  background: var(--bo-surface);
+  overflow: hidden;
+}
+
+.strip__cabecera {
+  display: flex;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--bo-border);
+  background: var(--bo-surface-2);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--bo-ink-2);
+
+  span { flex: none; text-align: center; }
+}
+
+/* El rollo: alto fijo y desplazamiento vertical, como el log en papel. */
+.strip__rollo {
+  max-height: calc(100vh - var(--bo-topbar-h) - 15rem);
+  min-height: 320px;
+  overflow: auto;
+
+  &:focus-visible { outline: 2px solid var(--bo-brand-500); outline-offset: -2px; }
+}
+
+svg { display: block; }
+
+.strip__marca { stroke: var(--bo-ink-2); stroke-width: 1; }
+.strip__guia { stroke: var(--bo-border); stroke-width: 1; stroke-dasharray: 2 3; }
+.strip__cota {
+  font-size: 11px;
+  fill: var(--bo-ink-2);
+  text-anchor: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.strip__celda { stroke: rgb(15 23 42 / 0.18); stroke-width: 0.5; }
+.strip__fondo { fill: var(--bo-surface-2); }
+.strip__cu { fill: #b45309; }
+
+.strip__codigo {
+  font-size: 11px;
+  font-weight: 700;
+  text-anchor: middle;
+  pointer-events: none;
+  font-family: var(--bo-font-mono);
+}
+.strip__codigo--izq { text-anchor: start; fill: #0f172a; }
+
+.strip__tramo {
+  cursor: pointer;
+  outline: none;
+
+  .strip__marco { fill: transparent; stroke: transparent; stroke-width: 2; }
+  &:hover .strip__marco { fill: rgb(37 99 235 / 0.08); }
+  &:focus-visible .strip__marco { stroke: var(--bo-brand-500); }
+}
+.strip__tramo--sel .strip__marco { stroke: var(--bo-brand-600); stroke-width: 2.5; fill: rgb(37 99 235 / 0.1); }
+
+.strip__foto {
+  cursor: pointer;
+  outline: none;
+
+  rect { fill: var(--bo-brand-soft); stroke: var(--bo-brand-500); stroke-width: 1; }
+  &:hover rect, &:focus-visible rect { fill: var(--bo-brand-400); }
+}

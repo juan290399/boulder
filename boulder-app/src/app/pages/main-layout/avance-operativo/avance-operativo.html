@@ -1,29 +1,58 @@
-<div class="page-head">
-  <div>
+<!-- Una sola pantalla con dos vistas: el frente de todos los sondajes y, al
+     elegir uno, su detalle a todo el ancho (con «← Frente de avance» para
+     volver). La URL lleva ?sondaje=CÓDIGO, así el botón Atrás del navegador
+     también vuelve al frente. -->
+@if (seleccionado(); as fila) {
+  <div class="page-head">
+    <div>
+      <button type="button" class="btn btn-link btn-sm p-0 volver" (click)="volverAlFrente()">
+        <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Frente de avance
+      </button>
+      <h1 class="page-head__title mono" id="detalle-sondaje-titulo" tabindex="-1">{{ fila.sondajeCodigo }}</h1>
+      <p class="detalle-resumen">
+        @if (fila.sondajeNombre) { {{ fila.sondajeNombre }} · }
+        {{ fila.etapas[0].profundidad | number:'1.0-1' }} m perforados
+        @if (fila.profundidadFinal) { de {{ fila.profundidadFinal | number:'1.0-1' }} m programados }
+        @if (fila.ultimaActividad) { · último parte {{ fila.ultimaActividad }} }
+      </p>
+    </div>
+    @if (puedeRegistrar) {
+      <div class="page-head__actions">
+        <button type="button" class="btn btn-sm btn-primary" (click)="nuevoParte()"
+                [disabled]="formulario() || cargandoPartes()">
+          <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Parte de {{ tipoActual.etiqueta | lowercase }}
+        </button>
+      </div>
+    }
+  </div>
+} @else {
+  <div class="page-head">
     <h1 class="page-head__title">Avances operativos</h1>
-  </div>
 
-  <div class="page-head__actions">
-    <button type="button" class="btn btn-sm"
-            [class.btn-primary]="soloActivos()"
-            [class.btn-outline-secondary]="!soloActivos()"
-            (click)="alternarActivos()">
-      <i class="bi bi-funnel me-1"></i>
-      {{ soloActivos() ? 'Solo activos' : 'Todos los sondajes' }}
-    </button>
-    <button type="button" class="btn btn-sm btn-outline-secondary"
-            (click)="cargarFrente()" [disabled]="cargando()">
-      <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
-    </button>
-  </div>
-</div>
-
-@if (error(); as mensaje) {
-  <div class="alert-inline">
-    <i class="bi bi-exclamation-triangle"></i>{{ mensaje }}
+    <div class="page-head__actions">
+      <!-- Interruptor: el rótulo no cambia; aria-pressed y el color dicen si está activo. -->
+      <button type="button" class="btn btn-sm"
+              [class.btn-primary]="soloActivos()"
+              [class.btn-outline-secondary]="!soloActivos()"
+              [attr.aria-pressed]="soloActivos()"
+              (click)="alternarActivos()">
+        <i class="bi bi-funnel me-1" aria-hidden="true"></i>Solo activos
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-secondary"
+              (click)="cargarFrente()" [disabled]="cargando()">
+        <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i>Actualizar
+      </button>
+    </div>
   </div>
 }
 
+@if (error(); as mensaje) {
+  <div class="alert-inline" role="alert">
+    <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>{{ mensaje }}
+  </div>
+}
+
+@if (!seleccionado()) {
 <div class="metric-grid">
   <div class="metric">
     <div class="metric__label"><i class="bi bi-record-circle"></i>Sondajes activos</div>
@@ -52,6 +81,15 @@
     <span class="text-muted small">{{ frente().length }} sondajes</span>
   </div>
 
+  @if (leyenda().length) {
+    <p class="leyenda-etapas">
+      <span class="visually-hidden">Siglas de las etapas:</span>
+      @for (e of leyenda(); track e.sigla) {
+        <span class="leyenda-etapas__item"><abbr [title]="e.nombre">{{ e.sigla }}</abbr> {{ e.nombre }}</span>
+      }
+    </p>
+  }
+
   @if (cargando()) {
     <div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Cargando…</p></div>
   } @else if (!frente().length) {
@@ -68,29 +106,31 @@
             <th class="num">Perforado</th>
             <th class="num">Programa</th>
             <th style="min-width: 380px;">Etapas del flujo</th>
-            <th>Etapa crítica</th>
             <th>Último parte</th>
           </tr>
         </thead>
         <tbody>
           @for (fila of frente(); track fila.sondajeId) {
-            <tr class="fila-sondaje"
-                [class.fila-sondaje--abierta]="seleccionado()?.sondajeId === fila.sondajeId"
-                (click)="seleccionar(fila)">
+            <tr class="fila-sondaje" (click)="seleccionar(fila)">
 
+              <!-- El botón hace la fila alcanzable con teclado; su clic sube a
+                   la fila, que es la que abre el detalle. -->
               <td>
-                <div class="d-flex align-items-center gap-2">
-                  <i class="bi"
-                     [class.bi-chevron-right]="seleccionado()?.sondajeId !== fila.sondajeId"
-                     [class.bi-chevron-down]="seleccionado()?.sondajeId === fila.sondajeId"></i>
-                  <div>
-                    <div class="mono fw-semibold">{{ fila.sondajeCodigo }}</div>
-                    <div class="text-muted small">{{ fila.sondajeNombre }}</div>
-                  </div>
-                </div>
+                <button type="button" class="fila-boton" [id]="'fila-' + fila.sondajeId">
+                  <span>
+                    <span class="mono fw-semibold d-block">{{ fila.sondajeCodigo }}</span>
+                    <span class="text-muted small d-block">{{ fila.sondajeNombre }}</span>
+                  </span>
+                  <i class="bi bi-chevron-right ms-auto text-secondary" aria-hidden="true"></i>
+                </button>
               </td>
 
-              <td class="num">{{ fila.etapas[0].profundidad | number:'1.0-2' }} m</td>
+              <td class="num">
+                {{ fila.etapas[0].profundidad | number:'1.0-2' }} m
+                <div class="text-muted small text-nowrap">
+                  {{ fila.fechaFin ? 'fin ' + fila.fechaFin : (fila.fechaInicio ? 'en perforación' : 'programado') }}
+                </div>
+              </td>
 
               <td class="num">
                 {{ fila.profundidadFinal | number:'1.0-1' }} m
@@ -118,17 +158,6 @@
               </td>
 
               <td>
-                @if (fila.etapaCritica) {
-                  <span class="chip chip--warn">
-                    {{ nombreEtapa(fila, fila.etapaCritica) }}
-                    · {{ fila.rezagoMaximo | number:'1.0-1' }} m
-                  </span>
-                } @else {
-                  <span class="chip chip--ok">Al día</span>
-                }
-              </td>
-
-              <td>
                 @if (fila.ultimaActividad) {
                   <span [ngClass]="tonoDias(fila.diasSinMovimiento)">
                     {{ fila.diasSinMovimiento }} d
@@ -145,43 +174,49 @@
     </div>
   }
 </div>
+}
 
 @if (seleccionado(); as fila) {
+  <div id="detalle-sondaje">
+  <!-- Etapas del sondaje elegido, con el nombre y los metros de cada una. -->
+  <div class="panel etapas-detalle">
+    <div class="etapas etapas--grande">
+      @for (etapa of fila.etapas; track etapa.clave) {
+        <div class="etapas__item">
+          <span class="etapas__nombre">{{ etapa.nombre }}</span>
+          <div class="track">
+            <div class="track__fill" [ngClass]="tonoEtapa(etapa.pctSobrePerforado)"
+                 [style.width.%]="etapa.pctSobrePerforado ?? 0"></div>
+          </div>
+          <span class="etapas__metros">{{ (etapa.profundidad ?? 0) | number:'1.0-1' }} m</span>
+        </div>
+      }
+    </div>
+  </div>
+
   @if (formulario(); as fm) {
-    <div class="panel">
+    <div class="panel" id="formulario-parte">
       @if (fm.clave === 'perforacion') {
         <app-parte-perforacion
           [sondajeId]="fila.sondajeId" [sondajeCodigo]="fila.sondajeCodigo" [parte]="comoPerforacion(fm.parte)"
-          (guardado)="parteGuardado($event)" (cancelado)="formulario.set(null)" />
+          (guardado)="parteGuardado($event)" (cancelado)="cancelarParte()" />
       } @else {
         <app-parte-operativo
           [clave]="fm.clave" [etiqueta]="tipoActual.etiqueta" [anteriores]="partes()"
           [sondajeId]="fila.sondajeId" [sondajeCodigo]="fila.sondajeCodigo" [parte]="fm.parte"
-          (guardado)="parteGuardado($event)" (cancelado)="formulario.set(null)" />
+          (guardado)="parteGuardado($event)" (cancelado)="cancelarParte()" />
       }
     </div>
   }
 
   <div class="panel">
     <div class="panel__head">
-      <h2 class="panel__title">
-        Partes de <span class="mono">{{ fila.sondajeCodigo }}</span>
-      </h2>
-      <div class="d-flex gap-2">
-        <button type="button" class="btn btn-sm btn-primary" (click)="nuevoParte()"
-                [disabled]="formulario() || cargandoPartes()">
-          <i class="bi bi-plus-lg me-1"></i>Parte de {{ tipoActual.etiqueta | lowercase }}
-        </button>
-        <button type="button" class="btn btn-sm btn-outline-secondary"
-                (click)="seleccionar(fila)" aria-label="Cerrar detalle">
-          <i class="bi bi-x-lg"></i>
-        </button>
-      </div>
+      <h2 class="panel__title">Partes</h2>
     </div>
 
     @if (aviso(); as a) {
-      <div class="alert alert-success py-2 mx-3 mt-3 mb-0 d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-check-circle me-1"></i>{{ a }}</span>
+      <div class="alert-inline alert-inline--ok mx-3 mt-3 mb-0 d-flex justify-content-between align-items-center" role="status">
+        <span><i class="bi bi-check-circle me-1" aria-hidden="true"></i>{{ a }}</span>
         <button type="button" class="btn-close" aria-label="Cerrar" (click)="aviso.set(null)"></button>
       </div>
     }
@@ -190,8 +225,9 @@
       @for (tipo of tipos; track tipo.clave) {
         <button type="button" class="tabs__btn"
                 [class.tabs__btn--activo]="tipoActivo() === tipo.clave"
+                [attr.aria-pressed]="tipoActivo() === tipo.clave"
                 (click)="elegirTipo(tipo.clave)">
-          <i class="bi" [ngClass]="tipo.icono"></i>
+          <i class="bi" aria-hidden="true" [ngClass]="tipo.icono"></i>
           <span>{{ tipo.etiqueta }}</span>
         </button>
       }
@@ -223,17 +259,19 @@
             @for (parte of partes(); track parte.id) {
               <tr>
                 <td class="num text-muted">{{ parte.numeroInterno }}</td>
-                <td>{{ parte.fecha }}</td>
+                <td class="text-nowrap">{{ parte.fecha }}</td>
                 <td>{{ parte.turno ?? '—' }}</td>
                 @for (col of tipoActual.columnas; track col.campo) {
                   <td [class.num]="col.numerica">{{ valor(parte, col.campo) ?? '—' }}</td>
                 }
                 <td><span class="chip chip--brand">{{ parte.estado }}</span></td>
                 <td class="text-end">
+                  @if (puedeRegistrar) {
                   <button type="button" class="btn btn-sm btn-link" title="Corregir" (click)="editarParte(parte)"
                           [attr.aria-label]="'Corregir parte ' + parte.numeroInterno">
-                    <i class="bi bi-pencil"></i>
+                    <i class="bi bi-pencil" aria-hidden="true"></i>
                   </button>
+                  }
                 </td>
               </tr>
             }
@@ -241,5 +279,6 @@
         </table>
       </div>
     }
+  </div>
   </div>
 }

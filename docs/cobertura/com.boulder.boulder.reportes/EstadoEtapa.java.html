@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EstadoEtapa.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.reportes</a> &gt; <span class="el_source">EstadoEtapa.java</span></div><h1>EstadoEtapa.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.reportes;
+
+import java.math.BigDecimal;
+import java.util.Locale;
+
+import com.boulder.boulder.dto.EtapaAvanceDTO;
+import com.boulder.boulder.dto.FrenteAvanceDTO;
+
+/**
+ * Estado de una etapa del flujo de testigo, como lo escribe el reporte diario de
+ * campo: en blanco si no empezó, la profundidad alcanzada y «Proceso» si va
+ * atrasada, y «Finalizado» (o «Al día» si el sondaje sigue perforándose) si
+ * alcanzó lo perforado.
+ */
+public final class EstadoEtapa {
+
+    private EstadoEtapa() {
+    }
+
+    /**
+     * @param etapa   la etapa con su profundidad y su rezago
+     * @param sondaje el sondaje al que pertenece
+     * @return el estado para mostrar
+     */
+    public static String de(EtapaAvanceDTO etapa, FrenteAvanceDTO sondaje) {
+<span class="fc" id="L26">        BigDecimal alcanzado = etapa.getProfundidad();</span>
+<span class="fc bfc" id="L27" title="All 4 branches covered.">        if (alcanzado == null || alcanzado.signum() &lt;= 0) {</span>
+<span class="fc" id="L28">            return &quot;&quot;;</span>
+        }
+<span class="fc bfc" id="L30" title="All 4 branches covered.">        if (etapa.getRezago() != null &amp;&amp; etapa.getRezago().signum() == 0) {</span>
+<span class="fc bfc" id="L31" title="All 2 branches covered.">            return sondaje.getFechaFin() != null ? &quot;Finalizado&quot; : &quot;Al día&quot;;</span>
+        }
+<span class="fc" id="L33">        return String.format(Locale.ROOT, &quot;%.2f&quot;, alcanzado).replace('.', ',') + &quot; Proceso&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

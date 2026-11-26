@@ -37,6 +37,57 @@ class ReporteDiarioExcelTest {
     }
 
     @Test
+    @DisplayName("La hoja de geología muestra el estado de cada etapa por sondaje, sin la perforación")
+    void hojaGeologia() throws Exception {
+        com.boulder.boulder.dto.FrenteAvanceDTO f = new com.boulder.boulder.dto.FrenteAvanceDTO();
+        f.setSondajeCodigo("DDH-VERO-S-038-26");
+        f.getEtapas().add(new com.boulder.boulder.dto.EtapaAvanceDTO("perforacion", "Perforación",
+                new BigDecimal("300"), BigDecimal.ZERO, null));
+        f.getEtapas().add(new com.boulder.boulder.dto.EtapaAvanceDTO("logueo", "Logueo geológico",
+                new BigDecimal("79.1"), new BigDecimal("220.9"), null));
+        try (Workbook libro = abrir(ReporteDiarioExcel.generar(reporte("DDH-VERO-S-040-26"), List.of(f)))) {
+            Sheet hoja = libro.getSheet("Geología");
+            assertThat(hoja.getRow(2).getCell(0).getStringCellValue()).isEqualTo("Sondaje");
+            assertThat(hoja.getRow(2).getCell(1).getStringCellValue()).isEqualTo("Logueo geológico");
+            assertThat(hoja.getRow(3).getCell(0).getStringCellValue()).isEqualTo("DDH-VERO-S-038-26");
+            assertThat(hoja.getRow(3).getCell(1).getStringCellValue()).isEqualTo("79,10 Proceso");
+        }
+    }
+
+    @Test
+    @DisplayName("La hoja mensual pone los meses como columnas y una fila de total")
+    void hojaMensual() throws Exception {
+        ReporteDiario r = ReporteDiario.de(DIA, List.of(), List.of(), List.of(), List.of(new ReporteDiario.FilaMaquina("H-400", new BigDecimal("19.4"))),
+                List.of(new ReporteDiario.CeldaMensual("DDH-VERO-S-038-26", java.time.YearMonth.of(2026, 9), new BigDecimal("50"))));
+        try (Workbook libro = abrir(ReporteDiarioExcel.generar(r))) {
+            Sheet hoja = libro.getSheet("Por mes");
+            assertThat(hoja.getRow(2).getCell(1).getStringCellValue()).isEqualTo("2026-09");
+            assertThat(hoja.getRow(3).getCell(1).getNumericCellValue()).isEqualTo(50.0);
+            assertThat(hoja.getRow(4).getCell(0).getStringCellValue()).isEqualTo("Total");
+            Sheet dia = libro.getSheet("2026-09-07");
+            assertThat(dia.getRow(dia.getLastRowNum()).getCell(0).getStringCellValue()).isEqualTo("H-400");
+        }
+    }
+
+    @Test
+    @DisplayName("La hoja de campaña lista cada sondaje con fechas, días, avance y estado, y el total")
+    void hojaCampania() throws Exception {
+        ReporteDiario r = ReporteDiario.de(DIA, List.of(), List.of(), List.of(
+                new ReporteDiario.FilaCampania("DDH-VERO-S-038-26", "H-400", DIA.minusDays(20), DIA.minusDays(5), 15,
+                        new BigDecimal("300.00"), "Finalizado")));
+        try (Workbook libro = abrir(ReporteDiarioExcel.generar(r))) {
+            Sheet hoja = libro.getSheet("Campaña");
+            assertThat(hoja.getRow(2).getCell(0).getStringCellValue()).isEqualTo("Sondaje");
+            assertThat(hoja.getRow(3).getCell(1).getStringCellValue()).isEqualTo("H-400");
+            assertThat(hoja.getRow(3).getCell(2).getLocalDateTimeCellValue().toLocalDate()).isEqualTo(DIA.minusDays(20));
+            assertThat(hoja.getRow(3).getCell(4).getNumericCellValue()).isEqualTo(15);
+            assertThat(hoja.getRow(3).getCell(5).getNumericCellValue()).isEqualTo(300.0);
+            assertThat(hoja.getRow(3).getCell(6).getStringCellValue()).isEqualTo("Finalizado");
+            assertThat(hoja.getRow(4).getCell(0).getStringCellValue()).isEqualTo("Total");
+        }
+    }
+
+    @Test
     @DisplayName("Una hoja por día, con cabecera, una fila por sondaje y la fila de totales")
     void estructura() throws Exception {
         try (Workbook libro = abrir(ReporteDiarioExcel.generar(reporte("DDH-VERO-S-040-26")))) {

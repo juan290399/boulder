@@ -4,6 +4,8 @@
 .fila-sondaje {
   cursor: pointer;
 
+  td:first-child { padding-block: 0.25rem; }
+
   &--abierta {
     background: var(--bo-brand-soft) !important;
   }
@@ -30,10 +32,10 @@
 }
 
 .etapas__cap {
-  font-size: 0.6rem;
+  font-size: 0.65rem;
   font-weight: 700;
   text-align: center;
-  color: var(--bo-ink-3);
+  color: var(--bo-ink-2);
   letter-spacing: 0.04em;
 }
 
@@ -75,4 +77,80 @@
    los guiones son puntos de corte válidos para el navegador. */
 .fila-sondaje .mono {
   white-space: nowrap;
+}
+
+/* Primera celda: un botón sin aspecto de botón que vuelve la fila alcanzable
+   con teclado. Ocupa la celda entera para que el área de clic sea generosa. */
+.fila-boton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.25rem 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+}
+
+/* Leyenda de siglas de las etapas, fija sobre la tabla. */
+.leyenda-etapas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  padding: 0.6rem 1.25rem;
+  border-bottom: 1px solid var(--bo-border);
+  font-size: 0.8rem;
+  color: var(--bo-ink-2);
+
+  abbr {
+    font-weight: 700;
+    color: var(--bo-ink);
+    text-decoration: none;
+  }
+}
+
+/* ------------------------------------------------- detalle de un sondaje */
+
+/* Mínimo de 24 px de alto (WCAG 2.5.8). */
+.volver { display: inline-flex; align-items: center; min-height: 24px; margin-bottom: 0.25rem; text-decoration: none; }
+
+.detalle-resumen {
+  margin: 0.2rem 0 0;
+  font-size: 0.875rem;
+  color: var(--bo-ink-2);
+}
+
+.etapas-detalle { padding: 1rem 1.25rem; }
+
+.etapas--grande {
+  gap: 0.75rem;
+
+  .etapas__item { gap: 0.35rem; min-width: 0; }
+  .track { height: 8px; }
+}
+
+.etapas__nombre {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--bo-ink);
+  /* Hasta dos renglones: «Corte de densidad» no se trunca en pantallas medianas. */
+  line-height: 1.2;
+  min-height: 2.4em;
+}
+
+.etapas__metros {
+  font-size: 0.75rem;
+  color: var(--bo-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 991.98px) {
+  .etapas--grande {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }

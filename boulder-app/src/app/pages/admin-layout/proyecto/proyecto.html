@@ -1,83 +1,133 @@
 <div class="page">
-  <div class="panel panel__body">
-    <h1 class="page-head__title mb-4">Proyectos</h1>
-
-    <div class="row g-2 mb-3">
-      <div class="col-md-2">
-        <input class="form-control" placeholder="Código" [(ngModel)]="form.codigo" />
-      </div>
-      <div class="col-md-4">
-        <input class="form-control" placeholder="Nombre del proyecto" [(ngModel)]="form.nombre" />
-      </div>
-      <div class="col-md-3">
-        <select class="form-select" [(ngModel)]="form.empresaId">
-          <option [ngValue]="''">— Empresa —</option>
-          <option *ngFor="let e of empresas" [ngValue]="e.id">{{ e.nombre }}</option>
-        </select>
-      </div>
-      <div class="col-md-3">
-        <input class="form-control" type="number" placeholder="SRID" [(ngModel)]="form.srid" />
-      </div>
-    </div>
-
-    <div class="row g-2 mb-3">
-      <div class="col-md-9">
-        <input class="form-control" placeholder="Ubicación" [(ngModel)]="form.ubicacion" />
-      </div>
-    </div>
-
-    <div class="mb-4">
-      <button class="btn btn-success me-2" (click)="guardar()">
-        {{ form.id ? 'Actualizar' : 'Crear' }}
-      </button>
-      <button class="btn btn-secondary" (click)="limpiar()">Limpiar</button>
-    </div>
-
-    <div *ngIf="mensaje" class="alert-inline alert-inline--info">{{ mensaje }}</div>
-
-    <hr class="my-3" />
-
-    <div class="row g-2 mb-3">
-      <div class="col-md-6">
-        <div class="input-group">
-          <input class="form-control" placeholder="Buscar por código" [(ngModel)]="busquedaCodigo" />
-          <button class="btn btn-primary" (click)="buscarPorCodigo()">Buscar</button>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="input-group">
-          <input class="form-control" placeholder="Buscar por ID" [(ngModel)]="busquedaId" />
-          <button class="btn btn-primary" (click)="buscarPorId()">Buscar</button>
-        </div>
-      </div>
-    </div>
-
-    <button class="btn btn-outline-primary mb-3" [disabled]="loading" (click)="listar()">
-      Refrescar listado
+  <div class="page-head">
+    <h1 class="page-head__title">Proyectos</h1>
+    <button type="button" class="btn btn-success" (click)="nuevo()">
+      <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Nuevo proyecto
     </button>
+  </div>
 
-    <div class="table-scroll" *ngIf="proyectos.length > 0; else vacio">
-      <table class="data-table">
-        <thead>
-          <tr><th>Código</th><th>Nombre</th><th>Empresa</th><th>Ubicación</th><th>SRID</th><th></th></tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let p of proyectos">
-            <td>{{ p.codigo }}</td>
-            <td>{{ p.nombre }}</td>
-            <td>{{ nombreEmpresa(p.empresaId) }}</td>
-            <td>{{ p.ubicacion || '—' }}</td>
-            <td>{{ p.srid }}</td>
-            <td class="text-end">
-              <button class="btn btn-sm btn-outline-primary" (click)="editar(p)">Editar</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+  <div *ngIf="mensaje" class="alert-inline alert-inline--ok" role="status">{{ mensaje }}</div>
+  <div *ngIf="error" class="alert-inline" role="alert">{{ error }}</div>
 
-    <ng-template #vacio>
-      <div class="empty-state">No hay proyectos para mostrar.</div>
-    </ng-template>
+  <div class="maestro-detalle" [class.con-ficha]="fichaAbierta">
+    <section class="panel">
+      <div class="panel__head">
+        <div class="toolbar w-100">
+          <div class="toolbar__field">
+            <label for="pro-filtro" class="form-label">Buscar</label>
+            <input id="pro-filtro" class="form-control" type="search" placeholder="Nombre, código, empresa o ubicación"
+                   [(ngModel)]="filtro" />
+          </div>
+          <span class="toolbar__spacer"></span>
+          <span class="text-secondary small align-self-end mb-2">{{ proyectosVisibles.length }} de {{ proyectos.length }}</span>
+          <button type="button" class="btn btn-sm btn-outline-secondary align-self-end mb-1" [disabled]="loading" (click)="verTodos()">
+            <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i>{{ filtrado ? 'Ver todos' : 'Refrescar' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="table-scroll" *ngIf="proyectosVisibles.length > 0; else vacio">
+        <table class="data-table">
+          <thead>
+            <tr><th>Proyecto</th><th>Empresa</th><th>Ubicación</th><th>Zona UTM</th><th><span class="visually-hidden">Acciones</span></th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of proyectosVisibles" class="fila-editable" [class.fila-seleccionada]="esSeleccionado(p)"
+                (click)="editar(p)">
+              <td>
+                <div class="fw-semibold">{{ p.nombre }}</div>
+                <div class="mono small text-secondary">{{ p.codigo }}</div>
+              </td>
+              <td>{{ nombreEmpresa(p.empresaId) }}</td>
+              <td>{{ p.ubicacion || '—' }}</td>
+              <td class="text-nowrap">{{ zona(p.srid) }}</td>
+              <td class="text-end">
+                <button type="button" class="btn btn-sm btn-outline-primary" (click)="$event.stopPropagation(); editar(p)"
+                        [attr.aria-label]="'Editar ' + p.nombre">Editar</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #vacio>
+        <div class="empty-state">
+          <span *ngIf="loading">Cargando proyectos…</span>
+          <span *ngIf="!loading && (filtrado || filtro)">{{ sinCoincidencias || 'Ningún proyecto coincide con la búsqueda.' }}
+            <button type="button" class="btn btn-link btn-sm p-0 align-baseline" (click)="verTodos()">Ver todos</button></span>
+          <span *ngIf="!loading && !filtrado && !filtro">Aún no hay proyectos. <button type="button" class="btn btn-link btn-sm p-0 align-baseline" (click)="nuevo()">Crear el primero</button></span>
+        </div>
+      </ng-template>
+
+      <!-- Búsquedas exactas en el servidor (por código y por ID), plegadas. -->
+      <details class="busqueda-exacta">
+        <summary>Búsqueda exacta por código o ID</summary>
+        <div class="row g-2 mt-1">
+          <div class="col-md-6">
+            <label for="pro-buscar-codigo" class="form-label">Código</label>
+            <div class="input-group">
+              <input id="pro-buscar-codigo" class="form-control mono text-uppercase" maxlength="3" [(ngModel)]="busquedaCodigo"
+                     (keyup.enter)="buscarPorCodigo()" />
+              <button type="button" class="btn btn-outline-primary" (click)="buscarPorCodigo()">Buscar</button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label for="pro-buscar-id" class="form-label">ID</label>
+            <div class="input-group">
+              <input id="pro-buscar-id" class="form-control mono" [(ngModel)]="busquedaId" (keyup.enter)="buscarPorId()" />
+              <button type="button" class="btn btn-outline-primary" (click)="buscarPorId()">Buscar</button>
+            </div>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <app-ficha [abierta]="fichaAbierta" [clave]="form.id" [titulo]="form.id ? 'Editar proyecto' : 'Nuevo proyecto'"
+               [subtitulo]="form.id ? form.codigo : ''" (cerrar)="cerrarFicha()">
+      <form id="pro-formulario" (ngSubmit)="guardar()">
+        @if (errorFormulario) {
+          <div class="alert-inline" role="alert">{{ errorFormulario }}</div>
+        }
+
+        <div class="mb-3">
+          <label for="pro-nombre" class="form-label">Nombre del proyecto</label>
+          <input id="pro-nombre" name="nombre" class="form-control" [(ngModel)]="form.nombre" maxlength="50" required />
+        </div>
+        <div class="row g-3 mb-3">
+          <div class="col-sm-4">
+            <label for="pro-codigo" class="form-label">Código</label>
+            <input id="pro-codigo" name="codigo" class="form-control mono text-uppercase" [(ngModel)]="form.codigo" maxlength="3"
+                   [disabled]="!!form.id" required autocapitalize="characters" spellcheck="false"
+                   aria-describedby="pro-codigo-ayuda" />
+            <div id="pro-codigo-ayuda" class="form-text">{{ form.id ? 'No se puede cambiar.' : '3 letras, ej.: VER.' }}</div>
+          </div>
+          <div class="col-sm-8">
+            <label for="pro-srid" class="form-label">Zona UTM</label>
+            <select id="pro-srid" name="srid" class="form-select" [(ngModel)]="form.srid" required>
+              <option *ngFor="let z of zonas" [ngValue]="z.srid">{{ z.etiqueta }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="pro-empresa" class="form-label">Empresa</label>
+          <select id="pro-empresa" name="empresaId" class="form-select" [(ngModel)]="form.empresaId" required>
+            <option [ngValue]="''" disabled>Elige una empresa</option>
+            <option *ngFor="let e of empresas" [ngValue]="e.id">{{ e.nombre }}</option>
+          </select>
+        </div>
+        <div>
+          <label for="pro-ubicacion" class="form-label">Ubicación <span class="text-secondary fw-normal">(opcional)</span></label>
+          <input id="pro-ubicacion" name="ubicacion" class="form-control" [(ngModel)]="form.ubicacion" aria-describedby="pro-ubicacion-ayuda" />
+          <div id="pro-ubicacion-ayuda" class="form-text">Departamento - provincia - distrito.</div>
+        </div>
+      </form>
+
+      <div pie class="d-flex gap-2">
+        <button type="submit" form="pro-formulario" class="btn btn-success" [disabled]="guardando">
+          {{ guardando ? 'Guardando…' : (form.id ? 'Guardar cambios' : 'Crear proyecto') }}
+        </button>
+        <button type="button" class="btn btn-outline-secondary" (click)="cerrarFicha()">Cancelar</button>
+      </div>
+    </app-ficha>
   </div>
 </div>

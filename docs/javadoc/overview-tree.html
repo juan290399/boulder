@@ -61,6 +61,7 @@ loadScripts(document, 'script');</script>
 <li><a href="com/boulder/boulder/entities/package-tree.html">com.boulder.boulder.entities</a>, </li>
 <li><a href="com/boulder/boulder/eventos/package-tree.html">com.boulder.boulder.eventos</a>, </li>
 <li><a href="com/boulder/boulder/fotos/package-tree.html">com.boulder.boulder.fotos</a>, </li>
+<li><a href="com/boulder/boulder/monitoreo/package-tree.html">com.boulder.boulder.monitoreo</a>, </li>
 <li><a href="com/boulder/boulder/reportes/package-tree.html">com.boulder.boulder.reportes</a>, </li>
 <li><a href="com/boulder/boulder/repositories/package-tree.html">com.boulder.boulder.repositories</a>, </li>
 <li><a href="com/boulder/boulder/services/package-tree.html">com.boulder.boulder.services</a>, </li>
@@ -73,6 +74,7 @@ loadScripts(document, 'script');</script>
 <ul>
 <li class="circle">com.boulder.boulder.fotos.<a href="com/boulder/boulder/fotos/AlmacenFotosDisco.html" class="type-name-link" title="class in com.boulder.boulder.fotos">AlmacenFotosDisco</a> (implements com.boulder.boulder.fotos.<a href="com/boulder/boulder/fotos/AlmacenFotos.html" title="interface in com.boulder.boulder.fotos">AlmacenFotos</a>)</li>
 <li class="circle">com.boulder.boulder.entities.<a href="com/boulder/boulder/entities/Alteracion.html" class="type-name-link" title="class in com.boulder.boulder.entities">Alteracion</a> (implements com.boulder.boulder.entities.<a href="com/boulder/boulder/entities/RegistroLogueo.html" title="interface in com.boulder.boulder.entities">RegistroLogueo</a>, java.io.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/Serializable.html" title="class or interface in java.io" class="external-link">Serializable</a>)</li>
+<li class="circle">com.boulder.boulder.config.<a href="com/boulder/boulder/config/AplicacionWebConfig.html" class="type-name-link" title="class in com.boulder.boulder.config">AplicacionWebConfig</a> (implements org.springframework.web.servlet.config.annotation.WebMvcConfigurer)</li>
 <li class="circle">com.boulder.boulder.controllers.<a href="com/boulder/boulder/controllers/AuthController.html" class="type-name-link" title="class in com.boulder.boulder.controllers">AuthController</a></li>
 <li class="circle">com.boulder.boulder.entities.<a href="com/boulder/boulder/entities/AvanceOperativo.html" class="type-name-link" title="class in com.boulder.boulder.entities">AvanceOperativo</a> (implements java.io.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/Serializable.html" title="class or interface in java.io" class="external-link">Serializable</a>)
 <ul>
@@ -156,6 +158,7 @@ loadScripts(document, 'script');</script>
 <li class="circle">com.boulder.boulder.services.<a href="com/boulder/boulder/services/EmpresaServiceImpl.html" class="type-name-link" title="class in com.boulder.boulder.services">EmpresaServiceImpl</a> (implements com.boulder.boulder.services.<a href="com/boulder/boulder/services/EmpresaService.html" title="interface in com.boulder.boulder.services">EmpresaService</a>)</li>
 <li class="circle">com.boulder.boulder.dto.importacion.<a href="com/boulder/boulder/dto/importacion/ErrorFilaDTO.html" class="type-name-link" title="class in com.boulder.boulder.dto.importacion">ErrorFilaDTO</a></li>
 <li class="circle">com.boulder.boulder.dto.<a href="com/boulder/boulder/dto/EstacionSurveyDTO.html" class="type-name-link" title="class in com.boulder.boulder.dto">EstacionSurveyDTO</a></li>
+<li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/EstadoEtapa.html" class="type-name-link" title="class in com.boulder.boulder.reportes">EstadoEtapa</a></li>
 <li class="circle">com.boulder.boulder.entities.<a href="com/boulder/boulder/entities/Estructural.html" class="type-name-link" title="class in com.boulder.boulder.entities">Estructural</a> (implements com.boulder.boulder.entities.<a href="com/boulder/boulder/entities/RegistroLogueo.html" title="interface in com.boulder.boulder.entities">RegistroLogueo</a>, java.io.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/Serializable.html" title="class or interface in java.io" class="external-link">Serializable</a>)</li>
 <li class="circle">com.boulder.boulder.dto.<a href="com/boulder/boulder/dto/EtapaAvanceDTO.html" class="type-name-link" title="class in com.boulder.boulder.dto">EtapaAvanceDTO</a></li>
 <li class="circle">com.boulder.boulder.eventos.<a href="com/boulder/boulder/eventos/EventosController.html" class="type-name-link" title="class in com.boulder.boulder.eventos">EventosController</a></li>
@@ -179,12 +182,17 @@ loadScripts(document, 'script');</script>
 </li>
 <li class="circle">org.springframework.web.filter.OncePerRequestFilter
 <ul>
+<li class="circle">com.boulder.boulder.monitoreo.<a href="com/boulder/boulder/monitoreo/FiltroIdPeticion.html" class="type-name-link" title="class in com.boulder.boulder.monitoreo">FiltroIdPeticion</a></li>
 <li class="circle">com.boulder.boulder.config.<a href="com/boulder/boulder/config/JwtAuthorizationFilter.html" class="type-name-link" title="class in com.boulder.boulder.config">JwtAuthorizationFilter</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="circle">com.boulder.boulder.config.<a href="com/boulder/boulder/config/GlobalExceptionHandler.html" class="type-name-link" title="class in com.boulder.boulder.config">GlobalExceptionHandler</a></li>
+<li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/HojaQuicklogController.html" class="type-name-link" title="class in com.boulder.boulder.reportes">HojaQuicklogController</a></li>
+<li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/HojaQuicklogExcel.html" class="type-name-link" title="class in com.boulder.boulder.reportes">HojaQuicklogExcel</a></li>
+<li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/HojaQuicklogRepository.html" class="type-name-link" title="class in com.boulder.boulder.reportes">HojaQuicklogRepository</a></li>
+<li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/HojaQuicklogService.html" class="type-name-link" title="class in com.boulder.boulder.reportes">HojaQuicklogService</a></li>
 <li class="circle">com.boulder.boulder.controllers.<a href="com/boulder/boulder/controllers/ImportacionController.html" class="type-name-link" title="class in com.boulder.boulder.controllers">ImportacionController</a></li>
 <li class="circle">com.boulder.boulder.services.<a href="com/boulder/boulder/services/ImportacionServiceImpl.html" class="type-name-link" title="class in com.boulder.boulder.services">ImportacionServiceImpl</a> (implements com.boulder.boulder.services.<a href="com/boulder/boulder/services/ImportacionService.html" title="interface in com.boulder.boulder.services">ImportacionService</a>)</li>
 <li class="circle">com.boulder.boulder.services.importacion.<a href="com/boulder/boulder/services/importacion/ImportadorBase.html" class="type-name-link" title="class in com.boulder.boulder.services.importacion">ImportadorBase</a> (implements com.boulder.boulder.services.importacion.<a href="com/boulder/boulder/services/importacion/ImportadorPlantilla.html" title="interface in com.boulder.boulder.services.importacion">ImportadorPlantilla</a>)
@@ -205,10 +213,12 @@ loadScripts(document, 'script');</script>
 <li class="circle">com.boulder.boulder.controllers.<a href="com/boulder/boulder/controllers/MaquinaController.html" class="type-name-link" title="class in com.boulder.boulder.controllers">MaquinaController</a></li>
 <li class="circle">com.boulder.boulder.dto.<a href="com/boulder/boulder/dto/MaquinaDTO.html" class="type-name-link" title="class in com.boulder.boulder.dto">MaquinaDTO</a></li>
 <li class="circle">com.boulder.boulder.services.<a href="com/boulder/boulder/services/MaquinaServiceImpl.html" class="type-name-link" title="class in com.boulder.boulder.services">MaquinaServiceImpl</a> (implements com.boulder.boulder.services.<a href="com/boulder/boulder/services/MaquinaService.html" title="interface in com.boulder.boulder.services">MaquinaService</a>)</li>
+<li class="circle">com.boulder.boulder.monitoreo.<a href="com/boulder/boulder/monitoreo/MetricasNegocio.html" class="type-name-link" title="class in com.boulder.boulder.monitoreo">MetricasNegocio</a></li>
 <li class="circle">com.boulder.boulder.entities.<a href="com/boulder/boulder/entities/Mineralizacion.html" class="type-name-link" title="class in com.boulder.boulder.entities">Mineralizacion</a> (implements com.boulder.boulder.entities.<a href="com/boulder/boulder/entities/RegistroLogueo.html" title="interface in com.boulder.boulder.entities">RegistroLogueo</a>, java.io.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/Serializable.html" title="class or interface in java.io" class="external-link">Serializable</a>)</li>
 <li class="circle">com.boulder.boulder.config.<a href="com/boulder/boulder/config/MyUserDetailsService.html" class="type-name-link" title="class in com.boulder.boulder.config">MyUserDetailsService</a> (implements org.springframework.security.core.userdetails.UserDetailsPasswordService, org.springframework.security.core.userdetails.UserDetailsService)</li>
 <li class="circle">com.boulder.boulder.config.<a href="com/boulder/boulder/config/MyUserMain.html" class="type-name-link" title="class in com.boulder.boulder.config">MyUserMain</a> (implements org.springframework.security.core.userdetails.UserDetails)</li>
 <li class="circle">com.boulder.boulder.dominio.<a href="com/boulder/boulder/dominio/ParteTurno.html" class="type-name-link" title="class in com.boulder.boulder.dominio">ParteTurno</a></li>
+<li class="circle">com.boulder.boulder.config.<a href="com/boulder/boulder/config/PermisosEscritura.html" class="type-name-link" title="class in com.boulder.boulder.config">PermisosEscritura</a></li>
 <li class="circle">com.boulder.boulder.dto.importacion.<a href="com/boulder/boulder/dto/importacion/PlantillaDTO.html" class="type-name-link" title="class in com.boulder.boulder.dto.importacion">PlantillaDTO</a></li>
 <li class="circle">com.boulder.boulder.entities.<a href="com/boulder/boulder/entities/Plataforma.html" class="type-name-link" title="class in com.boulder.boulder.entities">Plataforma</a> (implements java.io.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/Serializable.html" title="class or interface in java.io" class="external-link">Serializable</a>)</li>
 <li class="circle">com.boulder.boulder.controllers.<a href="com/boulder/boulder/controllers/PlataformaController.html" class="type-name-link" title="class in com.boulder.boulder.controllers">PlataformaController</a></li>
@@ -232,6 +242,9 @@ loadScripts(document, 'script');</script>
 <li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiarioExcel.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReporteDiarioExcel</a></li>
 <li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiarioRepository.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReporteDiarioRepository</a></li>
 <li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiarioService.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReporteDiarioService</a></li>
+<li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodoController.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReportePeriodoController</a></li>
+<li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodoExcel.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReportePeriodoExcel</a></li>
+<li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodoService.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReportePeriodoService</a></li>
 <li class="circle">com.boulder.boulder.dto.importacion.<a href="com/boulder/boulder/dto/importacion/ResultadoHojaDTO.html" class="type-name-link" title="class in com.boulder.boulder.dto.importacion">ResultadoHojaDTO</a></li>
 <li class="circle">com.boulder.boulder.dto.importacion.<a href="com/boulder/boulder/dto/importacion/ResultadoImportacionDTO.html" class="type-name-link" title="class in com.boulder.boulder.dto.importacion">ResultadoImportacionDTO</a></li>
 <li class="circle">com.boulder.boulder.dominio.<a href="com/boulder/boulder/dominio/Revision.html" class="type-name-link" title="class in com.boulder.boulder.dominio">Revision</a></li>
@@ -239,6 +252,7 @@ loadScripts(document, 'script');</script>
 <li class="circle">com.boulder.boulder.controllers.<a href="com/boulder/boulder/controllers/RolController.html" class="type-name-link" title="class in com.boulder.boulder.controllers">RolController</a></li>
 <li class="circle">com.boulder.boulder.dto.<a href="com/boulder/boulder/dto/RolDTO.html" class="type-name-link" title="class in com.boulder.boulder.dto">RolDTO</a></li>
 <li class="circle">com.boulder.boulder.services.<a href="com/boulder/boulder/services/RolServiceImpl.html" class="type-name-link" title="class in com.boulder.boulder.services">RolServiceImpl</a> (implements com.boulder.boulder.services.<a href="com/boulder/boulder/services/RolService.html" title="interface in com.boulder.boulder.services">RolService</a>)</li>
+<li class="circle">com.boulder.boulder.monitoreo.<a href="com/boulder/boulder/monitoreo/SaludAlmacenFotos.html" class="type-name-link" title="class in com.boulder.boulder.monitoreo">SaludAlmacenFotos</a> (implements org.springframework.boot.health.contributor.HealthIndicator)</li>
 <li class="circle">com.boulder.boulder.config.<a href="com/boulder/boulder/config/SecurityConfig.html" class="type-name-link" title="class in com.boulder.boulder.config">SecurityConfig</a></li>
 <li class="circle">com.boulder.boulder.entities.<a href="com/boulder/boulder/entities/Sondaje.html" class="type-name-link" title="class in com.boulder.boulder.entities">Sondaje</a> (implements java.io.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/Serializable.html" title="class or interface in java.io" class="external-link">Serializable</a>)</li>
 <li class="circle">com.boulder.boulder.controllers.<a href="com/boulder/boulder/controllers/SondajeController.html" class="type-name-link" title="class in com.boulder.boulder.controllers">SondajeController</a></li>
@@ -252,6 +266,7 @@ loadScripts(document, 'script');</script>
 <li class="circle">com.boulder.boulder.dto.<a href="com/boulder/boulder/dto/SurveyMedicionDTO.html" class="type-name-link" title="class in com.boulder.boulder.dto">SurveyMedicionDTO</a></li>
 <li class="circle">com.boulder.boulder.services.<a href="com/boulder/boulder/services/SurveyMedicionServiceImpl.html" class="type-name-link" title="class in com.boulder.boulder.services">SurveyMedicionServiceImpl</a> (implements com.boulder.boulder.services.<a href="com/boulder/boulder/services/SurveyMedicionService.html" title="interface in com.boulder.boulder.services">SurveyMedicionService</a>)</li>
 <li class="circle">com.boulder.boulder.services.<a href="com/boulder/boulder/services/SurveyServiceImpl.html" class="type-name-link" title="class in com.boulder.boulder.services">SurveyServiceImpl</a> (implements com.boulder.boulder.services.<a href="com/boulder/boulder/services/SurveyService.html" title="interface in com.boulder.boulder.services">SurveyService</a>)</li>
+<li class="circle">com.boulder.boulder.monitoreo.<a href="com/boulder/boulder/monitoreo/TareasMantenimiento.html" class="type-name-link" title="class in com.boulder.boulder.monitoreo">TareasMantenimiento</a></li>
 <li class="circle">java.lang.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Throwable.html" class="type-name-link external-link" title="class or interface in java.lang">Throwable</a> (implements java.io.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/Serializable.html" title="class or interface in java.io" class="external-link">Serializable</a>)
 <ul>
 <li class="circle">java.lang.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Exception.html" class="type-name-link external-link" title="class or interface in java.lang">Exception</a>
@@ -454,6 +469,20 @@ loadScripts(document, 'script');</script>
 </ul>
 </section>
 <section class="hierarchy">
+<h2 title="Enum Class Hierarchy">Enum Class Hierarchy</h2>
+<ul>
+<li class="circle">java.lang.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html" class="type-name-link external-link" title="class or interface in java.lang">Object</a>
+<ul>
+<li class="circle">java.lang.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Enum.html" class="type-name-link external-link" title="class or interface in java.lang">Enum</a>&lt;E&gt; (implements java.lang.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Comparable.html" title="class or interface in java.lang" class="external-link">Comparable</a>&lt;T&gt;, java.lang.constant.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/constant/Constable.html" title="class or interface in java.lang.constant" class="external-link">Constable</a>, java.io.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/Serializable.html" title="class or interface in java.io" class="external-link">Serializable</a>)
+<ul>
+<li class="circle">com.boulder.boulder.monitoreo.<a href="com/boulder/boulder/monitoreo/MetricasNegocio.ResultadoLogin.html" class="type-name-link" title="enum class in com.boulder.boulder.monitoreo">MetricasNegocio.ResultadoLogin</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section class="hierarchy">
 <h2 title="Record Class Hierarchy">Record Class Hierarchy</h2>
 <ul>
 <li class="circle">java.lang.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html" class="type-name-link external-link" title="class or interface in java.lang">Object</a>
@@ -465,10 +494,23 @@ loadScripts(document, 'script');</script>
 <li class="circle">com.boulder.boulder.repositories.<a href="com/boulder/boulder/repositories/CatalogoGeologiaRepository.Estructura.html" class="type-name-link" title="class in com.boulder.boulder.repositories">CatalogoGeologiaRepository.Estructura</a></li>
 <li class="circle">com.boulder.boulder.dominio.<a href="com/boulder/boulder/dominio/Desviacion.html" class="type-name-link" title="class in com.boulder.boulder.dominio">Desviacion</a></li>
 <li class="circle">com.boulder.boulder.fotos.<a href="com/boulder/boulder/fotos/FotoService.Metadatos.html" class="type-name-link" title="class in com.boulder.boulder.fotos">FotoService.Metadatos</a></li>
+<li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/HojaQuicklog.html" class="type-name-link" title="class in com.boulder.boulder.reportes">HojaQuicklog</a></li>
+<li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/HojaQuicklog.Cabecera.html" class="type-name-link" title="class in com.boulder.boulder.reportes">HojaQuicklog.Cabecera</a></li>
+<li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/HojaQuicklog.Tramo.html" class="type-name-link" title="class in com.boulder.boulder.reportes">HojaQuicklog.Tramo</a></li>
 <li class="circle">com.boulder.boulder.services.importacion.<a href="com/boulder/boulder/services/importacion/ImportadorBase.Registro.html" class="type-name-link" title="class in com.boulder.boulder.services.importacion">ImportadorBase.Registro</a></li>
 <li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiario.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReporteDiario</a></li>
+<li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiario.CeldaMensual.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReporteDiario.CeldaMensual</a></li>
+<li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiario.FilaCampania.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaCampania</a></li>
+<li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiario.FilaMaquina.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaMaquina</a></li>
+<li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiario.FilaMensual.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaMensual</a></li>
 <li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiario.FilaSondaje.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaSondaje</a></li>
+<li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiario.Mensual.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReporteDiario.Mensual</a></li>
 <li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReporteDiario.PuntoSerie.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReporteDiario.PuntoSerie</a></li>
+<li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReportePeriodo</a></li>
+<li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.FilaDesvio.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDesvio</a></li>
+<li class="circle">com.boulder.boulder.reportes.<a href="com/boulder/boulder/reportes/ReportePeriodo.FilaDia.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReportePeriodo.FilaDia</a></li>
+<li class="circle">com.boulder.boulder.dto.<a href="com/boulder/boulder/dto/ResultadoSubidaDTO.html" class="type-name-link" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO</a></li>
+<li class="circle">com.boulder.boulder.dto.<a href="com/boulder/boulder/dto/ResultadoSubidaDTO.Rechazo.html" class="type-name-link" title="class in com.boulder.boulder.dto">ResultadoSubidaDTO.Rechazo</a></li>
 </ul>
 </li>
 </ul>

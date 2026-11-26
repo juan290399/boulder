@@ -2,8 +2,13 @@
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import com.google.common.collect.ImmutableList;
 
@@ -21,16 +26,70 @@ import com.google.common.collect.ImmutableList;
  * @param totalLogueado  metros con logueo geológico en el día
  * @param totalCajas     cajas de testigo recibidas en el almacén
  * @param totalMuestras  muestras registradas en el muestreo
+ * @param campania       resumen de la campaña hasta {@code fecha}, por sondaje
+ * @param porMaquina     metros perforados en el día por máquina
+ * @param mensual        metros perforados por sondaje y por mes hasta {@code fecha}
  */
-<span class="fc" id="L25">public record ReporteDiario(LocalDate fecha, List&lt;FilaSondaje&gt; sondajes, List&lt;PuntoSerie&gt; ultimosDias,</span>
-        BigDecimal totalPerforado, BigDecimal totalLogueado, int totalCajas, int totalMuestras) {
+<span class="fc" id="L33">public record ReporteDiario(LocalDate fecha, List&lt;FilaSondaje&gt; sondajes, List&lt;PuntoSerie&gt; ultimosDias,</span>
+        BigDecimal totalPerforado, BigDecimal totalLogueado, int totalCajas, int totalMuestras,
+        List&lt;FilaCampania&gt; campania, List&lt;FilaMaquina&gt; porMaquina, Mensual mensual) {
+
+    /** Metros perforados por una máquina en el día. */
+<span class="fc" id="L38">    public record FilaMaquina(String maquina, BigDecimal metros) {</span>
+    }
+
+    /** Metros perforados por un sondaje en un mes; es el dato crudo de la matriz mensual. */
+<span class="fc" id="L42">    public record CeldaMensual(String codigo, YearMonth mes, BigDecimal metros) {</span>
+    }
+
+    /** Fila de la matriz mensual: los metros de un sondaje en cada mes de {@link Mensual#meses()}. */
+<span class="fc" id="L46">    public record FilaMensual(String codigo, List&lt;BigDecimal&gt; metros) {</span>
+    }
+
+    /**
+     * Matriz de metros perforados por sondaje y por mes.
+     *
+     * @param meses   meses con avance, en orden
+     * @param filas   una fila por sondaje, ordenadas por código
+     * @param totales total de cada mes
+     */
+<span class="fc" id="L56">    public record Mensual(List&lt;YearMonth&gt; meses, List&lt;FilaMensual&gt; filas, List&lt;BigDecimal&gt; totales) {</span>
+
+        static Mensual de(List&lt;CeldaMensual&gt; celdas) {
+<span class="fc" id="L59">            List&lt;YearMonth&gt; meses = celdas.stream().map(CeldaMensual::mes).distinct().sorted().toList();</span>
+<span class="fc" id="L60">            Map&lt;String, Map&lt;YearMonth, BigDecimal&gt;&gt; porSondaje = new TreeMap&lt;&gt;();</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">            for (CeldaMensual c : celdas) {</span>
+<span class="fc" id="L62">                porSondaje.computeIfAbsent(c.codigo(), k -&gt; new HashMap&lt;&gt;()).merge(c.mes(), c.metros(), BigDecimal::add);</span>
+<span class="fc" id="L63">            }</span>
+<span class="fc" id="L64">            List&lt;FilaMensual&gt; filas = porSondaje.entrySet().stream()</span>
+<span class="fc" id="L65">                    .map(e -&gt; new FilaMensual(e.getKey(),</span>
+<span class="fc" id="L66">                            meses.stream().map(m -&gt; e.getValue().getOrDefault(m, BigDecimal.ZERO)).toList()))</span>
+<span class="fc" id="L67">                    .toList();</span>
+<span class="fc" id="L68">            List&lt;BigDecimal&gt; totales = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">            for (int i = 0; i &lt; meses.size(); i++) {</span>
+<span class="fc" id="L70">                final int col = i;</span>
+<span class="fc" id="L71">                totales.add(filas.stream().map(f -&gt; f.metros().get(col)).reduce(BigDecimal.ZERO, BigDecimal::add));</span>
+            }
+<span class="fc" id="L73">            return new Mensual(meses, filas, List.copyOf(totales));</span>
+        }
+    }
+
+    /** Un sondaje de la campaña: máquina, fechas de perforación, días, avance total y estado. */
+<span class="fc" id="L78">    public record FilaCampania(String codigo, String maquina, LocalDate inicio, LocalDate fin, long dias,</span>
+            BigDecimal avance, String estado) {
+    }
+
+    /** Metros perforados en la campaña hasta la fecha del reporte. */
+    public BigDecimal totalCampania() {
+<span class="fc" id="L84">        return campania.stream().map(FilaCampania::avance).reduce(BigDecimal.ZERO, BigDecimal::add);</span>
+    }
 
     /** Actividad de un sondaje en el día. */
-<span class="fc" id="L29">    public record FilaSondaje(String codigo, BigDecimal perforado, BigDecimal logueado, int cajas, int muestras) {</span>
+<span class="fc" id="L88">    public record FilaSondaje(String codigo, BigDecimal perforado, BigDecimal logueado, int cajas, int muestras) {</span>
     }
 
     /** Metros perforados en un día. */
-<span class="fc" id="L33">    public record PuntoSerie(LocalDate fecha, BigDecimal metros) {</span>
+<span class="fc" id="L92">    public record PuntoSerie(LocalDate fecha, BigDecimal metros) {</span>
     }
 
     /**
@@ -42,14 +101,44 @@ import com.google.common.collect.ImmutableList;
      * @return el reporte inmutable
      */
     public static ReporteDiario de(LocalDate fecha, List&lt;FilaSondaje&gt; filas, List&lt;PuntoSerie&gt; serie) {
-<span class="fc" id="L45">        List&lt;FilaSondaje&gt; ordenadas = filas.stream()</span>
-<span class="fc" id="L46">                .sorted(Comparator.comparing(FilaSondaje::codigo))</span>
-<span class="fc" id="L47">                .collect(ImmutableList.toImmutableList());</span>
-<span class="fc" id="L48">        return new ReporteDiario(fecha, ordenadas, ImmutableList.copyOf(serie),</span>
-<span class="fc" id="L49">                ordenadas.stream().map(FilaSondaje::perforado).reduce(BigDecimal.ZERO, BigDecimal::add),</span>
-<span class="fc" id="L50">                ordenadas.stream().map(FilaSondaje::logueado).reduce(BigDecimal.ZERO, BigDecimal::add),</span>
-<span class="fc" id="L51">                ordenadas.stream().mapToInt(FilaSondaje::cajas).sum(),</span>
-<span class="fc" id="L52">                ordenadas.stream().mapToInt(FilaSondaje::muestras).sum());</span>
+<span class="fc" id="L104">        return de(fecha, filas, serie, List.of());</span>
+    }
+
+    /**
+     * Igual que {@link #de(LocalDate, List, List)} con el resumen de campaña.
+     *
+     * @param campania sondajes de la campaña, en cualquier orden
+     * @return el reporte inmutable
+     */
+    public static ReporteDiario de(LocalDate fecha, List&lt;FilaSondaje&gt; filas, List&lt;PuntoSerie&gt; serie,
+                                   List&lt;FilaCampania&gt; campania) {
+<span class="fc" id="L115">        return de(fecha, filas, serie, campania, List.of(), List.of());</span>
+    }
+
+    /**
+     * Igual que {@link #de(LocalDate, List, List, List)} con el avance por máquina y la matriz mensual.
+     *
+     * @param porMaquina metros del día por máquina, en cualquier orden
+     * @param mensual    metros por sondaje y mes, en cualquier orden
+     * @return el reporte inmutable
+     */
+    public static ReporteDiario de(LocalDate fecha, List&lt;FilaSondaje&gt; filas, List&lt;PuntoSerie&gt; serie,
+                                   List&lt;FilaCampania&gt; campania, List&lt;FilaMaquina&gt; porMaquina,
+                                   List&lt;CeldaMensual&gt; mensual) {
+<span class="fc" id="L128">        List&lt;FilaSondaje&gt; ordenadas = filas.stream()</span>
+<span class="fc" id="L129">                .sorted(Comparator.comparing(FilaSondaje::codigo))</span>
+<span class="fc" id="L130">                .collect(ImmutableList.toImmutableList());</span>
+<span class="fc" id="L131">        return new ReporteDiario(fecha, ordenadas, ImmutableList.copyOf(serie),</span>
+<span class="fc" id="L132">                ordenadas.stream().map(FilaSondaje::perforado).reduce(BigDecimal.ZERO, BigDecimal::add),</span>
+<span class="fc" id="L133">                ordenadas.stream().map(FilaSondaje::logueado).reduce(BigDecimal.ZERO, BigDecimal::add),</span>
+<span class="fc" id="L134">                ordenadas.stream().mapToInt(FilaSondaje::cajas).sum(),</span>
+<span class="fc" id="L135">                ordenadas.stream().mapToInt(FilaSondaje::muestras).sum(),</span>
+<span class="fc" id="L136">                campania.stream().sorted(Comparator.comparing(FilaCampania::codigo))</span>
+<span class="fc" id="L137">                        .collect(ImmutableList.toImmutableList()),</span>
+<span class="fc" id="L138">                porMaquina.stream()</span>
+<span class="fc" id="L139">                        .sorted(Comparator.comparing(FilaMaquina::maquina, Comparator.nullsLast(Comparator.naturalOrder())))</span>
+<span class="fc" id="L140">                        .collect(ImmutableList.toImmutableList()),</span>
+<span class="fc" id="L141">                Mensual.de(mensual));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -1,3 +1,4 @@
+import { presentacionRol } from '../../../models/roles';
 import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,12 +7,6 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 
 /** Etiquetas amigables por código de rol; los no listados se muestran tal cual. */
-const ETIQUETAS_ROL: Record<string, string> = {
-  'ADMIN': '⚙️ Administrador',
-  'GEOLOGO': '🪨 Geólogo / Exploración',
-  'ASISTENTE_GEOLOGIA': '📋 Asistente de Geología',
-  'VISITANTE': '👁️ Visitante (solo lectura)',
-};
 
 @Component({
   selector: 'app-role-selection',
@@ -49,7 +44,15 @@ export class RoleSelection implements OnInit {
   }
 
   etiqueta(rol: string): string {
-    return ETIQUETAS_ROL[rol] ?? rol;
+    return presentacionRol(rol).etiqueta;
+  }
+
+  icono(rol: string): string {
+    return presentacionRol(rol).icono;
+  }
+
+  detalle(rol: string): string {
+    return presentacionRol(rol).detalle;
   }
 
   onRoleSelected(): void {

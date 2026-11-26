@@ -4,6 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 import { ImportacionService } from '../../../services/importacion.service';
 import { Plantilla, ResultadoImportacion } from '../../../models/importacion';
+import { AuthService } from '../../../services/auth.service';
 
 /**
  * Carga de datos desde las plantillas de Excel.
@@ -30,6 +31,7 @@ import { Plantilla, ResultadoImportacion } from '../../../models/importacion';
 export class Importacion implements OnInit {
 
   private readonly servicio = inject(ImportacionService);
+  readonly puedeRegistrar = inject(AuthService).puedeRegistrar();
   private readonly cdr = inject(ChangeDetectorRef);
 
   readonly plantillas = signal<Plantilla[]>([]);

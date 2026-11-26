@@ -1,5 +1,6 @@
 package com.boulder.boulder.services;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -67,11 +68,18 @@ public class EmpresaServiceImpl implements EmpresaService{
     public EmpresaDTO guardar(EmpresaDTO dto) {
         log.info("Insertando nueva empresa en el sistema: {}", dto.getNombre());
         try {
+            validar(dto);
+            String codigo = dto.getCodigo().trim();
+            String ruc = dto.getRuc().trim();
+            if (empresaRepository.existsByCodigo(codigo)) {
+                throw new IllegalArgumentException("Ya existe una empresa con el código " + codigo + ".");
+            }
+            if (empresaRepository.findByRuc(ruc).isPresent()) {
+                throw new IllegalArgumentException("Ya existe una empresa con el RUC " + ruc + ".");
+            }
+
             Empresa empresa = new Empresa();
-            empresa.setRuc(dto.getRuc());
-            empresa.setNombre(dto.getNombre());
-            empresa.setDireccion(dto.getDireccion());
-            empresa.setTelefono(dto.getTelefono());
+            copiar(dto, empresa);
 
             Empresa guardada = empresaRepository.save(empresa);
             log.info("Empresa registrada exitosamente con ID: {}", guardada.getId());
@@ -90,9 +98,18 @@ public class EmpresaServiceImpl implements EmpresaService{
             Empresa empresa = empresaRepository.findById(id)
                     .orElseThrow(() -> new EntityNotFoundException("Empresa no existente."));
 
-            empresa.setNombre(dto.getNombre());
-            empresa.setDireccion(dto.getDireccion());
-            empresa.setTelefono(dto.getTelefono());
+            validar(dto);
+            String codigo = dto.getCodigo().trim();
+            String ruc = dto.getRuc().trim();
+            if (!codigo.equals(empresa.getCodigo()) && empresaRepository.existsByCodigo(codigo)) {
+                throw new IllegalArgumentException("Ya existe una empresa con el código " + codigo + ".");
+            }
+            empresaRepository.findByRuc(ruc)
+                    .filter(otra -> !otra.getId().equals(id))
+                    .ifPresent(otra -> {
+                        throw new IllegalArgumentException("Ya existe una empresa con el RUC " + ruc + ".");
+                    });
+            copiar(dto, empresa);
 
             Empresa actualizada = empresaRepository.save(empresa);
             log.info("Empresa '{}' actualizada con éxito", actualizada.getNombre());
@@ -101,6 +118,43 @@ public class EmpresaServiceImpl implements EmpresaService{
             log.error("Error al modificar registros de empresa ID: {}", id, e);
             throw e;
         }
+    }
+
+    /** Código, razón social y RUC (11 dígitos) son obligatorios; el correo, si viene, con formato válido. */
+    private static void validar(EmpresaDTO dto) {
+        List<String> problemas = new ArrayList<>();
+        if (enBlanco(dto.getCodigo())) {
+            problemas.add("el código es obligatorio");
+        }
+        if (enBlanco(dto.getNombre())) {
+            problemas.add("la razón social es obligatoria");
+        }
+        if (enBlanco(dto.getRuc())) {
+            problemas.add("el RUC es obligatorio");
+        } else if (!dto.getRuc().trim().matches("\\d{11}")) {
+            problemas.add("el RUC debe tener 11 dígitos");
+        }
+        if (!enBlanco(dto.getCorreo()) && !dto.getCorreo().trim().matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
+            problemas.add("el correo no tiene un formato válido");
+        }
+        if (!problemas.isEmpty()) {
+            String texto = String.join("; ", problemas);
+            throw new IllegalArgumentException(Character.toUpperCase(texto.charAt(0)) + texto.substring(1) + ".");
+        }
+    }
+
+    /** Pasa los campos editables del DTO a la entidad; los opcionales vacíos quedan en null. */
+    private static void copiar(EmpresaDTO dto, Empresa empresa) {
+        empresa.setCodigo(dto.getCodigo().trim());
+        empresa.setNombre(dto.getNombre().trim());
+        empresa.setRuc(dto.getRuc().trim());
+        empresa.setDireccion(enBlanco(dto.getDireccion()) ? null : dto.getDireccion().trim());
+        empresa.setTelefono(enBlanco(dto.getTelefono()) ? null : dto.getTelefono().trim());
+        empresa.setCorreo(enBlanco(dto.getCorreo()) ? null : dto.getCorreo().trim());
+    }
+
+    private static boolean enBlanco(String valor) {
+        return valor == null || valor.trim().isEmpty();
     }
 
     private EmpresaDTO convertToDto(Empresa empresa) {

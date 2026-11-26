@@ -94,7 +94,7 @@ public class ImportadorLogueo extends ImportadorBase {
             }
 
             AvanceLogueo e = new AvanceLogueo();
-            e.setSondajeCodigo(f.texto("sondaje_codigo", 30));
+            e.setSondajeCodigo(f.codigoSondaje(sondajeId, "sondaje_codigo"));
             e.setFecha(fecha);
             e.setTurno(f.opcion("turno", false, "dia", "noche"));
             e.setTipoLogueo(tipo);

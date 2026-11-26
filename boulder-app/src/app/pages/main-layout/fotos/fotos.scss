@@ -85,37 +85,6 @@
   font-size: 0.8rem;
 }
 
-.visor {
-  position: fixed;
-  inset: 0;
-  z-index: 1050;
-  background: rgba(15, 23, 42, 0.78);
-  display: grid;
-  place-items: center;
-  padding: 1.5rem;
-}
-
-.visor__caja {
-  background: var(--bo-surface);
-  border-radius: var(--bo-r-sm);
-  max-width: min(1400px, 96vw);
-  max-height: 94vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.visor__barra {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--bo-border);
-  font-size: 0.9rem;
-}
-
-.visor__img { max-width: 100%; max-height: calc(94vh - 70px); object-fit: contain; display: block; margin: auto; }
 
 .en-vivo {
   display: inline-flex; align-items: center; gap: 0.45rem;
@@ -124,3 +93,22 @@
 }
 .en-vivo__punto { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: #9ca3af; }
 .en-vivo--on { color: #065f46; background: var(--bo-ok-soft); .en-vivo__punto { background: var(--bo-ok); } }
+
+/* Resumen de la galería en la cabecera del panel. */
+.resumen-fotos {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--bo-ink-2);
+
+  strong { color: var(--bo-ink); font-variant-numeric: tabular-nums; }
+}
+
+/* Confirmación de «Quitar» dentro del visor. */
+.confirmar {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--bo-ink);
+}

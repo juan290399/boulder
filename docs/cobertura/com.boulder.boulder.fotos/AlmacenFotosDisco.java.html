@@ -40,40 +40,49 @@ public class AlmacenFotosDisco implements AlmacenFotos {
 <span class="fc" id="L40">        log.info(&quot;Almacén de fotos en {}&quot;, raiz);</span>
 <span class="fc" id="L41">    }</span>
 
+    /**
+     * Carpeta raíz del almacén, para la salud y el mantenimiento.
+     *
+     * @return ruta absoluta y normalizada
+     */
+    public Path raiz() {
+<span class="fc" id="L49">        return raiz;</span>
+    }
+
     @Override
     public void guardar(String clave, byte[] contenido) throws IOException {
-<span class="fc" id="L45">        Path destino = resolver(clave);</span>
-<span class="fc" id="L46">        Files.createDirectories(destino.getParent());</span>
-<span class="fc" id="L47">        Path temporal = Files.createTempFile(destino.getParent(), &quot;.subida-&quot;, &quot;.tmp&quot;);</span>
+<span class="fc" id="L54">        Path destino = resolver(clave);</span>
+<span class="fc" id="L55">        Files.createDirectories(destino.getParent());</span>
+<span class="fc" id="L56">        Path temporal = Files.createTempFile(destino.getParent(), &quot;.subida-&quot;, &quot;.tmp&quot;);</span>
         try {
-<span class="fc" id="L49">            Files.write(temporal, contenido);</span>
-<span class="fc" id="L50">            Files.move(temporal, destino, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);</span>
+<span class="fc" id="L58">            Files.write(temporal, contenido);</span>
+<span class="fc" id="L59">            Files.move(temporal, destino, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);</span>
         } finally {
-<span class="fc" id="L52">            Files.deleteIfExists(temporal);</span>
+<span class="fc" id="L61">            Files.deleteIfExists(temporal);</span>
         }
-<span class="fc" id="L54">    }</span>
+<span class="fc" id="L63">    }</span>
 
     @Override
     public InputStream abrir(String clave) throws IOException {
-<span class="fc" id="L58">        return Files.newInputStream(resolver(clave));</span>
+<span class="fc" id="L67">        return Files.newInputStream(resolver(clave));</span>
     }
 
     @Override
     public boolean existe(String clave) {
-<span class="fc" id="L63">        return Files.isRegularFile(resolver(clave));</span>
+<span class="fc" id="L72">        return Files.isRegularFile(resolver(clave));</span>
     }
 
     @Override
     public void borrar(String clave) throws IOException {
-<span class="fc" id="L68">        Files.deleteIfExists(resolver(clave));</span>
-<span class="fc" id="L69">    }</span>
+<span class="fc" id="L77">        Files.deleteIfExists(resolver(clave));</span>
+<span class="fc" id="L78">    }</span>
 
     private Path resolver(String clave) {
-<span class="fc" id="L72">        Path ruta = raiz.resolve(clave).normalize();</span>
-<span class="fc bfc" id="L73" title="All 2 branches covered.">        if (!ruta.startsWith(raiz)) {</span>
-<span class="fc" id="L74">            throw new IllegalArgumentException(&quot;Clave de almacén fuera de la carpeta de fotos: &quot; + clave);</span>
+<span class="fc" id="L81">        Path ruta = raiz.resolve(clave).normalize();</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">        if (!ruta.startsWith(raiz)) {</span>
+<span class="fc" id="L83">            throw new IllegalArgumentException(&quot;Clave de almacén fuera de la carpeta de fotos: &quot; + clave);</span>
         }
-<span class="fc" id="L76">        return ruta;</span>
+<span class="fc" id="L85">        return ruta;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

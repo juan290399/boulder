@@ -1,12 +1,14 @@
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpErrorResponse } from '@angular/common/http';
+import { Observable, of, switchMap } from 'rxjs';
 
 import { AuthService } from '../../../services/auth.service';
 import { RolService } from '../../../services/rol.service';
 import { UsuarioService } from '../../../services/usuario.service';
 import { Rol, Usuario } from '../../../models/base';
+import { mensajeDeError } from '../../../util/interfaz';
+import { Ficha } from '../../../components/ficha/ficha';
 
 type FiltroEstado = 'todos' | 'activos' | 'inactivos' | 'pendientes';
 
@@ -19,10 +21,17 @@ const FORM_VACIO = (): Usuario & { id?: string } => ({
   estado: true,
 });
 
+/** El auto-registro deja la cuenta inactiva y sin roles: espera que un administrador la apruebe. */
+const esPendiente = (u: Usuario): boolean => u.estado === false && (u.roles?.length ?? 0) === 0;
+
+/**
+ * Cuentas en maestro-detalle: la lista a la izquierda y, a la derecha, la ficha
+ * con los datos, los roles y la activación de la cuenta elegida.
+ */
 @Component({
   selector: 'app-admin-usuarios',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Ficha],
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.scss',
 })
@@ -40,17 +49,24 @@ export class Usuarios implements OnInit {
   roles: Rol[] = [];
 
   form: Usuario & { id?: string } = FORM_VACIO();
+  /** Roles marcados en la ficha. */
+  rolesSeleccionados = new Set<string>();
+  /** La cuenta abierta estaba pendiente al abrir la ficha: guardar la aprueba. */
+  aprobando = false;
 
+  /** La ficha de alta o edición está abierta. */
+  fichaAbierta = false;
   busqueda = '';
   filtroEstado: FiltroEstado = 'todos';
 
-  loading = false;
+  /** Arranca en true: el listado se pide en ngOnInit y así el primer render ya muestra «Cargando». */
+  loading = true;
+  guardando = false;
   mensaje = '';
+  /** Errores de la lista (carga). */
   error = '';
-
-  /** Fila cuyo editor de roles está abierto. */
-  editandoRolesDe: Usuario | null = null;
-  rolesSeleccionados = new Set<string>();
+  /** Errores de la ficha: se muestran junto a los campos. */
+  errorFormulario = '';
 
   ngOnInit(): void {
     this.cargarRoles();
@@ -103,10 +119,8 @@ export class Usuarios implements OnInit {
           return u.estado === true;
         case 'inactivos':
           return u.estado === false;
-        // El auto-registro deja la cuenta inactiva y sin roles; son las que
-        // esperan que un administrador las habilite.
         case 'pendientes':
-          return u.estado === false && (u.roles?.length ?? 0) === 0;
+          return esPendiente(u);
         default:
           return true;
       }
@@ -114,74 +128,55 @@ export class Usuarios implements OnInit {
   }
 
   get totalPendientes(): number {
-    return this.usuarios.filter((u) => u.estado === false && (u.roles?.length ?? 0) === 0).length;
+    return this.usuarios.filter(esPendiente).length;
+  }
+
+  esPendiente(u: Usuario): boolean {
+    return esPendiente(u);
   }
 
   esUsuarioActual(u: Usuario): boolean {
     return this.usuarioActual !== null && u.usuario === this.usuarioActual;
   }
 
-  // ------------------------------------------------------------------- altas
+  verPendientes(): void {
+    this.filtroEstado = 'pendientes';
+    this.busqueda = '';
+    this.cdr.detectChanges();
+  }
 
-  guardar(): void {
-    this.limpiarAvisos();
+  // ------------------------------------------------------------------- ficha
 
-    const op$ = this.form.id
-      ? this.service.actualizar(this.form.id, this.form)
-      : this.service.crear(this.form);
-
-    op$.subscribe({
-      next: () => {
-        this.mensaje = this.form.id ? 'Cuenta actualizada' : 'Cuenta creada';
-        this.limpiar();
-        this.listar();
-      },
-      error: (err) => this.fallo('No se pudo guardar la cuenta', err),
-    });
+  nueva(): void {
+    this.form = FORM_VACIO();
+    this.rolesSeleccionados = new Set();
+    this.aprobando = false;
+    this.abrirFicha();
   }
 
   editar(u: Usuario): void {
     // La contraseña nunca vuelve del backend; en blanco significa "no cambiar".
     this.form = { ...u, contrasenia: '' };
-    this.limpiarAvisos();
-    this.cdr.detectChanges();
-  }
-
-  limpiar(): void {
-    this.form = FORM_VACIO();
-    this.cdr.detectChanges();
-  }
-
-  cambiarEstado(u: Usuario, activo: boolean): void {
-    if (!u.id) {
-      return;
-    }
-    this.limpiarAvisos();
-
-    this.service.cambiarEstado(u.id, activo).subscribe({
-      next: () => {
-        this.mensaje = activo
-          ? `Cuenta de ${u.usuario} activada`
-          : `Cuenta de ${u.usuario} desactivada`;
-        this.listar();
-      },
-      error: (err) => this.fallo('No se pudo cambiar el estado de la cuenta', err),
-    });
-  }
-
-  // ------------------------------------------------------------------- roles
-
-  abrirRoles(u: Usuario): void {
-    this.editandoRolesDe = u;
     this.rolesSeleccionados = new Set(u.roles ?? []);
-    this.limpiarAvisos();
+    this.aprobando = esPendiente(u);
+    this.abrirFicha();
+  }
+
+  cerrarFicha(): void {
+    this.fichaAbierta = false;
+    this.errorFormulario = '';
     this.cdr.detectChanges();
   }
 
-  cerrarRoles(): void {
-    this.editandoRolesDe = null;
-    this.rolesSeleccionados.clear();
+  private abrirFicha(): void {
+    this.limpiarAvisos();
+    this.errorFormulario = '';
+    this.fichaAbierta = true;
     this.cdr.detectChanges();
+  }
+
+  esSeleccionado(u: Usuario): boolean {
+    return this.fichaAbierta && !!this.form.id && u.id === this.form.id;
   }
 
   alternarRol(codigo: string): void {
@@ -192,25 +187,71 @@ export class Usuarios implements OnInit {
     }
   }
 
-  tieneRolSeleccionado(codigo: string): boolean {
-    return this.rolesSeleccionados.has(codigo);
-  }
-
-  guardarRoles(): void {
-    const destino = this.editandoRolesDe;
-    if (!destino?.id) {
+  /**
+   * Guarda en un solo paso lo que la ficha muestra: los datos, los roles si
+   * cambiaron y, si la cuenta estaba pendiente, la activa (aprobación).
+   */
+  guardar(): void {
+    this.errorFormulario = '';
+    if (this.aprobando && this.rolesSeleccionados.size === 0) {
+      this.errorFormulario = 'Para aprobar la cuenta, marca al menos un rol.';
+      this.cdr.detectChanges();
       return;
     }
-    this.limpiarAvisos();
 
-    this.service.asignarRoles(destino.id, [...this.rolesSeleccionados]).subscribe({
+    this.guardando = true;
+    const esEdicion = !!this.form.id;
+    const aprobar = this.aprobando;
+    const roles = [...this.rolesSeleccionados];
+    const rolesCambiaron = !this.mismosRoles(this.form.roles ?? [], roles);
+
+    const datos$: Observable<Usuario> = esEdicion
+      ? this.service.actualizar(this.form.id!, this.form)
+      : this.service.crear(this.form);
+
+    datos$.pipe(
+      switchMap((guardado) => {
+        const id = guardado?.id ?? this.form.id!;
+        const roles$: Observable<unknown> = rolesCambiaron ? this.service.asignarRoles(id, roles) : of(null);
+        return roles$.pipe(switchMap(() => (aprobar ? this.service.cambiarEstado(id, true) : of(null))));
+      }),
+    ).subscribe({
       next: () => {
-        this.mensaje = `Roles de ${destino.usuario} actualizados`;
-        this.cerrarRoles();
-        this.listar();
+        this.mensaje = aprobar
+          ? `Cuenta de ${this.form.usuario} aprobada.`
+          : `Cuenta de ${this.form.usuario} ${esEdicion ? 'actualizada' : 'creada'}.`;
+        this.terminar();
       },
-      error: (err) => this.fallo('No se pudieron asignar los roles', err),
+      error: (err) => this.falloFormulario('No se pudo guardar la cuenta', err),
     });
+  }
+
+  /** Activa o desactiva la cuenta abierta en la ficha. */
+  cambiarEstado(activo: boolean): void {
+    const id = this.form.id;
+    if (!id) {
+      return;
+    }
+    this.errorFormulario = '';
+    this.guardando = true;
+
+    this.service.cambiarEstado(id, activo).subscribe({
+      next: () => {
+        this.mensaje = `Cuenta de ${this.form.usuario} ${activo ? 'activada' : 'desactivada'}.`;
+        this.terminar();
+      },
+      error: (err) => this.falloFormulario('No se pudo cambiar el estado de la cuenta', err),
+    });
+  }
+
+  private mismosRoles(antes: string[], ahora: string[]): boolean {
+    return antes.length === ahora.length && antes.every((r) => ahora.includes(r));
+  }
+
+  private terminar(): void {
+    this.guardando = false;
+    this.cerrarFicha();
+    this.listar();
   }
 
   // ------------------------------------------------------------------ avisos
@@ -220,24 +261,17 @@ export class Usuarios implements OnInit {
     this.error = '';
   }
 
-  /**
-   * Prefiere el mensaje del backend: las salvaguardas devuelven textos
-   * concretos ("No puedes quitarte a ti mismo el rol ADMIN") que explican
-   * mucho mejor el rechazo que un genérico.
-   */
+  private falloFormulario(contexto: string, err: unknown): void {
+    console.error(contexto, err);
+    this.guardando = false;
+    this.errorFormulario = mensajeDeError(err, contexto);
+    this.cdr.detectChanges();
+  }
+
+  /** Muestra el error con el mensaje del servidor (ver util/interfaz). */
   private fallo(contexto: string, err: unknown): void {
     console.error(contexto, err);
-
-    let detalle = '';
-    if (err instanceof HttpErrorResponse) {
-      if (err.status === 403) {
-        detalle = 'No tienes permiso para esta operación.';
-      } else {
-        detalle = err.error?.errores ?? err.error?.message ?? '';
-      }
-    }
-
-    this.error = detalle ? `${contexto}: ${detalle}` : contexto;
+    this.error = mensajeDeError(err, contexto);
     this.loading = false;
     this.cdr.detectChanges();
   }

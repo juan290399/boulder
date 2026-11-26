@@ -77,6 +77,16 @@ export class AuthService {
     return this.getRolesFromToken().includes(seleccionado) ? seleccionado : null;
   }
 
+  /** Registra y corrige partes, logueo, cargas y fotos (PermisosEscritura del backend). */
+  puedeRegistrar(): boolean {
+    return ['ADMIN', 'GEOLOGO', 'ASISTENTE_GEOLOGIA'].some(r => this.hasRole(r));
+  }
+
+  /** Mantiene los datos maestros de la campaña y borra partes. */
+  puedeMantenerMaestros(): boolean {
+    return ['ADMIN', 'GEOLOGO'].some(r => this.hasRole(r));
+  }
+
   /** El JWT incluye este rol, con independencia del que esté seleccionado. */
   hasRole(codigo: string): boolean {
     return this.getRolesFromToken().includes(codigo);
@@ -140,9 +150,11 @@ export class AuthService {
 
     try {
       const payloadBase64 = token.split('.')[1];
-      // El payload viene en base64url: hay que normalizarlo antes de atob().
+      // El payload viene en base64url y en UTF-8: atob() devuelve bytes, que se
+      // decodifican aparte para no romper las tildes de los nombres.
       const normalized = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
-      return JSON.parse(atob(normalized));
+      const bytes = Uint8Array.from(atob(normalized), c => c.charCodeAt(0));
+      return JSON.parse(new TextDecoder().decode(bytes));
     } catch (error) {
       console.error('Error parseando JWT:', error);
       return null;

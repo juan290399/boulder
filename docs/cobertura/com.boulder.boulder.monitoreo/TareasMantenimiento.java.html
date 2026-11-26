@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TareasMantenimiento.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.monitoreo</a> &gt; <span class="el_source">TareasMantenimiento.java</span></div><h1>TareasMantenimiento.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.monitoreo;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import com.boulder.boulder.fotos.AlmacenFotosDisco;
+
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
+
+/**
+ * Tareas de mantenimiento que corre la propia aplicación con expresiones cron.
+ *
+ * &lt;p&gt;
+ * Complementan a las del sistema operativo ({@code scripts/mantenimiento}):
+ * aquellas respaldan la base y vigilan el servicio desde fuera; estas limpian y
+ * revisan lo que solo la aplicación conoce. Los horarios se cambian sin
+ * recompilar con {@code boulder.mantenimiento.cron.*}.
+ * &lt;/p&gt;
+ *
+ * @author jvelazco
+ * @version 1.0
+ * @since 1.0
+ */
+@Component
+public class TareasMantenimiento {
+
+    /** Dispositivos de GeoLog activos en la última semana pero sin contacto hace más de un día. */
+    public static final String SIN_CONTACTO = &quot;boulder.geolog.dispositivos.sin_contacto&quot;;
+
+<span class="fc" id="L45">    private static final Logger log = LoggerFactory.getLogger(TareasMantenimiento.class);</span>
+<span class="fc" id="L46">    private static final Duration EDAD_TEMPORAL = Duration.ofHours(24);</span>
+
+    private final Path fotos;
+    private final JdbcTemplate jdbc;
+    private final Clock reloj;
+<span class="fc" id="L51">    private final AtomicInteger sinContacto = new AtomicInteger();</span>
+
+<span class="fc" id="L53">    public TareasMantenimiento(AlmacenFotosDisco almacen, JdbcTemplate jdbc, Clock reloj, MeterRegistry registro) {</span>
+<span class="fc" id="L54">        this.fotos = almacen.raiz();</span>
+<span class="fc" id="L55">        this.jdbc = jdbc;</span>
+<span class="fc" id="L56">        this.reloj = reloj;</span>
+<span class="fc" id="L57">        Gauge.builder(SIN_CONTACTO, sinContacto, AtomicInteger::get)</span>
+<span class="fc" id="L58">                .description(&quot;Tablets de GeoLog que dejaron de sincronizar (más de 24 h sin contacto)&quot;)</span>
+<span class="fc" id="L59">                .register(registro);</span>
+<span class="fc" id="L60">    }</span>
+
+    /**
+     * Borra las subidas de fotos que quedaron a medias: el almacén escribe en
+     * un {@code .subida-*.tmp} y lo renombra al terminar, así que uno que
+     * sobrevive más de un día es de un proceso que se cortó.
+     *
+     * @return cantidad de archivos borrados
+     */
+    @Scheduled(cron = &quot;${boulder.mantenimiento.cron.temporales:0 30 3 * * *}&quot;, zone = &quot;America/Lima&quot;)
+    public int purgarTemporales() {
+<span class="fc" id="L71">        Instant limite = reloj.instant().minus(EDAD_TEMPORAL);</span>
+        List&lt;Path&gt; viejos;
+<span class="fc" id="L73">        try (Stream&lt;Path&gt; archivos = Files.walk(fotos)) {</span>
+<span class="fc" id="L74">            viejos = archivos.filter(Files::isRegularFile)</span>
+<span class="fc" id="L75">                    .filter(p -&gt; p.getFileName().toString().startsWith(&quot;.subida-&quot;))</span>
+<span class="fc" id="L76">                    .filter(p -&gt; p.getFileName().toString().endsWith(&quot;.tmp&quot;))</span>
+<span class="fc" id="L77">                    .filter(p -&gt; modificadoAntesDe(p, limite))</span>
+<span class="fc" id="L78">                    .toList();</span>
+<span class="nc" id="L79">        } catch (IOException e) {</span>
+<span class="nc" id="L80">            log.warn(&quot;No se pudo recorrer el almacén de fotos para purgar temporales&quot;, e);</span>
+<span class="nc" id="L81">            return 0;</span>
+<span class="fc" id="L82">        }</span>
+<span class="fc" id="L83">        int borrados = 0;</span>
+<span class="fc bfc" id="L84" title="All 2 branches covered.">        for (Path p : viejos) {</span>
+            try {
+<span class="fc" id="L86">                Files.deleteIfExists(p);</span>
+<span class="fc" id="L87">                borrados++;</span>
+<span class="nc" id="L88">            } catch (IOException e) {</span>
+<span class="nc" id="L89">                log.warn(&quot;No se pudo borrar el temporal {}&quot;, p.getFileName(), e);</span>
+<span class="fc" id="L90">            }</span>
+<span class="fc" id="L91">        }</span>
+<span class="fc" id="L92">        log.info(&quot;Mantenimiento: {} subidas de fotos a medias purgadas&quot;, borrados);</span>
+<span class="fc" id="L93">        return borrados;</span>
+    }
+
+    /**
+     * Cuenta las tablets que sincronizaban en la última semana y llevan más de
+     * un día calladas, y deja el valor en la métrica {@link #SIN_CONTACTO}.
+     *
+     * @return dispositivos sin contacto, o -1 si la base no respondió
+     */
+    @Scheduled(cron = &quot;${boulder.mantenimiento.cron.dispositivos:0 */15 * * * *}&quot;, zone = &quot;America/Lima&quot;)
+    public int revisarDispositivos() {
+        try {
+<span class="fc" id="L105">            Integer n = jdbc.queryForObject(&quot;&quot;&quot;</span>
+                    SELECT count(*) FROM logueo.dispositivo_sync
+                    WHERE ultimo_contacto &lt; now() - interval '24 hours'
+                      AND ultimo_contacto &gt; now() - interval '7 days'
+                    &quot;&quot;&quot;, Integer.class);
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">            int valor = n != null ? n : 0;</span>
+<span class="fc" id="L111">            sinContacto.set(valor);</span>
+<span class="pc bpc" id="L112" title="1 of 2 branches missed.">            if (valor &gt; 0) {</span>
+<span class="fc" id="L113">                log.warn(&quot;Mantenimiento: {} tablets de GeoLog sin sincronizar hace más de 24 h&quot;, valor);</span>
+            }
+<span class="fc" id="L115">            return valor;</span>
+<span class="fc" id="L116">        } catch (DataAccessException e) {</span>
+<span class="fc" id="L117">            log.warn(&quot;Mantenimiento: no se pudo revisar la sincronización de los dispositivos: {}&quot;, e.getMessage());</span>
+<span class="fc" id="L118">            return -1;</span>
+        }
+    }
+
+    private static boolean modificadoAntesDe(Path p, Instant limite) {
+        try {
+<span class="fc" id="L124">            return Files.getLastModifiedTime(p).toInstant().isBefore(limite);</span>
+<span class="nc" id="L125">        } catch (IOException e) {</span>
+<span class="nc" id="L126">            return false;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

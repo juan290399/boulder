@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { catchError, debounceTime } from 'rxjs/operators';
 
@@ -22,6 +23,8 @@ import {
 import { AvanceOperativo, AvancePerforacion, FrenteAvance } from '../../../models/operacional';
 import { PartePerforacionForm } from './parte-perforacion/parte-perforacion';
 import { ParteOperativoForm } from './parte-operativo/parte-operativo';
+import { AuthService } from '../../../services/auth.service';
+import { irA } from '../../../util/interfaz';
 
 /** Descriptor de cada parte (perforación y los siete de testigo), para la pestaña de detalle. */
 interface TipoParte {
@@ -53,8 +56,13 @@ interface TipoParte {
 export class AvanceOperativoPage implements OnInit {
 
   private readonly frenteService = inject(FrenteAvanceService);
+  readonly puedeRegistrar = inject(AuthService).puedeRegistrar();
   private readonly eventos = inject(EventosService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
+  private readonly ruta = inject(ActivatedRoute);
+  /** Código pedido en la URL (?sondaje=) que espera a que cargue el frente. */
+  private sondajePedido: string | null = null;
   private readonly perforacion = inject(AvancePerforacionService);
 
   readonly cargando = signal(false);
@@ -193,6 +201,15 @@ export class AvanceOperativoPage implements OnInit {
   }
 
   ngOnInit(): void {
+    // La URL manda: ?sondaje=CÓDIGO abre su detalle y sin él se ve el frente.
+    // Así el botón Atrás del navegador vuelve al frente.
+    this.ruta.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(params => {
+        this.sondajePedido = params.get('sondaje');
+        this.aplicarSondajePedido();
+      });
+
     this.cargarFrente();
 
     // En vivo: cualquier parte o tramo nuevo mueve el frente. Se espera un
@@ -214,11 +231,18 @@ export class AvanceOperativoPage implements OnInit {
       next: filas => {
         this.frente.set(filas);
         this.cargando.set(false);
-        // Si el sondaje abierto dejo de estar en la lista, se cierra el detalle.
+        // El detalle abierto toma la fila recién cargada (sus metros pudieron
+        // cambiar); si el sondaje ya no está en la lista, se vuelve al frente.
         const abierto = this.seleccionado();
-        if (abierto && !filas.some(f => f.sondajeId === abierto.sondajeId)) {
-          this.seleccionado.set(null);
+        if (abierto) {
+          const actual = filas.find(f => f.sondajeId === abierto.sondajeId);
+          if (actual) {
+            this.seleccionado.set(actual);
+          } else {
+            this.volverAlFrente();
+          }
         }
+        this.aplicarSondajePedido();
       },
       error: () => {
         this.error.set('No se pudo cargar el frente de avance.');
@@ -232,16 +256,59 @@ export class AvanceOperativoPage implements OnInit {
     this.cargarFrente();
   }
 
+  /** Abre el detalle del sondaje: solo cambia la URL, y la URL abre el detalle. */
   seleccionar(fila: FrenteAvance): void {
-    this.formulario.set(null);
-    this.aviso.set(null);
-    if (this.seleccionado()?.sondajeId === fila.sondajeId) {
-      this.seleccionado.set(null);
+    this.router.navigate([], { relativeTo: this.ruta, queryParams: { sondaje: fila.sondajeCodigo } });
+  }
+
+  volverAlFrente(): void {
+    if (this.ruta.snapshot.queryParamMap.has('sondaje')) {
+      this.router.navigate([], { relativeTo: this.ruta, queryParams: {} });
+    } else {
+      this.cerrarDetalle();
+    }
+  }
+
+  /** Sincroniza la vista con ?sondaje= una vez que el frente está cargado. */
+  private aplicarSondajePedido(): void {
+    const codigo = this.sondajePedido;
+    const abierto = this.seleccionado();
+    if (!codigo) {
+      if (abierto) {
+        this.cerrarDetalle();
+      }
       return;
     }
+    if (abierto?.sondajeCodigo === codigo) {
+      return;
+    }
+    const fila = this.frente().find(f => f.sondajeCodigo === codigo);
+    if (!fila) {
+      return; // el frente aún no cargó; se reintenta al terminar la carga
+    }
+    this.formulario.set(null);
+    this.aviso.set(null);
     this.seleccionado.set(fila);
     this.cargarPartes();
+    // La pantalla cambia de contenido: arriba de todo y el foco en el código.
+    setTimeout(() => {
+      window.scrollTo({ top: 0 });
+      document.getElementById('detalle-sondaje-titulo')?.focus({ preventScroll: true });
+    });
   }
+
+  private cerrarDetalle(): void {
+    const id = this.seleccionado()?.sondajeId;
+    this.formulario.set(null);
+    this.aviso.set(null);
+    this.seleccionado.set(null);
+    // De vuelta en el frente, el foco regresa a la fila del sondaje que se veía.
+    setTimeout(() => irA('fila-' + id, 'fila-' + id));
+  }
+
+  /** Siglas de las etapas con su nombre, para la leyenda sobre la tabla. */
+  readonly leyenda = computed(() =>
+    (this.frente()[0]?.etapas ?? []).map(e => ({ sigla: this.abrevia(e.clave), nombre: e.nombre })));
 
   elegirTipo(clave: string): void {
     this.formulario.set(null);
@@ -253,11 +320,32 @@ export class AvanceOperativoPage implements OnInit {
   nuevoParte(): void {
     this.aviso.set(null);
     this.formulario.set({ clave: this.tipoActivo(), parte: null });
+    this.irAlFormulario();
   }
 
   editarParte(parte: AvanceOperativo): void {
     this.aviso.set(null);
     this.formulario.set({ clave: this.tipoActivo(), parte });
+    this.irAlFormulario();
+  }
+
+  cancelarParte(): void {
+    this.formulario.set(null);
+    setTimeout(() => irA('detalle-sondaje', 'detalle-sondaje-titulo'));
+  }
+
+  /**
+   * El formulario aparece encima de la tabla de partes: «Corregir» en una fila
+   * de abajo lo dejaba fuera de la vista. Se lleva la vista y el foco al primer
+   * campo.
+   */
+  private irAlFormulario(): void {
+    setTimeout(() => {
+      irA('formulario-parte');
+      document.querySelector<HTMLElement>(
+        '#formulario-parte input:not([type=hidden]):not([disabled]), #formulario-parte select',
+      )?.focus({ preventScroll: true });
+    });
   }
 
   /** El parte de perforación es otro modelo; el formulario lo pide con su tipo. */
@@ -272,6 +360,7 @@ export class AvanceOperativoPage implements OnInit {
     this.aviso.set(`Parte N.º ${parte.numeroInterno} de ${etiqueta} ${abierto?.parte ? 'corregido' : 'registrado'}.`);
     this.cargarPartes();
     this.cargarFrente(true);
+    setTimeout(() => irA('detalle-sondaje', 'detalle-sondaje-titulo'));
   }
 
   private cargarPartes(): void {

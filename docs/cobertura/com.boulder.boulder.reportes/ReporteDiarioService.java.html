@@ -49,7 +49,8 @@ public class ReporteDiarioService {
 <span class="fc bfc" id="L49" title="All 2 branches covered.">        List&lt;PuntoSerie&gt; serie = Stream.iterate(desde, d -&gt; !d.isAfter(dia), d -&gt; d.plusDays(1))</span>
 <span class="fc" id="L50">                .map(d -&gt; new PuntoSerie(d, perforado.getOrDefault(d, BigDecimal.ZERO)))</span>
 <span class="fc" id="L51">                .toList();</span>
-<span class="fc" id="L52">        return ReporteDiario.de(dia, repositorio.porSondaje(dia), serie);</span>
+<span class="fc" id="L52">        return ReporteDiario.de(dia, repositorio.porSondaje(dia), serie, repositorio.campania(dia),</span>
+<span class="fc" id="L53">                repositorio.porMaquina(dia), repositorio.mensual(dia));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

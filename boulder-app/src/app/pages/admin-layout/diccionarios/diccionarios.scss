@@ -1,16 +1,5 @@
 /* Solo lo propio de diccionarios: el resto sale de styles.scss. */
 
-.dicc-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr);
-  gap: 1.25rem;
-  align-items: start;
-
-  @media (max-width: 1000px) {
-    grid-template-columns: 1fr;
-  }
-}
-
 .muestra {
   display: inline-block;
   width: 1.6rem;
@@ -23,4 +12,3 @@
 tr.inactiva td { color: var(--bo-ink-2); }
 
 .tenue { color: var(--bo-ink-2); font-size: 0.8rem; }
-.mono { font-family: var(--bo-mono); }

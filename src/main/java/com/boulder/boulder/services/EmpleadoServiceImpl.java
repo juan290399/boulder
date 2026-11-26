@@ -1,5 +1,6 @@
 package com.boulder.boulder.services;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -80,6 +81,7 @@ public class EmpleadoServiceImpl implements EmpleadoService {
     @Transactional
     public EmpleadoDTO guardar(EmpleadoDTO dto) {
         log.info("Registrando empleado. Código: {}", dto.getCodigo());
+        validar(dto);
 
         if (empleadoRepository.existsByCodigo(dto.getCodigo())) {
             throw new IllegalArgumentException(
@@ -99,6 +101,7 @@ public class EmpleadoServiceImpl implements EmpleadoService {
     public EmpleadoDTO actualizar(UUID id, EmpleadoDTO dto) {
         log.info("Actualizando empleado ID: {}", id);
         Empleado empleado = buscar(id);
+        validar(dto);
 
         // El código identifica al empleado en los partes; si cambia, tiene que
         // seguir siendo único.
@@ -128,6 +131,34 @@ public class EmpleadoServiceImpl implements EmpleadoService {
         return cargoRepository.findAll().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Lo que {@code @Valid} no cubre: los largos de las columnas (un valor más
+     * largo revienta en la base con un error genérico) y el orden de las fechas.
+     */
+    private static void validar(EmpleadoDTO dto) {
+        List<String> problemas = new ArrayList<>();
+        excede(problemas, dto.getCodigo(), 15, "el código");
+        excede(problemas, dto.getNombres(), 80, "los nombres");
+        excede(problemas, dto.getApellidos(), 80, "los apellidos");
+        excede(problemas, dto.getDocumento(), 20, "el documento");
+        excede(problemas, dto.getEmail(), 120, "el correo");
+        excede(problemas, dto.getTelefono(), 30, "el teléfono");
+        if (dto.getFechaIngreso() != null && dto.getFechaSalida() != null
+                && dto.getFechaSalida().isBefore(dto.getFechaIngreso())) {
+            problemas.add("la fecha de salida no puede ser anterior a la de ingreso");
+        }
+        if (!problemas.isEmpty()) {
+            String texto = String.join("; ", problemas);
+            throw new IllegalArgumentException(Character.toUpperCase(texto.charAt(0)) + texto.substring(1) + ".");
+        }
+    }
+
+    private static void excede(List<String> problemas, String valor, int maximo, String campo) {
+        if (valor != null && valor.trim().length() > maximo) {
+            problemas.add(campo + " no puede superar los " + maximo + " caracteres");
+        }
     }
 
     private Empleado buscar(UUID id) {

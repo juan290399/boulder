@@ -1,29 +1,22 @@
 <div class="page-head">
-  <div>
-    <h1 class="page-head__title">Diccionarios geológicos</h1>
-  </div>
-  <div class="page-head__actions">
-    <button type="button" class="btn btn-sm btn-primary" (click)="nuevo()">
-      <i class="bi bi-plus-lg me-1"></i>Nuevo código
-    </button>
-  </div>
+  <h1 class="page-head__title">Diccionarios geológicos</h1>
+  <button type="button" class="btn btn-success" (click)="nuevo()">
+    <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Nuevo código
+  </button>
 </div>
 
 @if (aviso(); as a) {
-  <div class="alert alert-success py-2 d-flex justify-content-between align-items-center">
-    <span><i class="bi bi-check-circle me-1"></i>{{ a }}</span>
-    <button type="button" class="btn-close" aria-label="Cerrar" (click)="aviso.set(null)"></button>
-  </div>
+  <div class="alert-inline alert-inline--ok" role="status">{{ a }}</div>
 }
 
-<div class="dicc-grid">
+<div class="maestro-detalle" [class.con-ficha]="fichaAbierta()">
 
-  <div class="panel">
+  <section class="panel">
     <div class="panel__head">
       <div class="toolbar w-100">
         <div class="toolbar__field" style="min-width: 260px;">
           <label class="form-label" for="sel-catalogo">Catálogo</label>
-          <select id="sel-catalogo" class="form-select form-select-sm"
+          <select id="sel-catalogo" class="form-select"
                   [ngModel]="tipo()" (ngModelChange)="elegirTipo($event)">
             @for (g of grupos(); track g.titulo) {
               <optgroup [label]="g.titulo">
@@ -36,18 +29,18 @@
         </div>
         <div class="toolbar__field">
           <label class="form-label" for="buscar">Buscar</label>
-          <input id="buscar" class="form-control form-control-sm" placeholder="Código o nombre"
+          <input id="buscar" class="form-control" type="search" placeholder="Código o nombre"
                  [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)">
         </div>
         <span class="toolbar__spacer"></span>
-        <span class="chip">{{ filas().length }} códigos</span>
+        <span class="text-secondary small align-self-end mb-2">{{ filas().length }} códigos</span>
       </div>
     </div>
 
     @if (cargando()) {
-      <div class="empty-state"><i class="bi bi-hourglass-split"></i><p>Cargando…</p></div>
+      <div class="empty-state">Cargando…</div>
     } @else if (!filas().length) {
-      <div class="empty-state"><i class="bi bi-journal"></i><p>No hay códigos que coincidan.</p></div>
+      <div class="empty-state">No hay códigos que coincidan.</div>
     } @else {
       <div class="table-scroll">
         <table class="data-table">
@@ -57,12 +50,13 @@
               @if (tieneGrupo()) { <th>Grupo</th> }
               @if (tieneColor()) { <th>Color</th> }
               @if (tieneEstado()) { <th>Estado</th> }
-              <th></th>
+              <th><span class="visually-hidden">Acciones</span></th>
             </tr>
           </thead>
           <tbody>
             @for (c of filas(); track c.id) {
-              <tr [class.inactiva]="tieneEstado() && !c.estaActivo">
+              <tr class="fila-editable" [class.fila-seleccionada]="esSeleccionado(c)"
+                  [class.inactiva]="tieneEstado() && !c.estaActivo" (click)="editar(c)">
                 <td class="mono">{{ c.codigo }}</td>
                 <td>{{ c.nombre }}</td>
                 @if (tieneGrupo()) { <td>{{ nombreGrupo(c.grupoId) }}</td> }
@@ -78,16 +72,9 @@
                     <span class="chip" [class.chip--ok]="c.estaActivo">{{ c.estaActivo ? 'Activo' : 'Inactivo' }}</span>
                   </td>
                 }
-                <td class="text-end text-nowrap">
-                  <button type="button" class="btn btn-sm btn-link" (click)="editar(c)" title="Editar">
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                  @if (tieneEstado()) {
-                    <button type="button" class="btn btn-sm btn-link" (click)="alternarEstado(c)"
-                            [title]="c.estaActivo ? 'Desactivar' : 'Activar'">
-                      <i class="bi" [class.bi-toggle-on]="c.estaActivo" [class.bi-toggle-off]="!c.estaActivo"></i>
-                    </button>
-                  }
+                <td class="text-end">
+                  <button type="button" class="btn btn-sm btn-outline-primary" (click)="$event.stopPropagation(); editar(c)"
+                          [attr.aria-label]="'Editar ' + c.codigo">Editar</button>
                 </td>
               </tr>
             }
@@ -95,32 +82,32 @@
         </table>
       </div>
     }
-  </div>
+  </section>
 
-  <div class="panel">
-    <div class="panel__head">
-      <h2 class="panel__title">{{ form().id ? 'Editar código' : 'Nuevo código' }} · {{ nombre(tipo()) }}</h2>
-    </div>
-    <form class="panel__body" (ngSubmit)="guardar()">
-
+  <app-ficha [abierta]="fichaAbierta()" [clave]="form().id"
+             [titulo]="form().id ? 'Editar código' : 'Nuevo código'" [subtitulo]="nombre(tipo())"
+             (cerrar)="cerrarFicha()">
+    <form id="dicc-formulario" (ngSubmit)="guardar()">
       @if (error(); as mensaje) {
-        <div class="alert-inline"><i class="bi bi-exclamation-triangle"></i>{{ mensaje }}</div>
+        <div class="alert-inline" role="alert">{{ mensaje }}</div>
       }
 
-      <label class="form-label" for="codigo">Código *</label>
-      <input id="codigo" name="codigo" class="form-control mb-1 mono text-uppercase"
+      <label class="form-label" for="codigo">Código</label>
+      <input id="codigo" name="codigo" class="form-control mono text-uppercase"
              [maxlength]="forma().largoCodigo"
-             [ngModel]="form().codigo" (ngModelChange)="actualizarForm({ codigo: $event })">
+             [ngModel]="form().codigo" (ngModelChange)="actualizarForm({ codigo: $event })"
+             aria-describedby="codigo-ayuda">
+      <div id="codigo-ayuda" class="form-text mb-3">Letras y números, hasta {{ forma().largoCodigo }} caracteres.</div>
 
-      <label class="form-label" for="nombre">Nombre *</label>
+      <label class="form-label" for="nombre">Nombre</label>
       <input id="nombre" name="nombre" class="form-control mb-3" maxlength="150"
              [ngModel]="form().nombre" (ngModelChange)="actualizarForm({ nombre: $event })">
 
       @if (tieneGrupo()) {
-        <label class="form-label" for="grupo">Grupo litológico *</label>
+        <label class="form-label" for="grupo">Grupo litológico</label>
         <select id="grupo" name="grupo" class="form-select mb-3"
                 [ngModel]="form().grupoId" (ngModelChange)="actualizarForm({ grupoId: $event })">
-          <option [ngValue]="null">— Elige un grupo —</option>
+          <option [ngValue]="null" disabled>Elige un grupo</option>
           @for (g of gruposLitologicos(); track g.id) {
             <option [ngValue]="g.id">{{ g.codigo }} · {{ g.nombre }}</option>
           }
@@ -128,28 +115,33 @@
       }
 
       @if (tieneColor()) {
-        <div class="form-check mb-2">
-          <input class="form-check-input" type="checkbox" id="conColor" name="conColor"
-                 [ngModel]="form().conColor" (ngModelChange)="actualizarForm({ conColor: $event })">
-          <label class="form-check-label" for="conColor">Color para el strip log</label>
-        </div>
-        @if (form().conColor) {
-          <input type="color" name="color" class="form-control form-control-color mb-3"
+        <label class="form-label" for="color">Color para el strip log</label>
+        <div class="d-flex align-items-center gap-2">
+          <input type="color" id="color" name="color" class="form-control form-control-color"
                  [ngModel]="form().color" (ngModelChange)="actualizarForm({ color: $event })">
-        }
+          <span class="mono small text-secondary">{{ form().color }}</span>
+        </div>
       }
 
-      <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary" [disabled]="!form().codigo.trim() || !form().nombre.trim()">
-          {{ form().id ? 'Guardar cambios' : 'Agregar' }}
-        </button>
-        @if (form().id) {
-          <button type="button" class="btn btn-outline-secondary" (click)="nuevo()">Cancelar</button>
-        }
-      </div>
-      @if (tieneEstado()) {
+      @if (form().id && tieneEstado()) {
+        <p class="form-text mb-0 mt-3">Desactivarlo lo marca como en desuso; los registros que ya lo usan se conservan.</p>
       }
     </form>
-  </div>
+
+    <div pie class="d-flex flex-wrap gap-2">
+      <button type="submit" form="dicc-formulario" class="btn btn-success text-nowrap"
+              [disabled]="!form().codigo.trim() || !form().nombre.trim()">
+        {{ form().id ? 'Guardar cambios' : 'Agregar código' }}
+      </button>
+      <button type="button" class="btn btn-outline-secondary" (click)="cerrarFicha()">Cancelar</button>
+      @if (form().id && tieneEstado()) {
+        <button type="button" class="btn ms-auto"
+                [class.btn-outline-danger]="form().estaActivo" [class.btn-outline-success]="!form().estaActivo"
+                (click)="alternarEstado()">
+          {{ form().estaActivo ? 'Desactivar' : 'Activar' }}
+        </button>
+      }
+    </div>
+  </app-ficha>
 
 </div>

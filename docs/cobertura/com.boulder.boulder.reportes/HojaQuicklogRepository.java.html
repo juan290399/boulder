@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HojaQuicklogRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">boulder</a> &gt; <a href="index.source.html" class="el_package">com.boulder.boulder.reportes</a> &gt; <span class="el_source">HojaQuicklogRepository.java</span></div><h1>HojaQuicklogRepository.java</h1><pre class="source lang-java linenums">package com.boulder.boulder.reportes;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import com.boulder.boulder.reportes.HojaQuicklog.Cabecera;
+import com.boulder.boulder.reportes.HojaQuicklog.Tramo;
+
+/** Consultas de la hoja de registro de quicklog (patrón DAO con JdbcTemplate). */
+@Repository
+public class HojaQuicklogRepository {
+
+    private static final String CABECERA = &quot;&quot;&quot;
+            SELECT rtrim(s.codigo) AS codigo, p.nombre AS ubicacion, rtrim(m.codigo) AS maquina,
+                   coalesce(s.azimut_setup, ps.azimut) AS azimut,
+                   coalesce(s.inclinacion_setup, ps.inclinacion) AS dip,
+                   c.norte, c.este, c.elevacion,
+                   coalesce(ps.profundidad, s.profundidad_final) AS profundidad
+              FROM operacional.prf_sondaje s
+              LEFT JOIN base.proyecto p ON p.id = s.proyecto_id
+              LEFT JOIN operacional.prf_maquina m ON m.id = s.maquina_id
+              LEFT JOIN operacional.prf_collar c ON c.id = s.collar_id
+              LEFT JOIN operacional.prf_programa_sondaje ps ON ps.id = s.programa_id
+             WHERE s.id = ?
+            &quot;&quot;&quot;;
+
+    private static final String TRAMOS = &quot;&quot;&quot;
+            SELECT q.fecha, q.desde, q.hasta, q.longitud, rtrim(lit.codigo) AS lito,
+                   nullif(concat_ws('-', rtrim(alt1.codigo), rtrim(alt2.codigo)), '') AS alteracion,
+                   nullif(concat_ws('-', rtrim(aso1.codigo), rtrim(aso2.codigo), rtrim(aso3.codigo)), '') AS ensamble,
+                   nullif(concat_ws('-', rtrim(min1.codigo), rtrim(min2.codigo), rtrim(min3.codigo)), '') AS mineralizacion,
+                   q.pc_py, q.pc_cu, q.pc_mo,
+                   nullif(concat_ws('-', rtrim(est1.codigo), rtrim(est2.codigo), rtrim(est3.codigo)), '') AS estilo,
+                   rtrim(zona.codigo) AS zona, q.comentarios, q.geologo
+              FROM logueo.iquicklog q
+              LEFT JOIN geologia.lit_diccionario lit ON lit.id = q.lito_id
+              LEFT JOIN geologia.alt_diccionario alt1 ON alt1.id = q.alt_tipo_1_id
+              LEFT JOIN geologia.alt_diccionario alt2 ON alt2.id = q.alt_tipo_2_id
+              LEFT JOIN geologia.alt_mineral aso1 ON aso1.id = q.alt_aso_1_id
+              LEFT JOIN geologia.alt_mineral aso2 ON aso2.id = q.alt_aso_2_id
+              LEFT JOIN geologia.alt_mineral aso3 ON aso3.id = q.alt_aso_3_id
+              LEFT JOIN geologia.min_diccionario min1 ON min1.id = q.min_tipo_1_id
+              LEFT JOIN geologia.min_diccionario min2 ON min2.id = q.min_tipo_2_id
+              LEFT JOIN geologia.min_diccionario min3 ON min3.id = q.min_tipo_3_id
+              LEFT JOIN geologia.min_distribucion est1 ON est1.id = q.min_estilo_1_id
+              LEFT JOIN geologia.min_distribucion est2 ON est2.id = q.min_estilo_2_id
+              LEFT JOIN geologia.min_distribucion est3 ON est3.id = q.min_estilo_3_id
+              LEFT JOIN geologia.min_zona zona ON zona.id = q.min_zona_id
+             WHERE q.sondaje_id = ? AND q.eliminado_en IS NULL
+            &quot;&quot;&quot;;
+
+    private final JdbcTemplate jdbc;
+
+<span class="fc" id="L58">    public HojaQuicklogRepository(JdbcTemplate jdbc) {</span>
+<span class="fc" id="L59">        this.jdbc = jdbc;</span>
+<span class="fc" id="L60">    }</span>
+
+    /** @return la cabecera, o vacío si el sondaje no existe */
+    public Optional&lt;Cabecera&gt; cabecera(UUID sondajeId) {
+<span class="fc" id="L64">        return jdbc.query(CABECERA, (rs, i) -&gt; new Cabecera(</span>
+<span class="fc" id="L65">                rs.getString(&quot;codigo&quot;),</span>
+<span class="fc" id="L66">                rs.getString(&quot;ubicacion&quot;),</span>
+<span class="fc" id="L67">                rs.getString(&quot;maquina&quot;),</span>
+<span class="fc" id="L68">                rs.getObject(&quot;azimut&quot;, Double.class),</span>
+<span class="fc" id="L69">                rs.getObject(&quot;dip&quot;, Double.class),</span>
+<span class="fc" id="L70">                rs.getObject(&quot;norte&quot;, Double.class),</span>
+<span class="fc" id="L71">                rs.getObject(&quot;este&quot;, Double.class),</span>
+<span class="fc" id="L72">                rs.getObject(&quot;elevacion&quot;, Double.class),</span>
+<span class="fc" id="L73">                rs.getObject(&quot;profundidad&quot;, Double.class)), sondajeId).stream().findFirst();</span>
+    }
+
+    /** @return los tramos vigentes del sondaje, sin orden garantizado */
+    public List&lt;Tramo&gt; tramos(UUID sondajeId) {
+<span class="fc" id="L78">        return jdbc.query(TRAMOS, (rs, i) -&gt; new Tramo(</span>
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">                rs.getDate(&quot;fecha&quot;) != null ? rs.getDate(&quot;fecha&quot;).toLocalDate() : null,</span>
+<span class="fc" id="L80">                rs.getBigDecimal(&quot;desde&quot;),</span>
+<span class="fc" id="L81">                rs.getBigDecimal(&quot;hasta&quot;),</span>
+<span class="fc" id="L82">                rs.getBigDecimal(&quot;longitud&quot;),</span>
+<span class="fc" id="L83">                rs.getString(&quot;lito&quot;),</span>
+<span class="fc" id="L84">                rs.getString(&quot;alteracion&quot;),</span>
+<span class="fc" id="L85">                rs.getString(&quot;ensamble&quot;),</span>
+<span class="fc" id="L86">                rs.getString(&quot;mineralizacion&quot;),</span>
+<span class="fc" id="L87">                rs.getBigDecimal(&quot;pc_py&quot;),</span>
+<span class="fc" id="L88">                rs.getBigDecimal(&quot;pc_cu&quot;),</span>
+<span class="fc" id="L89">                rs.getBigDecimal(&quot;pc_mo&quot;),</span>
+<span class="fc" id="L90">                rs.getString(&quot;estilo&quot;),</span>
+<span class="fc" id="L91">                rs.getString(&quot;zona&quot;),</span>
+<span class="fc" id="L92">                rs.getString(&quot;comentarios&quot;),</span>
+<span class="fc" id="L93">                rs.getString(&quot;geologo&quot;)), sondajeId);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -123,6 +123,12 @@ public class CatalogoGeologiaServiceImpl implements CatalogoGeologiaService {
         List<Short> canales = Stream.of(d.getColorR(), d.getColorG(), d.getColorB()).toList();
         long presentes = canales.stream().filter(c -> c != null).count();
         if (presentes == 0) {
+            // Las cuatro tablas con color (litología, alteración, mineral,
+            // estructura) lo declaran NOT NULL: sin él la base rechaza la fila
+            // con un error que no dice qué falta.
+            if (e.tiene("color_r")) {
+                throw new IllegalArgumentException("Elige el color para el strip log.");
+            }
             return;
         }
         if (!e.tiene("color_r")) {

@@ -47,6 +47,13 @@ export interface Quicklog {
   minEstilo1Id?: string | null;
   minEstilo2Id?: string | null;
   minEstilo3Id?: string | null;
+  pcPy?: number | null;
+  pcCu?: number | null;
+  pcMo?: number | null;
+  minZonaId?: string | null;
+  comentarios?: string | null;
+  fecha?: string | null;
+  geologo?: string | null;
 }
 
 /**

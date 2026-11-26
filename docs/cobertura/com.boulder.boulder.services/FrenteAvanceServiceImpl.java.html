@@ -76,7 +76,7 @@ import com.boulder.boulder.repositories.FrenteAvanceRepository;
 <span class="fc" id="L76">        List&lt;FrenteAvanceDTO&gt; resultado = new ArrayList&lt;&gt;();</span>
 <span class="fc bfc" id="L77" title="All 2 branches covered.">        for (FrenteAvanceProjection p : frenteAvanceRepository.consultarFrente()) {</span>
 <span class="fc bfc" id="L78" title="All 2 branches covered.">            boolean activo = p.getFechaFin() == null;</span>
-<span class="pc bpc" id="L79" title="1 of 4 branches missed.">            if (soloActivos &amp;&amp; !activo) {</span>
+<span class="fc bfc" id="L79" title="All 4 branches covered.">            if (soloActivos &amp;&amp; !activo) {</span>
 <span class="fc" id="L80">                continue;</span>
             }
 <span class="fc" id="L82">            resultado.add(construir(p, activo));</span>

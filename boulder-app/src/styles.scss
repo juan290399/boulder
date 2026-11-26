@@ -110,6 +110,16 @@
   --bs-link-color: var(--bo-brand-600);
   --bs-link-hover-color: var(--bo-brand-500);
   --bs-secondary-color: var(--bo-ink-2);
+  /* Los códigos (usuario, rol, empleado) son datos, no errores: sin el rosa
+     que Bootstrap da a <code>. */
+  --bs-code-color: var(--bo-ink-2);
+  /* Los grises y azules por defecto de Bootstrap (#6c757d, #0d6efd) no llegan
+     a 4.5:1 sobre las superficies claras; se reapuntan a la tinta y la marca. */
+  --bs-secondary-rgb: 71, 85, 105;
+  --bs-secondary-color: var(--bo-ink-2);
+  --bs-tertiary-color: var(--bo-ink-2);
+  --bs-primary-text-emphasis: var(--bo-brand-600);
+  --bs-focus-ring-color: rgba(37, 99, 235, 0.35);
 }
 
 html, body {
@@ -138,6 +148,27 @@ body {
   --bs-btn-hover-border-color: var(--bo-brand-600);
 }
 
+.btn-outline-primary {
+  --bs-btn-color: var(--bo-brand-600);
+  --bs-btn-border-color: var(--bo-brand-500);
+  --bs-btn-hover-bg: var(--bo-brand-600);
+  --bs-btn-hover-border-color: var(--bo-brand-600);
+  --bs-btn-active-bg: var(--bo-brand-600);
+  --bs-btn-disabled-color: var(--bo-brand-600);
+}
+
+.btn-outline-secondary {
+  --bs-btn-color: var(--bo-ink-2);
+  --bs-btn-border-color: var(--bo-border-strong);
+  --bs-btn-hover-color: var(--bo-ink);
+  --bs-btn-hover-bg: var(--bo-surface-2);
+  --bs-btn-hover-border-color: var(--bo-ink-3);
+  --bs-btn-active-color: var(--bo-ink);
+  --bs-btn-active-bg: var(--bo-neutral-soft);
+  --bs-btn-active-border-color: var(--bo-ink-3);
+  --bs-btn-disabled-color: var(--bo-ink-2);
+}
+
 .btn-primary:hover,
 .btn-success:hover {
   box-shadow: var(--bo-shadow-brand);
@@ -156,6 +187,20 @@ body {
   transition: border-color var(--bo-t-fast), box-shadow var(--bo-t-fast);
 }
 
+/* Foco del teclado. Un solo anillo para todo lo que se puede activar: sin él,
+   quien navega con Tab no ve dónde está (WCAG 2.4.7). Solo con :focus-visible,
+   así el clic con el mouse no lo deja pintado. */
+/* :is (y no :where) para ganarle a `.btn:focus-visible { outline: 0 }` de Bootstrap. */
+:is(a, button, [role="button"], summary, .btn, .form-check-input, .app-sidebar__link):focus-visible {
+  outline: 2px solid var(--bo-brand-500);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+.app-sidebar :is(a, button):focus-visible {
+  outline-color: var(--bo-brand-400);
+}
+
 .form-control:focus,
 .form-select:focus {
   border-color: var(--bo-brand-400);
@@ -170,6 +215,24 @@ body {
   letter-spacing: 0.01em;
 }
 
+
+/* Interruptor: el de Bootstrap mide 32x16 px. Se agranda para que el objetivo
+   táctil pase de 24 px (WCAG 2.5.8) sin depender del rótulo. */
+.form-switch .form-check-input {
+  width: 2.75rem;
+  height: 1.5rem;
+  margin-top: 0;
+  cursor: pointer;
+}
+
+.form-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-left: 0;
+
+  .form-check-input { margin-left: 0; float: none; flex: 0 0 auto; }
+}
 
 /* ---------------------------------------------------------------- 3. armazón */
 
@@ -284,16 +347,10 @@ body {
 .app-sidebar__link.active-link {
   background: var(--bo-brand-soft);
   color: #fff;
-  box-shadow: inset 3px 0 0 0 var(--bo-brand-400);
+
+  i { color: var(--bo-brand-400); }
 
   i { opacity: 1; }
-}
-
-.app-sidebar__link--disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-
-  &:hover { background: transparent; color: var(--bo-ink-invert-2); }
 }
 
 .app-sidebar__link--danger {
@@ -338,14 +395,6 @@ body {
   display: flex;
   flex-direction: column;
   line-height: 1.25;
-}
-
-.topbar__eyebrow {
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  font-weight: 600;
-  color: var(--bo-ink-3);
 }
 
 .topbar__area {
@@ -422,12 +471,11 @@ body {
 
 .topbar__user-role {
   font-size: 0.72rem;
-  color: var(--bo-ink-3);
+  color: var(--bo-ink-2);
 }
 
 @media (max-width: 768px) {
-  .topbar__user-text,
-  .topbar__context { display: none; }
+  .topbar__user-text { display: none; }
 }
 
 
@@ -579,6 +627,13 @@ body {
   overflow-y: auto;
 }
 
+/* Códigos y valores técnicos (sondaje, usuario, rol, RUC) fuera de las tablas:
+   campos de formulario, títulos de panel, notas. */
+.mono {
+  font-family: var(--bo-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
 /* Chip de estado. Una sola forma para todos los estados del sistema. */
 .chip {
   display: inline-flex;
@@ -603,9 +658,14 @@ body {
 /* Tarjetas de indicador. */
 .metric-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  /* Las pantallas traen cuatro cifras: cuatro columnas, o dos por dos, para
+     que ninguna quede sola en un renglón (con auto-fit caían 3 + 1). */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
   margin-bottom: 1.25rem;
+
+  @media (max-width: 1199.98px) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @media (max-width: 575.98px) { grid-template-columns: minmax(0, 1fr); }
 }
 
 .metric {
@@ -620,7 +680,7 @@ body {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: var(--bo-ink-3);
+  color: var(--bo-ink-2);
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -708,8 +768,18 @@ body {
 
   .app-sidebar__title,
   .app-sidebar__subtitle,
-  .app-sidebar__section,
-  .app-sidebar__link span { display: none; }
+  .app-sidebar__section { display: none; }
+
+  /* Solo íconos a la vista; el nombre sigue disponible para el lector de
+     pantalla (con display:none el enlace quedaba sin nombre). */
+  .app-sidebar__link span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
 
   .app-sidebar__link { justify-content: center; }
   .app-viewport { padding: 1rem; }
@@ -772,5 +842,127 @@ body {
   .panel {
     break-inside: avoid;
     box-shadow: none !important;
+  }
+}
+
+
+/* -------------------------------------------------------- movimiento reducido */
+
+/* Quien pide menos movimiento conserva los cambios de color y de foco, que son
+   información, pero no los desplazamientos: ni el salto del botón al pulsarlo
+   ni el scroll animado. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .btn:active { transform: none; }
+}
+
+
+/* ------------------------------------------------------- maestro-detalle */
+
+/* Pantallas de mantenimiento: sin nada elegido la lista ocupa todo el ancho;
+   con un registro abierto (.con-ficha) se reparte en lista a la izquierda y
+   ficha a la derecha (componente app-ficha). En pantallas angostas, con la
+   ficha abierta, la lista se oculta hasta pulsar «Volver a la lista». */
+.maestro-detalle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+
+  > .panel { margin: 0; }
+
+  &.con-ficha { grid-template-columns: minmax(0, 1fr) minmax(340px, 400px); }
+}
+
+.ficha--vacia { display: none !important; }
+
+.ficha {
+  display: block;
+  position: sticky;
+  top: calc(var(--bo-topbar-h) + 1rem);
+}
+
+.ficha__caja {
+  display: flex;
+  flex-direction: column;
+  /* Cabe en la pantalla desde su posición inicial (bajo el título de la
+     página), así el pie con Guardar se ve sin desplazarse. */
+  max-height: calc(100vh - var(--bo-topbar-h) - 7rem);
+  background: var(--bo-surface);
+  border: 1px solid var(--bo-border);
+  border-radius: var(--bo-r-lg);
+  box-shadow: var(--bo-shadow-sm);
+  overflow: hidden;
+}
+
+.ficha__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--bo-border);
+}
+.ficha__titulos { flex: 1 1 auto; min-width: 0; }
+.ficha__titulo { margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--bo-ink); }
+.ficha__subtitulo { margin: 0.15rem 0 0; font-size: 0.8rem; color: var(--bo-ink-2); }
+.ficha__volver { display: none; flex: 1 0 100%; padding: 0; text-align: left; min-height: 24px; }
+
+.ficha__body { padding: 1.25rem; overflow-y: auto; }
+
+.ficha__pie {
+  padding: 0.875rem 1.25rem;
+  border-top: 1px solid var(--bo-border);
+  background: var(--bo-surface-2);
+}
+
+/* Grupos de campos dentro de la ficha. */
+.ficha__grupo {
+  margin: 1.25rem 0 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--bo-border);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--bo-ink);
+}
+.ficha__nota {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--bo-border);
+  border-radius: var(--bo-r-md, 0.5rem);
+  background: var(--bo-surface-2);
+  font-size: 0.875rem;
+  color: var(--bo-ink-2);
+}
+
+@media (max-width: 1199.98px) {
+  .maestro-detalle.con-ficha { grid-template-columns: minmax(0, 1fr); }
+  .maestro-detalle.con-ficha > .panel { display: none; }
+  .ficha { position: static; }
+  .ficha__caja { max-height: none; }
+  .ficha__volver { display: inline-flex; align-items: center; }
+  .ficha__cerrar { display: none; }
+}
+
+/* Columnas que sobran mientras la ficha está abierta (la lista queda angosta):
+   se ocultan para que la tabla no se desborde y «Editar» siga a la vista. */
+.maestro-detalle.con-ficha .col-secundaria { display: none; }
+@media (max-width: 1199.98px) { .maestro-detalle .col-secundaria { display: none; } }
+
+/* Filas que abren su registro en la ficha. */
+.data-table tbody tr.fila-editable { cursor: pointer; }
+.data-table tbody tr.fila-seleccionada td { background: var(--bo-brand-soft); }
+
+/* Búsqueda exacta plegada bajo la lista. */
+.busqueda-exacta {
+  padding: 0.75rem 1.25rem 1rem;
+  border-top: 1px solid var(--bo-border);
+
+  summary {
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--bo-ink-2);
+    width: fit-content;
   }
 }

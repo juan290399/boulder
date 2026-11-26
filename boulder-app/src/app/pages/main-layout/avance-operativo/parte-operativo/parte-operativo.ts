@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Injector, OnInit, inject, input, output, signal } from '@angular/core';
+import { mensajeDeError } from '../../../../util/interfaz';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 
@@ -149,7 +150,7 @@ export class ParteOperativoForm implements OnInit {
       },
       error: (e: HttpErrorResponse) => {
         this.guardando.set(false);
-        this.error.set(e.error?.message ?? 'No se pudo guardar el parte.');
+        this.error.set(mensajeDeError(e, 'No se pudo guardar el parte'));
       },
     });
   }

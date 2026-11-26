@@ -8,6 +8,7 @@ com.boulder.boulder.dto.importacion
 com.boulder.boulder.entities
 com.boulder.boulder.eventos
 com.boulder.boulder.fotos
+com.boulder.boulder.monitoreo
 com.boulder.boulder.reportes
 com.boulder.boulder.repositories
 com.boulder.boulder.services

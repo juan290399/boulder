@@ -21,6 +21,8 @@ export class Login {
   loginForm: FormGroup;
   loading = false;
   errorMessage: string = '';
+  /** Muestra la contraseña en claro mientras se escribe (botón del ojo). */
+  verContrasenia = false;
 
   constructor(
     private fb: FormBuilder,

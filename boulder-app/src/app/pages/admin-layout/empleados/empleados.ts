@@ -1,12 +1,13 @@
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpErrorResponse } from '@angular/common/http';
 
 import { EmpleadoService } from '../../../services/empleado.service';
 import { EmpresaService } from '../../../services/empresa.service';
 import { Cargo, Empleado } from '../../../models/base';
 import { Empresa } from '../../../models/operacional';
+import { mensajeDeError } from '../../../util/interfaz';
+import { Ficha } from '../../../components/ficha/ficha';
 
 /** Etiquetas para las áreas de `base.cargo.area`. */
 const ETIQUETAS_AREA: Record<string, string> = {
@@ -26,10 +27,11 @@ const FORM_VACIO = (): Empleado & { id?: string } => ({
   estado: true,
 });
 
+/** Personal: lista a pantalla completa; alta, edición y baja en la ficha de la derecha. */
 @Component({
   selector: 'app-admin-empleados',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Ficha],
   templateUrl: './empleados.html',
   styleUrl: './empleados.scss',
 })
@@ -45,13 +47,20 @@ export class Empleados implements OnInit {
 
   form: Empleado & { id?: string } = FORM_VACIO();
 
+  /** La ficha de alta o edición está abierta. */
+  fichaAbierta = false;
   busqueda = '';
   filtroArea = '';
   soloActivos = false;
 
-  loading = false;
+  /** Arranca en true: el listado se pide en ngOnInit. */
+  loading = true;
+  guardando = false;
   mensaje = '';
+  /** Errores de la lista (carga). */
   error = '';
+  /** Errores del formulario: se muestran dentro de la ficha. */
+  errorFormulario = '';
 
   ngOnInit(): void {
     this.cargarCatalogos();
@@ -119,49 +128,86 @@ export class Empleados implements OnInit {
     return ETIQUETAS_AREA[area] ?? area;
   }
 
-  guardar(): void {
-    this.limpiarAvisos();
+  // ------------------------------------------------------------------ ficha
 
-    const op$ = this.form.id
-      ? this.service.actualizar(this.form.id, this.form)
-      : this.service.crear(this.form);
-
-    op$.subscribe({
-      next: () => {
-        this.mensaje = this.form.id ? 'Empleado actualizado' : 'Empleado creado';
-        this.limpiar();
-        this.listar();
-      },
-      error: (err) => this.fallo('No se pudo guardar el empleado', err),
-    });
+  nuevo(): void {
+    this.form = FORM_VACIO();
+    this.abrirFicha();
   }
 
   editar(e: Empleado): void {
     this.form = { ...e };
+    this.abrirFicha();
+  }
+
+  cerrarFicha(): void {
+    this.fichaAbierta = false;
+    this.errorFormulario = '';
+    this.cdr.detectChanges();
+  }
+
+  private abrirFicha(): void {
     this.limpiarAvisos();
+    this.errorFormulario = '';
+    this.fichaAbierta = true;
     this.cdr.detectChanges();
   }
 
-  limpiar(): void {
-    this.form = FORM_VACIO();
-    this.cdr.detectChanges();
+  esSeleccionado(e: Empleado): boolean {
+    return this.fichaAbierta && !!this.form.id && e.id === this.form.id;
   }
 
-  cambiarEstado(e: Empleado, activo: boolean): void {
-    if (!e.id) {
+  guardar(): void {
+    this.errorFormulario = '';
+    this.guardando = true;
+    const esEdicion = !!this.form.id;
+
+    const op$ = esEdicion
+      ? this.service.actualizar(this.form.id!, this.form)
+      : this.service.crear(this.form);
+
+    op$.subscribe({
+      next: () => {
+        this.mensaje = `${this.nombreCompleto(this.form)} ${esEdicion ? 'actualizado' : 'registrado'}.`;
+        this.terminar();
+      },
+      error: (err) => this.falloFormulario('No se pudo guardar', err),
+    });
+  }
+
+  /** Baja o reincorporación del empleado abierto en la ficha. */
+  cambiarEstado(activo: boolean): void {
+    const id = this.form.id;
+    if (!id) {
       return;
     }
-    this.limpiarAvisos();
+    this.errorFormulario = '';
+    this.guardando = true;
 
-    this.service.cambiarEstado(e.id, activo).subscribe({
+    this.service.cambiarEstado(id, activo).subscribe({
       next: () => {
-        this.mensaje = activo
-          ? `${e.nombres} ${e.apellidos ?? ''} reincorporado`.trim()
-          : `${e.nombres} ${e.apellidos ?? ''} dado de baja`.trim();
-        this.listar();
+        this.mensaje = `${this.nombreCompleto(this.form)} ${activo ? 'reincorporado' : 'dado de baja'}.`;
+        this.terminar();
       },
-      error: (err) => this.fallo('No se pudo cambiar el estado del empleado', err),
+      error: (err) => this.falloFormulario('No se pudo cambiar el estado', err),
     });
+  }
+
+  private nombreCompleto(e: Empleado): string {
+    return `${e.nombres} ${e.apellidos ?? ''}`.trim();
+  }
+
+  private terminar(): void {
+    this.guardando = false;
+    this.cerrarFicha();
+    this.listar();
+  }
+
+  private falloFormulario(contexto: string, err: unknown): void {
+    console.error(contexto, err);
+    this.guardando = false;
+    this.errorFormulario = mensajeDeError(err, contexto);
+    this.cdr.detectChanges();
   }
 
   private limpiarAvisos(): void {
@@ -169,19 +215,10 @@ export class Empleados implements OnInit {
     this.error = '';
   }
 
+  /** Muestra el error con el mensaje del servidor (ver util/interfaz). */
   private fallo(contexto: string, err: unknown): void {
     console.error(contexto, err);
-
-    let detalle = '';
-    if (err instanceof HttpErrorResponse) {
-      if (err.status === 403) {
-        detalle = 'No tienes permiso para esta operación.';
-      } else {
-        detalle = err.error?.errores ?? err.error?.message ?? '';
-      }
-    }
-
-    this.error = detalle ? `${contexto}: ${detalle}` : contexto;
+    this.error = mensajeDeError(err, contexto);
     this.loading = false;
     this.cdr.detectChanges();
   }

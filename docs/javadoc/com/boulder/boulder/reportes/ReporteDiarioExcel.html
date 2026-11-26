@@ -115,6 +115,10 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static byte[]</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#generar(com.boulder.boulder.reportes.ReporteDiario)" class="member-name-link">generar</a><wbr>(<a href="ReporteDiario.html" title="class in com.boulder.boulder.reportes">ReporteDiario</a>&nbsp;r)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static byte[]</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#generar(com.boulder.boulder.reportes.ReporteDiario,java.util.List)" class="member-name-link">generar</a><wbr>(<a href="ReporteDiario.html" title="class in com.boulder.boulder.reportes">ReporteDiario</a>&nbsp;r,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../dto/FrenteAvanceDTO.html" title="class in com.boulder.boulder.dto">FrenteAvanceDTO</a>&gt;&nbsp;frente)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -140,6 +144,23 @@ loadScripts(document, 'script');</script>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>r</code> - el reporte del día</dd>
+<dt>Returns:</dt>
+<dd>el libro .xlsx listo para descargar</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - si no se puede escribir el libro</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="generar(com.boulder.boulder.reportes.ReporteDiario,java.util.List)">
+<h3>generar</h3>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">byte[]</span>&nbsp;<span class="element-name">generar</span><wbr><span class="parameters">(<a href="ReporteDiario.html" title="class in com.boulder.boulder.reportes">ReporteDiario</a>&nbsp;r,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../dto/FrenteAvanceDTO.html" title="class in com.boulder.boulder.dto">FrenteAvanceDTO</a>&gt;&nbsp;frente)</span>
+                      throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>r</code> - el reporte del día</dd>
+<dd><code>frente</code> - frente de avance actual, para la hoja de geología</dd>
 <dt>Returns:</dt>
 <dd>el libro .xlsx listo para descargar</dd>
 <dt>Throws:</dt>

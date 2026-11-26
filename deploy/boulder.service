@@ -1,0 +1,28 @@
+# Servicio systemd de Boulder Drilling.
+# Instalación: sudo cp deploy/boulder.service /etc/systemd/system/
+#              sudo systemctl daemon-reload && sudo systemctl enable --now boulder
+[Unit]
+Description=Boulder Drilling (API y aplicación web)
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=boulder
+Group=boulder
+WorkingDirectory=/opt/boulder
+EnvironmentFile=/etc/boulder/boulder.env
+ExecStart=/usr/bin/java -Xms256m -Xmx768m -jar /opt/boulder/boulder-drilling.jar
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=10
+
+# Endurecimiento: sin privilegios nuevos y solo escritura en sus carpetas.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/boulder /var/log/boulder
+
+[Install]
+WantedBy=multi-user.target

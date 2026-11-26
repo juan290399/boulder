@@ -2,6 +2,9 @@
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 
@@ -11,7 +14,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 
 import jakarta.servlet.DispatcherType;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authorization.AuthorizationDecision;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -25,6 +34,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 
 import lombok.RequiredArgsConstructor;
+import com.boulder.boulder.monitoreo.MetricasNegocio;
+import org.springframework.security.web.util.matcher.IpAddressMatcher;
 
 @Configuration
 @EnableMethodSecurity
@@ -34,6 +45,7 @@ public class SecurityConfig {
     private final JwtUtils jwtUtils;
     private final AuthenticationConfiguration authenticationConfiguration;
     private final CuentasActivas cuentasActivas;
+    private final MetricasNegocio metricasNegocio;
 
     /**
      * Orígenes del frontend autorizados. Por defecto, el servidor de desarrollo
@@ -45,7 +57,7 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationManager authenticationManager() throws Exception {
-<span class="fc" id="L48">        return authenticationConfiguration.getAuthenticationManager();</span>
+<span class="fc" id="L60">        return authenticationConfiguration.getAuthenticationManager();</span>
     }
 
     /**
@@ -70,9 +82,9 @@ public class SecurityConfig {
     @SuppressWarnings(&quot;deprecation&quot;)
     public PasswordEncoder passwordEncoder() {
         DelegatingPasswordEncoder codificador =
-<span class="fc" id="L73">                (DelegatingPasswordEncoder) PasswordEncoderFactories.createDelegatingPasswordEncoder();</span>
-<span class="fc" id="L74">        codificador.setDefaultPasswordEncoderForMatches(NoOpPasswordEncoder.getInstance());</span>
-<span class="fc" id="L75">        return codificador;</span>
+<span class="fc" id="L85">                (DelegatingPasswordEncoder) PasswordEncoderFactories.createDelegatingPasswordEncoder();</span>
+<span class="fc" id="L86">        codificador.setDefaultPasswordEncoderForMatches(NoOpPasswordEncoder.getInstance());</span>
+<span class="fc" id="L87">        return codificador;</span>
     }
 
     /**
@@ -81,76 +93,116 @@ public class SecurityConfig {
      */
     @Bean
     public LimiteIntentosLogin limiteIntentosLogin() {
-<span class="fc" id="L84">        return new LimiteIntentosLogin(5, Duration.ofMinutes(15), Ticker.systemTicker());</span>
+<span class="fc" id="L96">        return new LimiteIntentosLogin(5, Duration.ofMinutes(15), Ticker.systemTicker());</span>
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         
-<span class="fc" id="L90">        AuthenticationManager authManager = authenticationManager();</span>
+<span class="fc" id="L102">        AuthenticationManager authManager = authenticationManager();</span>
 
-<span class="fc" id="L92">        JwtAuthenticationFilter jwtAuthFilter = new JwtAuthenticationFilter(authManager, jwtUtils, limiteIntentosLogin());</span>
-<span class="fc" id="L93">        jwtAuthFilter.setFilterProcessesUrl(&quot;/api/auth/login&quot;);</span>
+<span class="fc" id="L104">        JwtAuthenticationFilter jwtAuthFilter = new JwtAuthenticationFilter(authManager, jwtUtils, limiteIntentosLogin(), metricasNegocio);</span>
+<span class="fc" id="L105">        jwtAuthFilter.setFilterProcessesUrl(&quot;/api/auth/login&quot;);</span>
 
-<span class="fc" id="L95">        JwtAuthorizationFilter jwtAuthorizationFilter = new JwtAuthorizationFilter(jwtUtils, cuentasActivas);</span>
+<span class="fc" id="L107">        JwtAuthorizationFilter jwtAuthorizationFilter = new JwtAuthorizationFilter(jwtUtils, cuentasActivas);</span>
 
-<span class="fc" id="L97">        http</span>
-<span class="fc" id="L98">            .csrf(csrf -&gt; csrf.disable())</span>
-<span class="fc" id="L99">            .cors(cors -&gt; cors.configurationSource(request -&gt; {</span>
-<span class="fc" id="L100">                CorsConfiguration config = new CorsConfiguration();</span>
-<span class="fc" id="L101">                config.setAllowedOrigins(origenesCors);</span>
-<span class="fc" id="L102">                config.setAllowedMethods(List.of(&quot;GET&quot;, &quot;POST&quot;, &quot;PUT&quot;, &quot;DELETE&quot;, &quot;PATCH&quot;, &quot;OPTIONS&quot;));</span>
-<span class="fc" id="L103">                config.setAllowedHeaders(List.of(&quot;*&quot;));</span>
-<span class="fc" id="L104">                config.setAllowCredentials(true);</span>
-<span class="fc" id="L105">                return config;</span>
+<span class="fc" id="L109">        http</span>
+<span class="fc" id="L110">            .csrf(csrf -&gt; csrf.disable())</span>
+<span class="fc" id="L111">            .cors(cors -&gt; cors.configurationSource(request -&gt; {</span>
+<span class="fc" id="L112">                CorsConfiguration config = new CorsConfiguration();</span>
+<span class="fc" id="L113">                config.setAllowedOrigins(origenesCors);</span>
+<span class="fc" id="L114">                config.setAllowedMethods(List.of(&quot;GET&quot;, &quot;POST&quot;, &quot;PUT&quot;, &quot;DELETE&quot;, &quot;PATCH&quot;, &quot;OPTIONS&quot;));</span>
+<span class="fc" id="L115">                config.setAllowedHeaders(List.of(&quot;*&quot;));</span>
+<span class="fc" id="L116">                config.setAllowCredentials(true);</span>
+<span class="fc" id="L117">                return config;</span>
             }))
-<span class="fc" id="L107">            .sessionManagement(session -&gt;</span>
-<span class="fc" id="L108">                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)</span>
+<span class="fc" id="L119">            .sessionManagement(session -&gt;</span>
+<span class="fc" id="L120">                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)</span>
             )
-<span class="fc" id="L110">            .authorizeHttpRequests(auth -&gt; auth</span>
+<span class="fc" id="L122">            .authorizeHttpRequests(auth -&gt; auth</span>
                 // El preflight va primero: sin token no puede satisfacer hasRole(),
                 // y si cae ahí el navegador aborta la petición real con un error CORS
                 // que no dice nada sobre la causa.
-<span class="fc" id="L114">                .requestMatchers(HttpMethod.OPTIONS, &quot;/**&quot;).permitAll()</span>
+<span class="fc" id="L126">                .requestMatchers(HttpMethod.OPTIONS, &quot;/**&quot;).permitAll()</span>
 
                 // El flujo de /api/eventos (SSE) se autoriza al abrirse. Cuando
                 // termina, el contenedor vuelve a despachar la petición en modo
                 // ASYNC y ahí ya no hay token que revisar: sin esta regla, cada
                 // cierre de conexión deja un AccessDenied en el registro.
-<span class="fc" id="L120">                .dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.ERROR).permitAll()</span>
+<span class="fc" id="L132">                .dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.ERROR).permitAll()</span>
 
                 // Login (atendido por JwtAuthenticationFilter) y auto-registro.
-<span class="fc" id="L123">                .requestMatchers(&quot;/api/auth/**&quot;).permitAll()</span>
+<span class="fc" id="L135">                .requestMatchers(&quot;/api/auth/**&quot;).permitAll()</span>
+
+                // Monitoreo: la salud la consulta el balanceador o el script de
+                // vigilancia sin sesión; el detalle y las métricas, solo ADMIN.
+<span class="fc" id="L139">                .requestMatchers(HttpMethod.GET, &quot;/actuator/health&quot;, &quot;/actuator/info&quot;).permitAll()</span>
+                // Prometheus raspa desde el mismo servidor y no maneja tokens que
+                // vencen: se le abre solo a la interfaz local. Nginx además niega
+                // la ruta desde fuera.
+<span class="fc" id="L143">                .requestMatchers(HttpMethod.GET, &quot;/actuator/prometheus&quot;).access(SecurityConfig::desdeEsteServidor)</span>
+<span class="fc" id="L144">                .requestMatchers(&quot;/actuator/**&quot;).hasRole(&quot;ADMIN&quot;)</span>
 
                 // El catálogo de personal se lee desde los partes de perforación
                 // y de logueo para poblar sus desplegables, así que la lectura
                 // queda abierta a cualquier sesión. Va ANTES de la regla general
                 // porque la primera coincidencia es la que manda. Las escrituras
                 // caen en la regla de abajo y además llevan @PreAuthorize.
-<span class="fc" id="L130">                .requestMatchers(HttpMethod.GET, &quot;/api/base/empleados&quot;).authenticated()</span>
-<span class="fc" id="L131">                .requestMatchers(HttpMethod.GET, &quot;/api/base/empleados/**&quot;).authenticated()</span>
+<span class="fc" id="L151">                .requestMatchers(HttpMethod.GET, &quot;/api/base/empleados&quot;).authenticated()</span>
+<span class="fc" id="L152">                .requestMatchers(HttpMethod.GET, &quot;/api/base/empleados/**&quot;).authenticated()</span>
 
                 // Administración de cuentas, roles y datos maestros del esquema
                 // `base`. Con `authenticated()` a secas cualquier VISITANTE con
                 // token válido podía listar usuarios y desactivar cuentas: el
                 // guard del frontend no protege nada, la puerta real es esta.
-<span class="fc" id="L137">                .requestMatchers(&quot;/api/base/**&quot;).hasRole(&quot;ADMIN&quot;)</span>
+<span class="fc" id="L158">                .requestMatchers(&quot;/api/base/**&quot;).hasRole(&quot;ADMIN&quot;)</span>
 
-                // Antes estaba en permitAll(): cualquiera en la red podía leer y
-                // borrar partes sin token. Se cerró el 28/09/2026 tras comprobar
-                // que los dos clientes —Angular por su interceptor y GeoLog por
-                // InterceptorAutenticacion— mandan el token en toda petición.
-                // Queda pendiente afinar por rol (hoy basta estar autenticado).
-<span class="fc" id="L144">                .requestMatchers(&quot;/api/operacional/**&quot;).authenticated()</span>
+                // Lectura con cualquier sesión; escritura según el rol (PermisosEscritura).
+<span class="fc" id="L161">                .requestMatchers(&quot;/api/operacional/**&quot;, &quot;/api/logueo/**&quot;, &quot;/api/importacion/**&quot;, &quot;/api/fotos/**&quot;)</span>
+<span class="fc" id="L162">                    .access(SecurityConfig::escrituraPorRol)</span>
 
-<span class="fc" id="L146">                .anyRequest().authenticated()</span>
+                // La aplicación Angular empaquetada en el jar (AplicacionWebConfig):
+                // el HTML y los archivos estáticos no llevan datos; los datos los
+                // pide la aplicación al API con su token.
+<span class="fc" id="L167">                .requestMatchers(SecurityConfig::esAplicacionWeb).permitAll()</span>
+
+<span class="fc" id="L169">                .anyRequest().authenticated()</span>
             )
             
-<span class="fc" id="L149">            .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)</span>
+<span class="fc" id="L172">            .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)</span>
             
-<span class="fc" id="L151">            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);</span>
+<span class="fc" id="L174">            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);</span>
  
-<span class="fc" id="L153">        return http.build();</span>
+<span class="fc" id="L176">        return http.build();</span>
+    }
+
+    /** Un GET o HEAD que no va al API ni al monitoreo: la aplicación web o uno de sus archivos. */
+    private static boolean esAplicacionWeb(HttpServletRequest peticion) {
+<span class="fc" id="L181">        String ruta = peticion.getRequestURI().substring(peticion.getContextPath().length());</span>
+<span class="fc bfc" id="L182" title="All 4 branches covered.">        boolean lectura = &quot;GET&quot;.equals(peticion.getMethod()) || &quot;HEAD&quot;.equals(peticion.getMethod());</span>
+<span class="pc bpc" id="L183" title="1 of 6 branches missed.">        return lectura &amp;&amp; !ruta.startsWith(&quot;/api/&quot;) &amp;&amp; !ruta.startsWith(&quot;/actuator&quot;);</span>
+    }
+
+<span class="fc" id="L186">    private static final IpAddressMatcher LOCAL_V4 = new IpAddressMatcher(&quot;127.0.0.0/8&quot;);</span>
+<span class="fc" id="L187">    private static final IpAddressMatcher LOCAL_V6 = new IpAddressMatcher(&quot;::1&quot;);</span>
+
+    /** La petición sale de la propia máquina (Prometheus o el script de vigilancia). */
+    private static AuthorizationDecision desdeEsteServidor(Supplier&lt;? extends Authentication&gt; autenticacion,
+                                                           RequestAuthorizationContext contexto) {
+<span class="fc" id="L192">        String ip = contexto.getRequest().getRemoteAddr();</span>
+<span class="pc bpc" id="L193" title="2 of 6 branches missed.">        return new AuthorizationDecision(ip != null &amp;&amp; (LOCAL_V4.matches(ip) || LOCAL_V6.matches(ip)));</span>
+    }
+
+    private static AuthorizationDecision escrituraPorRol(Supplier&lt;? extends Authentication&gt; autenticacion,
+                                                         RequestAuthorizationContext contexto) {
+<span class="fc" id="L198">        Authentication a = autenticacion.get();</span>
+<span class="pc bpc" id="L199" title="2 of 6 branches missed.">        if (a == null || !a.isAuthenticated() || a instanceof AnonymousAuthenticationToken) {</span>
+<span class="fc" id="L200">            return new AuthorizationDecision(false);</span>
+        }
+<span class="fc" id="L202">        HttpServletRequest peticion = contexto.getRequest();</span>
+<span class="fc" id="L203">        String ruta = peticion.getRequestURI().substring(peticion.getContextPath().length());</span>
+<span class="fc" id="L204">        Set&lt;String&gt; roles = a.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toSet());</span>
+<span class="fc" id="L205">        return new AuthorizationDecision(PermisosEscritura.permite(peticion.getMethod(), ruta, roles));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

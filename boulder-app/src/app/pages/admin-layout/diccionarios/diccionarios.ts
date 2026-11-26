@@ -4,6 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
 
+import { mensajeDeError } from '../../../util/interfaz';
+import { Ficha } from '../../../components/ficha/ficha';
+
 import { CatalogoGeologia } from '../../../services/logueo.service';
 import { DiccionarioService, EstructuraCatalogo } from '../../../services/diccionario.service';
 
@@ -38,10 +41,11 @@ interface Formulario {
   nombre: string;
   grupoId: string | null;
   color: string;
-  conColor: boolean;
+  /** Estado del código que se edita, para ofrecer activarlo o desactivarlo. */
+  estaActivo?: boolean;
 }
 
-const VACIO = (): Formulario => ({ codigo: '', nombre: '', grupoId: null, color: '#a0a0a0', conColor: false });
+const VACIO = (): Formulario => ({ codigo: '', nombre: '', grupoId: null, color: '#a0a0a0' });
 
 /**
  * Diccionarios geológicos (P15, RF04): los códigos que el quicklog y el logueo
@@ -50,11 +54,14 @@ const VACIO = (): Formulario => ({ codigo: '', nombre: '', grupoId: null, color:
  * El formulario se arma con la estructura que publica el backend: el largo del
  * código y si el catálogo lleva grupo, color o estado. No se repite ese
  * conocimiento aquí, así un catálogo nuevo en la base aparece solo.
+ *
+ * Maestro-detalle como las demás pantallas de administración: la lista del
+ * catálogo a la izquierda y la ficha del código a la derecha.
  */
 @Component({
   selector: 'app-admin-diccionarios',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Ficha],
   templateUrl: './diccionarios.html',
   styleUrl: './diccionarios.scss',
 })
@@ -70,6 +77,8 @@ export class Diccionarios implements OnInit {
   readonly error = signal<string | null>(null);
   readonly aviso = signal<string | null>(null);
   readonly form = signal<Formulario>(VACIO());
+  /** La ficha de alta o edición está abierta. */
+  readonly fichaAbierta = signal(false);
 
   /** Catálogos agrupados para el selector, en el orden de NOMBRES. */
   readonly grupos = computed(() => {
@@ -131,24 +140,41 @@ export class Diccionarios implements OnInit {
 
   elegirTipo(t: string): void {
     this.tipo.set(t);
-    this.nuevo();
+    // La búsqueda de un catálogo no tiene sentido en el siguiente.
+    this.busqueda.set('');
+    this.cerrarFicha();
   }
 
   nuevo(): void {
     this.form.set(VACIO());
+    this.abrirFicha();
+  }
+
+  cerrarFicha(): void {
+    this.fichaAbierta.set(false);
     this.error.set(null);
   }
 
-  editar(c: CatalogoGeologia): void {
+  private abrirFicha(): void {
+    this.aviso.set(null);
     this.error.set(null);
+    this.fichaAbierta.set(true);
+  }
+
+  esSeleccionado(c: CatalogoGeologia): boolean {
+    return this.fichaAbierta() && this.form().id === c.id;
+  }
+
+  editar(c: CatalogoGeologia): void {
     this.form.set({
       id: c.id,
       codigo: c.codigo,
       nombre: c.nombre,
       grupoId: c.grupoId ?? null,
-      conColor: c.colorR != null,
+      estaActivo: c.estaActivo,
       color: c.colorR != null ? this.hex(c.colorR, c.colorG!, c.colorB!) : '#a0a0a0',
     });
+    this.abrirFicha();
   }
 
   actualizarForm(cambio: Partial<Formulario>): void {
@@ -161,7 +187,8 @@ export class Diccionarios implements OnInit {
     if (this.tieneGrupo()) {
       datos.grupoId = f.grupoId;
     }
-    if (this.tieneColor() && f.conColor) {
+    // En los catálogos con color la columna es obligatoria en la base.
+    if (this.tieneColor()) {
       const [r, g, b] = this.canales(f.color);
       Object.assign(datos, { colorR: r, colorG: g, colorB: b });
     }
@@ -170,32 +197,36 @@ export class Diccionarios implements OnInit {
     peticion.subscribe({
       next: () => {
         this.aviso.set(f.id ? `Código ${f.codigo.toUpperCase()} actualizado.` : `Código ${f.codigo.toUpperCase()} agregado.`);
-        this.nuevo();
+        this.cerrarFicha();
         this.cargar();
       },
       error: (e: HttpErrorResponse) => this.error.set(this.motivo(e)),
     });
   }
 
-  alternarEstado(c: CatalogoGeologia): void {
-    const activar = !c.estaActivo;
-    this.servicio.cambiarEstado(this.tipo(), c.id, activar).subscribe({
+  /** Activa o desactiva el código que está en el formulario. */
+  alternarEstado(): void {
+    const f = this.form();
+    if (!f.id) {
+      return;
+    }
+    const activar = !f.estaActivo;
+    this.servicio.cambiarEstado(this.tipo(), f.id, activar).subscribe({
       next: () => {
-        this.aviso.set(`Código ${c.codigo} ${activar ? 'activado' : 'desactivado'}.`);
+        this.aviso.set(`Código ${f.codigo} ${activar ? 'activado' : 'desactivado'}.`);
+        this.cerrarFicha();
         this.cargar();
       },
       error: (e: HttpErrorResponse) => this.error.set(this.motivo(e)),
     });
   }
 
+  /** Prefiere el mensaje del servidor: un 409 no siempre es un código repetido. */
   private motivo(e: HttpErrorResponse): string {
-    if (e.status === 409) {
+    if (e.status === 409 && !e.error?.message) {
       return 'Ese código ya existe en este catálogo.';
     }
-    if (e.status === 403) {
-      return 'Solo el administrador puede modificar los diccionarios.';
-    }
-    return e.error?.message ?? 'No se pudo guardar.';
+    return mensajeDeError(e, 'No se pudo guardar');
   }
 
   private hex(r: number, g: number, b: number): string {

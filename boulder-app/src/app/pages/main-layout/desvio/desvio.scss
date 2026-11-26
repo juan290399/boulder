@@ -32,3 +32,31 @@
 .fila-medicion .mono {
   white-space: nowrap;
 }
+
+/* Primera celda: botón sin aspecto de botón para abrir la medición con teclado. */
+.fila-boton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.25rem 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+}
+
+/* Fechas y metros no se parten en dos renglones. */
+.fila-medicion .num { white-space: nowrap; }
+
+/* Detalle de una medición como vista propia. */
+/* Mínimo de 24 px de alto (WCAG 2.5.8). */
+.volver { display: inline-flex; align-items: center; min-height: 24px; margin-bottom: 0.25rem; text-decoration: none; }
+
+.detalle-resumen {
+  margin: 0.2rem 0 0;
+  font-size: 0.875rem;
+  color: var(--bo-ink-2);
+}

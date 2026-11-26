@@ -1,42 +1,85 @@
-<div class="panel panel__body">
-
-  <div class="mb-4">
-    <h1 class="page-head__title mb-1">Roles</h1>
+<div class="page">
+  <div class="page-head">
+    <h1 class="page-head__title">Roles</h1>
+    <a routerLink="/admin/usuarios" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-people me-1" aria-hidden="true"></i>Asignar roles en Usuarios
+    </a>
   </div>
 
-  <div *ngIf="error" class="alert-inline">{{ error }}</div>
+  <div *ngIf="error" class="alert-inline" role="alert">{{ error }}</div>
 
-
-  <div class="table-scroll" *ngIf="roles.length > 0; else vacio">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Código</th>
-          <th>Nombre</th>
-          <th class="text-end">Cuentas activas</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let r of roles">
-          <td><code>{{ r.codigo }}</code></td>
-          <td>{{ r.nombre }}</td>
-          <td class="text-end">
-            <span class="badge"
-                  [class.text-bg-secondary]="(cuentasPorRol[r.codigo] ?? 0) > 0"
-                  [class.text-bg-light]="(cuentasPorRol[r.codigo] ?? 0) === 0">
-              {{ cuentasPorRol[r.codigo] ?? 0 }}
-            </span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <ng-template #vacio>
-    <div class="empty-state">
-      <span *ngIf="loading">Cargando catálogo…</span>
-      <span *ngIf="!loading">No hay roles registrados.</span>
+  <section class="panel">
+    <div class="panel__head">
+      <h2 class="panel__title">Roles del sistema</h2>
+      <span class="text-secondary small">Son fijos; una cuenta puede tener varios.</span>
     </div>
-  </ng-template>
 
+    <div class="table-scroll" *ngIf="roles.length > 0; else vacio">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Rol</th>
+            <th>Alcance</th>
+            <th class="num">Cuentas activas</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of roles">
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <i class="bi rol-icono" [ngClass]="presentacion(r.codigo).icono" aria-hidden="true"></i>
+                <div>
+                  <div class="fw-semibold">{{ presentacion(r.codigo).etiqueta }}</div>
+                  <div class="mono small text-secondary">{{ r.codigo }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div>{{ presentacion(r.codigo).detalle }}</div>
+              <div class="small text-secondary">{{ r.nombre }}</div>
+            </td>
+            <td class="num">
+              <div class="fw-semibold">{{ cuentasPorRol[r.codigo] ?? 0 }}</div>
+              <div class="small text-secondary mono">{{ (usuariosPorRol[r.codigo] ?? []).join(', ') }}</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #vacio>
+      <div class="empty-state">
+        <span *ngIf="loading">Cargando roles…</span>
+        <span *ngIf="!loading">No hay roles registrados.</span>
+      </div>
+    </ng-template>
+  </section>
+
+  <section class="panel" *ngIf="roles.length > 0">
+    <div class="panel__head">
+      <h2 class="panel__title">Qué puede hacer cada rol</h2>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table matriz">
+        <thead>
+          <tr>
+            <th>Acción</th>
+            <th *ngFor="let r of roles" class="text-center">{{ presentacion(r.codigo).etiqueta }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of permisos">
+            <td>{{ p.accion }}</td>
+            <td *ngFor="let r of roles" class="text-center">
+              <i *ngIf="permite(p.roles, r.codigo); else no" class="bi bi-check-lg text-success" role="img" aria-label="Sí"></i>
+              <ng-template #no><span class="text-secondary" aria-label="No">—</span></ng-template>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="matriz__nota">
+      Un cambio de roles rige desde el próximo inicio de sesión de la persona.
+    </p>
+  </section>
 </div>

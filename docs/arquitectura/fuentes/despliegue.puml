@@ -1,0 +1,33 @@
+@startuml despliegue
+!include estilo.iuml
+left to right direction
+
+node "Equipo del usuario" as cliente {
+  component "Navegador\n(Angular)" as nav
+}
+node "Tablet de campo" as tablet {
+  component "GeoLog\n(Android)" as geolog
+}
+
+node "Servidor (Linux o Windows)" as servidor {
+  component "Nginx\nHTTPS 443" as nginx
+  node "JVM 21 · servicio systemd" as jvm {
+    component "boulder-drilling.jar\nAPI REST + Angular estático" as jar
+    component "Actuator\n/actuator/health" as act
+  }
+  database "PostgreSQL 18\nboulder_db" as bd
+  folder "/var/lib/boulder/fotos" as fotos
+  folder "/var/log/boulder" as logs
+  folder "/var/backups/boulder" as resp
+  component "cron · Programador de tareas\nrespaldo_bd.sh · verificar_salud.sh" as cron
+}
+
+nav --> nginx : HTTPS
+geolog --> nginx : HTTPS (JWT)
+nginx --> jar : HTTP 127.0.0.1:8080
+jar --> bd : JDBC
+jar --> fotos
+jar --> logs : Logback
+cron --> act : salud cada 5 min
+cron --> resp : pg_dump diario
+@enduml

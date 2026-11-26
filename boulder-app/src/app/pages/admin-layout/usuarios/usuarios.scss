@@ -1,6 +1,11 @@
 // Los estilos generales del panel viven en admin-layout.scss.
-// Aquí solo lo específico de la pantalla de usuarios.
+// Aqui solo lo especifico de la pantalla de usuarios.
 
-code {
-  color: inherit;
+/* El aviso de pendientes es también un atajo al filtro. */
+.chip--boton {
+  border: 0;
+  cursor: pointer;
+
+  &:hover { filter: brightness(0.96); }
+  &:focus-visible { outline: 2px solid var(--bo-warn); outline-offset: 2px; }
 }

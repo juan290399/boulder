@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { mensajeDeError, nombreCortoSondaje } from '../../../util/interfaz';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { RouterLink } from '@angular/router';
 
 import { ReporteDiario, ReporteService } from '../../../services/reporte.service';
 
@@ -15,7 +17,7 @@ import { ReporteDiario, ReporteService } from '../../../services/reporte.service
 @Component({
   selector: 'app-reporte-diario',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './reporte-diario.html',
   styleUrl: './reporte-diario.scss',
 })
@@ -30,6 +32,15 @@ export class ReporteDiarioPage implements OnInit {
   readonly cargando = signal(false);
   readonly descargando = signal(false);
   readonly error = signal<string | null>(null);
+  /** Explica por qué se muestra otro día que no es hoy. */
+  readonly aviso = signal<string | null>(null);
+  /** Solo la primera carga puede saltar al último día con perforación. */
+  private primeraCarga = true;
+  readonly corto = nombreCortoSondaje;
+
+  /** El gráfico también se lee con lector de pantalla: lleva los valores. */
+  readonly etiquetaGrafico = computed(() => 'Metros perforados por día: ' + this.barras()
+    .map(b => `${this.diaCorto(b.fecha)} ${b.metros.toFixed(1)} m`).join('; '));
 
   /** Altura relativa de cada barra de la serie; la más alta llena el gráfico. */
   readonly barras = computed(() => {
@@ -37,6 +48,9 @@ export class ReporteDiarioPage implements OnInit {
     const max = Math.max(1, ...serie.map(p => p.metros));
     return serie.map(p => ({ ...p, alto: (p.metros / max) * 100 }));
   });
+
+  readonly totalCampania = computed(() =>
+    (this.reporte()?.campania ?? []).reduce((suma, c) => suma + c.avance, 0));
 
   ngOnInit(): void {
     this.cargar();
@@ -47,18 +61,33 @@ export class ReporteDiarioPage implements OnInit {
     this.error.set(null);
     this.servicio.diario(this.fecha()).subscribe({
       next: r => {
+        // Al entrar, si hoy no hubo perforación (los partes del día suelen
+        // cargarse a la mañana siguiente), se abre el último día con metros en
+        // vez de un reporte en cero.
+        const inicial = this.primeraCarga;
+        this.primeraCarga = false;
+        if (inicial && r.totalPerforado === 0) {
+          const ultimo = [...(r.ultimosDias ?? [])].reverse().find(p => p.metros > 0 && p.fecha < r.fecha);
+          if (ultimo) {
+            this.aviso.set(`Hoy no hay partes de perforación; se muestra el ${this.diaCorto(ultimo.fecha)}, el último día con metros.`);
+            this.fecha.set(ultimo.fecha);
+            this.cargar();
+            return;
+          }
+        }
         this.reporte.set(r);
         this.cargando.set(false);
       },
       error: (e: HttpErrorResponse) => {
         this.reporte.set(null);
         this.cargando.set(false);
-        this.error.set(e.error?.message ?? 'No se pudo generar el reporte.');
+        this.error.set(mensajeDeError(e, 'No se pudo generar el reporte'));
       },
     });
   }
 
   cambiarFecha(f: string): void {
+    this.aviso.set(null);
     this.fecha.set(f);
     this.cargar();
   }

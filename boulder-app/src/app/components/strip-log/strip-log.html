@@ -1,0 +1,82 @@
+<div class="strip">
+  <!-- Encabezado de columnas, fijo arriba mientras se desplaza el rollo. -->
+  <div class="strip__cabecera" [style.width.px]="ancho">
+    <span [style.width.px]="col.regla">m</span>
+    <span [style.width.px]="col.lito">Litología</span>
+    <span [style.width.px]="col.alt" [style.margin-left.px]="6">Alteración</span>
+    <span [style.width.px]="col.zona" [style.margin-left.px]="6" title="Zona mineral">Zona</span>
+    <span [style.width.px]="col.cu" [style.margin-left.px]="6">% Cu (0–1,5)</span>
+    <span [style.width.px]="col.fotos" [style.margin-left.px]="6">Fotos</span>
+  </div>
+
+  <div class="strip__rollo" tabindex="0" role="region" aria-label="Strip log del sondaje; desplazar para recorrer la profundidad">
+    <svg [attr.width]="ancho" [attr.height]="alto()" [attr.viewBox]="'0 0 ' + ancho + ' ' + alto()"
+         role="group" aria-label="Columna de tramos a escala">
+      <defs>
+        <pattern id="rayado" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <rect width="6" height="6" fill="#fff7e6" />
+          <line x1="0" y1="0" x2="0" y2="6" stroke="#d97706" stroke-width="2" />
+        </pattern>
+      </defs>
+
+      <!-- Regla de profundidad -->
+      @for (m of marcas(); track m.m) {
+        <line [attr.x1]="m.mayor ? col.regla - 12 : col.regla - 6" [attr.x2]="col.regla" [attr.y1]="m.y" [attr.y2]="m.y"
+              class="strip__marca" />
+        @if (m.mayor) {
+          <text [attr.x]="col.regla - 15" [attr.y]="m.y + 4" class="strip__cota">{{ m.m }}</text>
+          <line [attr.x1]="x.lito" [attr.x2]="ancho" [attr.y1]="m.y" [attr.y2]="m.y" class="strip__guia" />
+        }
+      }
+
+      <!-- Huecos sin describir -->
+      @for (h of huecos(); track h.desde) {
+        <rect [attr.x]="x.lito" [attr.y]="y(h.desde)" [attr.width]="col.lito + col.alt + col.zona + col.cu + 18"
+              [attr.height]="alto_(h)" fill="url(#rayado)">
+          <title>Sin describir: {{ h.desde }}–{{ h.hasta }} m</title>
+        </rect>
+      }
+
+      @for (t of tramos(); track t.id) {
+        <g class="strip__tramo" [class.strip__tramo--sel]="t.id === seleccionadoId()" tabindex="0" role="button"
+           [attr.aria-label]="descripcion(t)" [attr.aria-pressed]="t.id === seleccionadoId()"
+           (click)="seleccionar.emit(t)" (keydown)="alTeclear($event, t)">
+          <title>{{ descripcion(t) }}</title>
+          <!-- Litología -->
+          <rect [attr.x]="x.lito" [attr.y]="y(t.desde)" [attr.width]="col.lito" [attr.height]="alto_(t)"
+                [attr.fill]="t.litoColor ?? '#cbd5e1'" class="strip__celda" />
+          @if (alto_(t) >= 14) {
+            <text [attr.x]="x.lito + col.lito / 2" [attr.y]="y(t.desde) + alto_(t) / 2 + 4" class="strip__codigo"
+                  [attr.fill]="tinta(t.litoColor)">{{ t.litoCodigo }}</text>
+          }
+          <!-- Alteración: el ancho es la intensidad -->
+          <rect [attr.x]="x.alt" [attr.y]="y(t.desde)" [attr.width]="col.alt" [attr.height]="alto_(t)" class="strip__fondo" />
+          <rect [attr.x]="x.alt" [attr.y]="y(t.desde)" [attr.width]="anchoAlt(t)" [attr.height]="alto_(t)"
+                [attr.fill]="colorAlt(t)" class="strip__celda" />
+          @if (alto_(t) >= 14 && t.altCodigo) {
+            <text [attr.x]="x.alt + 4" [attr.y]="y(t.desde) + alto_(t) / 2 + 4" class="strip__codigo strip__codigo--izq">{{ t.altCodigo }}</text>
+          }
+          <!-- Zona mineral -->
+          <rect [attr.x]="x.zona" [attr.y]="y(t.desde)" [attr.width]="col.zona" [attr.height]="alto_(t)"
+                [attr.fill]="colorZona(t)" class="strip__celda" />
+          <!-- % Cu -->
+          <rect [attr.x]="x.cu" [attr.y]="y(t.desde)" [attr.width]="col.cu" [attr.height]="alto_(t)" class="strip__fondo" />
+          <rect [attr.x]="x.cu" [attr.y]="y(t.desde)" [attr.width]="anchoCu(t)" [attr.height]="alto_(t)" class="strip__cu" />
+          <!-- Marco de selección -->
+          <rect [attr.x]="x.lito" [attr.y]="y(t.desde)" [attr.width]="x.fotos - x.lito - 6" [attr.height]="alto_(t)"
+                class="strip__marco" />
+        </g>
+      }
+
+      <!-- Fotos de cajas a su profundidad -->
+      @for (grupo of fotosPorTramo(); track grupo[0].id) {
+        <g class="strip__foto" tabindex="0" role="button" [attr.aria-label]="'Ver foto: ' + grupo[0].etiqueta"
+           (click)="abrirFoto.emit(grupo[0].id)" (keydown.enter)="abrirFoto.emit(grupo[0].id)">
+          <title>{{ grupo[0].etiqueta }} ({{ grupo.length }} {{ grupo.length === 1 ? 'foto' : 'fotos' }})</title>
+          <rect [attr.x]="x.fotos + 4" [attr.y]="y(grupo[0].desde) + 1" [attr.width]="col.fotos - 8"
+                [attr.height]="alto_(grupo[0]) - 2" rx="3" />
+        </g>
+      }
+    </svg>
+  </div>
+</div>

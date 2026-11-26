@@ -8,6 +8,8 @@ import java.util.UUID;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import com.boulder.boulder.dominio.CodigoSondaje;
+
 /**
  * Traduce los códigos que vienen en la plantilla al identificador interno.
  *
@@ -26,10 +28,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * </p>
  *
  * <p>
- * La comparación es sin distinguir mayúsculas y sin espacios en los bordes,
- * porque el código sale de una celda que alguien pudo pegar desde otro lado,
- * pero no es difusa: {@code DDH-VERO-S-40-26} no encuentra a
- * {@code DDH-VERO-S-040-26}, y eso es deliberado.
+ * La comparación es sin distinguir mayúsculas y sin espacios en los bordes.
+ * Para sondajes, si el código no aparece tal cual se prueba su forma canónica
+ * ({@link CodigoSondaje}): «VERO S 35_26» resuelve a {@code DDH-VERO-S-035-26};
+ * una escritura ambigua como «DDH-35» no resuelve.
  * </p>
  *
  * @author jvelazco
@@ -41,6 +43,8 @@ public class Catalogos {
     /** Código reservado para los partes que no corresponden a un sondaje. */
     public static final String SIN_SONDAJE = "VARIOS";
 
+    private static final String SONDAJES = "operacional.prf_sondaje";
+
     private final JdbcTemplate jdbc;
     private final Map<String, Map<String, UUID>> cache = new HashMap<>();
 
@@ -49,7 +53,20 @@ public class Catalogos {
     }
 
     public UUID sondaje(String codigo) {
-        return buscar("operacional.prf_sondaje", "codigo", codigo);
+        UUID id = buscar(SONDAJES, "codigo", codigo);
+        if (id == null && codigo != null) {
+            id = CodigoSondaje.normalizar(codigo).map(c -> buscar(SONDAJES, "codigo", c)).orElse(null);
+        }
+        return id;
+    }
+
+    /** Código del catálogo de un sondaje ya resuelto. */
+    public String codigoSondaje(UUID id) {
+        if (id == null) {
+            return null;
+        }
+        return mapa(SONDAJES, "codigo").entrySet().stream()
+                .filter(e -> e.getValue().equals(id)).map(Map.Entry::getKey).findFirst().orElse(null);
     }
 
     public UUID maquina(String codigo) {

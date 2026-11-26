@@ -39,6 +39,12 @@ El alcance comprometido en el APF2 está implementado: 15 requisitos funcionales
 | RF14 | Cargar datos desde plantillas Excel | CU21 | P10 |
 | RF15 | Generar reporte diario consolidado (Excel y PDF) | CU22 | P11 |
 
+Reportes: el diario incluye el avance por máquina, el resumen de campaña, la matriz
+mensual y el estado de cada etapa de geología; el de periodo (hasta 92 días) suma
+los desvíos; la hoja de registro de quicklog sale por sondaje en Excel. Además,
+subida de logueo desde GeoLog fila por fila (204 si entra completa; 422 con las
+filas rechazadas, las demás quedan guardadas).
+
 ## Arquitectura
 
 Aplicación en capas con MVC del lado del servidor y acceso a datos por DAO. La
@@ -77,24 +83,28 @@ El detalle por paquete está en el Javadoc.
   Guava); responde 429.
 - Bitácora de seguridad aparte (`logs/seguridad.log`, Logback, 90 días), sin
   contraseñas y con los datos del cliente saneados contra inyección de líneas.
-- Una sola política CORS; las escrituras sensibles exigen rol ADMIN (`@PreAuthorize`);
-  el usuario de una operación sale del token, nunca del cuerpo.
+- Escritura por rol en operacional, logueo, importación y fotos (`PermisosEscritura`):
+  `ASISTENTE_GEOLOGIA` registra y corrige; `GEOLOGO` además borra partes y mantiene
+  datos maestros; `VISITANTE` solo lee; `ADMIN` todo. Administración solo `ADMIN`.
+- Una sola política CORS; el usuario de una operación sale del token, nunca del cuerpo.
 - Excel exportado sin fórmulas (texto siempre como texto); nombres de archivo de las
   fotos saneados con Commons IO; nombres de tabla contra una lista blanca.
+- Monitoreo con Spring Boot Actuator: `/actuator/health` público solo con el
+  estado; detalle y métricas para ADMIN. Ver [docs/monitoreo.md](docs/monitoreo.md).
 
 ## Librerías de apoyo
 
 | Librería | Dónde y para qué |
 |---|---|
 | Google Guava | Caché de intentos fallidos con expiración (`LimiteIntentosLogin`), caché de cuentas activas (`CuentasActivas`), estructura de catálogos memorizada, colecciones inmutables, `Preconditions` |
-| Apache POI | Importador de plantillas `.xlsx` y exportación del reporte diario a Excel |
-| Apache Commons Lang | Normalización de códigos de sondaje y textos (`StringUtils`) |
+| Apache POI | Importador de plantillas `.xlsx` y exportación a Excel de los reportes diario y de periodo y de la hoja de registro de quicklog |
+| Apache Commons Lang | Normalización de códigos de sondaje en el importador (`CodigoSondaje`) y textos (`StringUtils`) |
 | Apache Commons IO | Nombre de archivo seguro de las fotos (`FilenameUtils`) |
 | Logback | Bitácora general y bitácora de seguridad separada |
 
 ## Pruebas (TDD)
 
-192 pruebas en 25 clases: unitarias con JUnit y Mockito, de la capa web con MockMvc
+347 pruebas en 45 clases (234 unitarias, 21 web y 92 de integración) más 25 del frontend con Vitest: unitarias con JUnit y Mockito, de la capa web con MockMvc
 y de integración contra PostgreSQL (cada una se deshace al terminar). El historial
 muestra el ciclo: un commit `test(…) (rojo)` con la prueba que falla y el siguiente
 `feat(…) (verde)` con lo que la hace pasar.
@@ -103,10 +113,10 @@ muestra el ciclo: un commit `test(…) (rojo)` con la prueba que falla y el sigu
 
 | Cobertura (JaCoCo) | |
 |---|---|
-| Líneas | 55.7 % |
-| Ramas | 45.4 % |
-| Métodos | 57.7 % |
-| Clases | 94.5 % |
+| Líneas | 68.6 % |
+| Ramas | 61.4 % |
+| Métodos | 67.8 % |
+| Clases | 97.1 % |
 
 ```bash
 ./gradlew test jacocoTestReport
@@ -117,6 +127,11 @@ muestra el ciclo: un commit `test(…) (rojo)` con la prueba que falla y el sigu
 - [Javadoc](docs/javadoc/index.html): arquitectura, MVC/DAO y SOLID explicados por paquete.
 - [Reporte de cobertura](docs/cobertura/index.html).
 - [Diagramas de arquitectura](docs/arquitectura/).
+- [Plan y resultados de las pruebas](docs/pruebas.md).
+- [Reporte de pruebas de seguridad](docs/seguridad.md).
+- [Despliegue](docs/despliegue.md): un jar con el API y Angular, systemd, Nginx con HTTPS.
+- [Plan de monitoreo](docs/monitoreo.md): Actuator, bitácoras y verificación de salud.
+- [Plan de mantenimiento](docs/mantenimiento.md): respaldos, restauración y tareas programadas.
 
 ## Control de versiones
 
@@ -137,8 +152,9 @@ Los mensajes siguen *Conventional Commits* en español: `feat`, `fix`, `test`,
 
 ## Puesta en marcha
 
-Requisitos: Java 21, Node.js 20 o superior y PostgreSQL 16 o superior. El Gradle
-Wrapper viene incluido.
+Requisitos: Java 21, Node.js 20 o superior y PostgreSQL 16 o superior. Vienen
+incluidos los wrappers de Gradle y de Maven; el despliegue en producción está en
+[docs/despliegue.md](docs/despliegue.md).
 
 1. **Base de datos.**
 
@@ -169,16 +185,19 @@ Wrapper viene incluido.
 
 ```
 src/main/java/com/boulder/boulder/
-  config/        seguridad, CORS, manejo de errores, reloj
+  config/        seguridad, CORS, manejo de errores, reloj, aplicación web
   controllers/   API REST
   services/      reglas de negocio (+ importacion/ con Apache POI)
   repositories/  DAO
   entities/ dto/ modelo
   dominio/       reglas puras
-  reportes/      reporte diario (consulta, armado, Excel, API)
+  reportes/      reportes diario y de periodo, hoja de quicklog (consulta, armado, Excel, API)
   fotos/ eventos/
 src/test/java/   pruebas unitarias, web e integración
 boulder-app/     frontend Angular
-docs/            arquitectura, Javadoc y cobertura
+docs/            arquitectura, Javadoc, cobertura, pruebas, seguridad, despliegue, monitoreo, mantenimiento
 db/              esquema físico de PostgreSQL
+deploy/          servicio systemd, variables de entorno, Nginx, arranque en Windows
+scripts/         pruebas de extremo a extremo y mantenimiento (respaldo, restauración, salud)
+pom.xml          construcción con Maven (perfil produccion: jar con Angular)
 ```

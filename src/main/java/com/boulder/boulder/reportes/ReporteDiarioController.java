@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.boulder.boulder.services.FrenteAvanceService;
+
 /**
  * Reporte diario consolidado (pantalla P11). Lo consulta cualquier usuario
  * autenticado, incluida la gerencia con el rol VISITANTE.
@@ -25,9 +27,11 @@ public class ReporteDiarioController {
             MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
     private final ReporteDiarioService servicio;
+    private final FrenteAvanceService frente;
 
-    public ReporteDiarioController(ReporteDiarioService servicio) {
+    public ReporteDiarioController(ReporteDiarioService servicio, FrenteAvanceService frente) {
         this.servicio = servicio;
+        this.frente = frente;
     }
 
     /** @param fecha día en formato ISO ({@code 2026-09-07}); hoy si se omite */
@@ -45,6 +49,6 @@ public class ReporteDiarioController {
                 .contentType(XLSX)
                 .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
                         .filename("reporte_diario_" + r.fecha() + ".xlsx").build().toString())
-                .body(ReporteDiarioExcel.generar(r));
+                .body(ReporteDiarioExcel.generar(r, frente.consultar(false)));
     }
 }

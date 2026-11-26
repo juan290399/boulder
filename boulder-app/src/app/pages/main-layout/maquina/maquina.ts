@@ -1,9 +1,14 @@
 import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { MaquinaService } from '../../../services/maquina.service';
 import { Maquina as MaquinaModel } from '../../../models/operacional';
+import { AuthService } from '../../../services/auth.service';
+import { mensajeDeError } from '../../../util/interfaz';
+import { Ficha } from '../../../components/ficha/ficha';
+import { SondajeService } from '../../../services/sondaje.service';
 
 const FORM_VACIO = (): MaquinaModel => ({
   codigo: '',
@@ -11,80 +16,168 @@ const FORM_VACIO = (): MaquinaModel => ({
   tipo: '',
   marca: '',
   motor: '',
-  estado: 'operativa',
+  estado: 'Operativa',
 });
 
+/** Estados de una máquina, con su color en la lista. */
+export const ESTADOS_MAQUINA = [
+  { valor: 'Operativa', chip: 'chip--ok' },
+  { valor: 'En mantenimiento', chip: 'chip--warn' },
+  { valor: 'Fuera de servicio', chip: 'chip--danger' },
+];
+
+/** Flota en maestro-detalle: lista a todo el ancho y ficha al elegir una máquina. */
 @Component({
   selector: 'app-maquina',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Ficha],
   templateUrl: './maquina.html',
   styleUrl: './maquina.scss',
 })
 export class Maquina implements OnInit {
   private readonly service = inject(MaquinaService);
+  readonly puedeEditar = inject(AuthService).puedeMantenerMaestros();
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly sondajeService = inject(SondajeService);
+  /** Sondajes en perforación por máquina: «en uso». */
+  enUso = new Map<string, string[]>();
 
+  readonly estados = ESTADOS_MAQUINA;
   maquinas: MaquinaModel[] = [];
   form: MaquinaModel & { id?: string } = FORM_VACIO();
 
+  /** La ficha de alta o edición está abierta. */
+  fichaAbierta = false;
   busquedaCodigo = '';
   busquedaId = '';
-  loading = false;
+  /** Arranca en true: el listado se pide en ngOnInit. */
+  loading = true;
+  guardando = false;
   mensaje = '';
+  error = '';
+  errorFormulario = '';
+  filtrado = false;
+  sinCoincidencias = '';
 
   ngOnInit(): void {
+    // Qué sondaje perfora hoy cada máquina: los que no tienen fecha de fin.
+    this.sondajeService.listar().subscribe({
+      next: (sondajes) => {
+        this.enUso = new Map();
+        for (const s of sondajes.filter(x => !x.fechaFin && x.maquinaId)) {
+          this.enUso.set(s.maquinaId!, [...(this.enUso.get(s.maquinaId!) ?? []), s.nombre || s.codigo]);
+        }
+        this.cdr.detectChanges();
+      },
+      error: () => { /* sin «en uso»: la lista sigue sirviendo */ },
+    });
+    this.listar();
+  }
+
+  verTodos(): void {
+    this.limpiarAvisos();
     this.listar();
   }
 
   listar(): void {
     this.loading = true;
+    this.filtrado = false;
+    this.sinCoincidencias = '';
+    this.busquedaCodigo = '';
+    this.busquedaId = '';
     this.service.listar().subscribe({
       next: (data) => this.setLista(data),
       error: (err) => this.fallo('No se pudo cargar el listado de máquinas', err),
     });
   }
 
+  // ------------------------------------------------------------------ ficha
+
+  nueva(): void {
+    this.form = FORM_VACIO();
+    this.abrirFicha();
+  }
+
+  editar(maquina: MaquinaModel): void {
+    if (!this.puedeEditar) {
+      return;
+    }
+    this.form = { ...maquina };
+    this.abrirFicha();
+  }
+
+  cerrarFicha(): void {
+    this.fichaAbierta = false;
+    this.errorFormulario = '';
+    this.cdr.detectChanges();
+  }
+
+  private abrirFicha(): void {
+    this.limpiarAvisos();
+    this.errorFormulario = '';
+    this.fichaAbierta = true;
+    this.cdr.detectChanges();
+  }
+
+  esSeleccionada(m: MaquinaModel & { id?: string }): boolean {
+    return this.fichaAbierta && !!this.form.id && m.id === this.form.id;
+  }
+
   guardar(): void {
-    const op$ = this.form.id
-      ? this.service.actualizar(this.form.id, this.form)
+    this.errorFormulario = '';
+    this.guardando = true;
+    const esEdicion = !!this.form.id;
+    const op$ = esEdicion
+      ? this.service.actualizar(this.form.id!, this.form)
       : this.service.crear(this.form);
     op$.subscribe({
       next: () => {
-        this.mensaje = this.form.id ? 'Máquina actualizada' : 'Máquina creada';
-        this.limpiar();
+        this.guardando = false;
+        this.mensaje = `Máquina ${this.form.codigo} ${esEdicion ? 'actualizada' : 'creada'}.`;
+        this.cerrarFicha();
         this.listar();
       },
-      error: (err) => this.fallo('No se pudo guardar la máquina', err),
+      error: (err) => {
+        console.error('No se pudo guardar la máquina', err);
+        this.guardando = false;
+        this.errorFormulario = mensajeDeError(err, 'No se pudo guardar');
+        this.cdr.detectChanges();
+      },
     });
   }
 
+  // ---------------------------------------------------------- búsqueda exacta
+
   buscarPorCodigo(): void {
-    if (!this.busquedaCodigo.trim()) return;
+    const codigo = this.busquedaCodigo.trim();
+    if (!codigo) return;
     this.loading = true;
-    this.service.obtenerPorCodigo(this.busquedaCodigo.trim()).subscribe({
-      next: (m) => this.setLista(m ? [m] : []),
-      error: (err) => this.fallo('Sin resultados por código', err),
+    this.limpiarAvisos();
+    this.service.obtenerPorCodigo(codigo).subscribe({
+      next: (m) => { this.filtrado = true; this.setLista(m ? [m] : []); },
+      error: (err) => this.sinResultados(err, `No hay ninguna máquina con el código ${codigo}.`),
     });
   }
 
   buscarPorId(): void {
     if (!this.busquedaId.trim()) return;
     this.loading = true;
+    this.limpiarAvisos();
     this.service.obtenerPorId(this.busquedaId.trim()).subscribe({
-      next: (m) => this.setLista(m ? [m] : []),
-      error: (err) => this.fallo('Sin resultados por ID', err),
+      next: (m) => { this.filtrado = true; this.setLista(m ? [m] : []); },
+      error: (err) => this.sinResultados(err, 'No hay ninguna máquina con ese ID.'),
     });
   }
 
-  editar(maquina: MaquinaModel): void {
-    this.form = { ...maquina };
-    this.cdr.detectChanges();
+  chipEstado(valor?: string | null): string {
+    return this.estados.find(e => e.valor.toLowerCase() === (valor ?? '').toLowerCase())?.chip ?? '';
   }
 
-  limpiar(): void {
-    this.form = FORM_VACIO();
-    this.cdr.detectChanges();
+  /** «DDH-037, DDH-033 +2»: hasta dos nombres cortos y cuántos más hay. */
+  resumenEnUso(id?: string): string {
+    const lista = (id && this.enUso.get(id)) || [];
+    if (!lista.length) { return '—'; }
+    return lista.slice(0, 2).join(', ') + (lista.length > 2 ? ` +${lista.length - 2}` : '');
   }
 
   private setLista(data: MaquinaModel[]): void {
@@ -93,9 +186,25 @@ export class Maquina implements OnInit {
     this.cdr.detectChanges();
   }
 
+  private limpiarAvisos(): void {
+    this.mensaje = '';
+    this.error = '';
+  }
+
+  /** Un 404 de una búsqueda no es un error: es una lista vacía con su explicación. */
+  private sinResultados(err: unknown, texto: string): void {
+    if (err instanceof HttpErrorResponse && err.status === 404) {
+      this.filtrado = true;
+      this.sinCoincidencias = texto;
+      this.setLista([]);
+      return;
+    }
+    this.fallo('No se pudo hacer la búsqueda', err);
+  }
+
   private fallo(msg: string, err: unknown): void {
     console.error(msg, err);
-    this.mensaje = msg;
+    this.error = mensajeDeError(err, msg);
     this.loading = false;
     this.cdr.detectChanges();
   }

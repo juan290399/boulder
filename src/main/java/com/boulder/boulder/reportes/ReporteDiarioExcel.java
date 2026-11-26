@@ -3,6 +3,7 @@ package com.boulder.boulder.reportes;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.List;
 
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
@@ -12,6 +13,12 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import com.boulder.boulder.dto.EtapaAvanceDTO;
+import com.boulder.boulder.dto.FrenteAvanceDTO;
+import com.boulder.boulder.reportes.ReporteDiario.FilaCampania;
+import com.boulder.boulder.reportes.ReporteDiario.FilaMaquina;
+import com.boulder.boulder.reportes.ReporteDiario.FilaMensual;
+import com.boulder.boulder.reportes.ReporteDiario.Mensual;
 import com.boulder.boulder.reportes.ReporteDiario.FilaSondaje;
 
 /**
@@ -26,6 +33,8 @@ import com.boulder.boulder.reportes.ReporteDiario.FilaSondaje;
 public final class ReporteDiarioExcel {
 
     private static final String[] CABECERA = {"Sondaje", "Perforado (m)", "Logueado (m)", "Cajas", "Muestras"};
+    private static final String[] CAB_CAMPANIA = {"Sondaje", "Máquina", "Inicio", "Fin", "Días", "Avance total (m)",
+            "Estado"};
 
     private ReporteDiarioExcel() {
     }
@@ -36,6 +45,16 @@ public final class ReporteDiarioExcel {
      * @throws IOException si no se puede escribir el libro
      */
     public static byte[] generar(ReporteDiario r) throws IOException {
+        return generar(r, List.of());
+    }
+
+    /**
+     * @param r      el reporte del día
+     * @param frente frente de avance actual, para la hoja de geología
+     * @return el libro .xlsx listo para descargar
+     * @throws IOException si no se puede escribir el libro
+     */
+    public static byte[] generar(ReporteDiario r, List<FrenteAvanceDTO> frente) throws IOException {
         try (XSSFWorkbook libro = new XSSFWorkbook(); ByteArrayOutputStream salida = new ByteArrayOutputStream()) {
             Sheet hoja = libro.createSheet(r.fecha().toString());
             CellStyle negrita = estiloNegrita(libro);
@@ -66,11 +85,116 @@ public final class ReporteDiarioExcel {
             total.createCell(3).setCellValue(r.totalCajas());
             total.createCell(4).setCellValue(r.totalMuestras());
 
+            if (!r.porMaquina().isEmpty()) {
+                fila += 2;
+                Row cabMaquina = hoja.createRow(fila++);
+                texto(cabMaquina, 0, "Máquina", negrita);
+                texto(cabMaquina, 1, "Perforado (m)", negrita);
+                for (FilaMaquina m : r.porMaquina()) {
+                    Row row = hoja.createRow(fila++);
+                    texto(row, 0, m.maquina() != null ? m.maquina() : "Sin máquina", null);
+                    numero(row, 1, m.metros(), metros);
+                }
+            }
+
             for (int i = 0; i < CABECERA.length; i++) {
                 hoja.autoSizeColumn(i);
             }
+
+            campania(libro, r, negrita, metros);
+            mensual(libro, r, negrita, metros);
+            geologia(libro, frente, negrita);
             libro.write(salida);
             return salida.toByteArray();
+        }
+    }
+
+    /** Hoja con el resumen de la campaña hasta la fecha del reporte. */
+    private static void campania(XSSFWorkbook libro, ReporteDiario r, CellStyle negrita, CellStyle metros) {
+        Sheet hoja = libro.createSheet("Campaña");
+        CellStyle fecha = libro.createCellStyle();
+        fecha.setDataFormat(libro.createDataFormat().getFormat("yyyy-mm-dd"));
+        texto(hoja.createRow(0), 0, "Perforación de la campaña al " + r.fecha(), negrita);
+        Row cab = hoja.createRow(2);
+        for (int i = 0; i < CAB_CAMPANIA.length; i++) {
+            texto(cab, i, CAB_CAMPANIA[i], negrita);
+        }
+        int fila = 3;
+        for (FilaCampania c : r.campania()) {
+            Row row = hoja.createRow(fila++);
+            texto(row, 0, c.codigo(), null);
+            if (c.maquina() != null) {
+                texto(row, 1, c.maquina(), null);
+            }
+            Cell inicio = row.createCell(2);
+            inicio.setCellValue(c.inicio());
+            inicio.setCellStyle(fecha);
+            Cell fin = row.createCell(3);
+            fin.setCellValue(c.fin());
+            fin.setCellStyle(fecha);
+            row.createCell(4).setCellValue(c.dias());
+            numero(row, 5, c.avance(), metros);
+            texto(row, 6, c.estado(), null);
+        }
+        Row total = hoja.createRow(fila);
+        texto(total, 0, "Total", negrita);
+        numero(total, 5, r.totalCampania(), metros);
+        for (int i = 0; i < CAB_CAMPANIA.length; i++) {
+            hoja.autoSizeColumn(i);
+        }
+    }
+
+    /** Hoja con los metros perforados por sondaje y por mes hasta la fecha del reporte. */
+    private static void mensual(XSSFWorkbook libro, ReporteDiario r, CellStyle negrita, CellStyle metros) {
+        Sheet hoja = libro.createSheet("Por mes");
+        Mensual m = r.mensual();
+        texto(hoja.createRow(0), 0, "Metros perforados por mes al " + r.fecha(), negrita);
+        Row cab = hoja.createRow(2);
+        texto(cab, 0, "Sondaje", negrita);
+        for (int i = 0; i < m.meses().size(); i++) {
+            texto(cab, i + 1, m.meses().get(i).toString(), negrita);
+        }
+        int fila = 3;
+        for (FilaMensual f : m.filas()) {
+            Row row = hoja.createRow(fila++);
+            texto(row, 0, f.codigo(), null);
+            for (int i = 0; i < f.metros().size(); i++) {
+                numero(row, i + 1, f.metros().get(i), metros);
+            }
+        }
+        Row total = hoja.createRow(fila);
+        texto(total, 0, "Total", negrita);
+        for (int i = 0; i < m.totales().size(); i++) {
+            numero(total, i + 1, m.totales().get(i), metros);
+        }
+        for (int i = 0; i <= m.meses().size(); i++) {
+            hoja.autoSizeColumn(i);
+        }
+    }
+
+    /** Hoja con el estado actual de cada etapa de geología por sondaje (la perforación va aparte). */
+    private static void geologia(XSSFWorkbook libro, List<FrenteAvanceDTO> frente, CellStyle negrita) {
+        Sheet hoja = libro.createSheet("Geología");
+        texto(hoja.createRow(0), 0, "Estado actual de las etapas por sondaje", negrita);
+        Row cab = hoja.createRow(2);
+        texto(cab, 0, "Sondaje", negrita);
+        int columnas = 1;
+        if (!frente.isEmpty()) {
+            List<EtapaAvanceDTO> etapas = frente.getFirst().getEtapas();
+            for (int i = 1; i < etapas.size(); i++) {
+                texto(cab, columnas++, etapas.get(i).getNombre(), negrita);
+            }
+        }
+        int fila = 3;
+        for (FrenteAvanceDTO f : frente) {
+            Row row = hoja.createRow(fila++);
+            texto(row, 0, f.getSondajeCodigo(), null);
+            for (int i = 1; i < f.getEtapas().size(); i++) {
+                texto(row, i, EstadoEtapa.de(f.getEtapas().get(i), f), null);
+            }
+        }
+        for (int i = 0; i < columnas; i++) {
+            hoja.autoSizeColumn(i);
         }
     }
 

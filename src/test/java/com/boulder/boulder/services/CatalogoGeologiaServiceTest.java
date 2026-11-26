@@ -106,6 +106,18 @@ class CatalogoGeologiaServiceTest {
     }
 
     @Test
+    @DisplayName("En un catálogo con color, el color es obligatorio: la base no admite la fila sin él")
+    void colorObligatorio() {
+        CatalogoGeologiaDTO d = entrada("MZT", "Monzonita");
+        d.setGrupoId(UUID.randomUUID());
+
+        assertThatThrownBy(() -> servicio.crear("lit_diccionario", d))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("color");
+        verify(repositorio, never()).insertar(anyString(), any());
+    }
+
+    @Test
     @DisplayName("El color va completo y cada canal entre 0 y 255")
     void color() {
         CatalogoGeologiaDTO d = entrada("MZT", "Monzonita");

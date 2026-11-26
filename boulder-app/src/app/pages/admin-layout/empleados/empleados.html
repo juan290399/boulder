@@ -1,157 +1,181 @@
-<div class="panel panel__body">
-
-  <div class="mb-4">
-    <h1 class="page-head__title mb-1">Empleados</h1>
-  </div>
-
-  <!-- ------------------------------------------------------------- formulario -->
-  <fieldset class="border rounded p-3 mb-4">
-    <legend class="float-none w-auto px-2 fs-6 text-muted">
-      {{ form.id ? 'Editar: ' + form.codigo : 'Nuevo empleado' }}
-    </legend>
-
-    <div class="row g-2 mb-2">
-      <div class="col-md-2">
-        <input class="form-control" placeholder="Código" [(ngModel)]="form.codigo" />
-      </div>
-      <div class="col-md-3">
-        <input class="form-control" placeholder="Nombres" [(ngModel)]="form.nombres" />
-      </div>
-      <div class="col-md-3">
-        <input class="form-control" placeholder="Apellidos" [(ngModel)]="form.apellidos" />
-      </div>
-      <div class="col-md-2">
-        <input class="form-control" placeholder="Documento" [(ngModel)]="form.documento" />
-      </div>
-      <div class="col-md-2">
-        <div class="form-check form-switch mt-2">
-          <input class="form-check-input" type="checkbox" id="empEstado" [(ngModel)]="form.estado" />
-          <label class="form-check-label small" for="empEstado">Activo</label>
-        </div>
-      </div>
-    </div>
-
-    <div class="row g-2 mb-2">
-      <div class="col-md-4">
-        <select class="form-select" [(ngModel)]="form.cargoId">
-          <option [ngValue]="undefined">— Sin cargo —</option>
-          <option *ngFor="let c of cargos" [ngValue]="c.id">
-            {{ c.nombre }} ({{ etiquetaArea(c.area) }})
-          </option>
-        </select>
-      </div>
-      <div class="col-md-4">
-        <select class="form-select" [(ngModel)]="form.empresaId">
-          <option [ngValue]="undefined">— Sin empresa —</option>
-          <option *ngFor="let e of empresas" [ngValue]="e.id">{{ e.nombre }}</option>
-        </select>
-      </div>
-      <div class="col-md-4">
-        <input class="form-control" type="email" placeholder="Correo" [(ngModel)]="form.email" />
-      </div>
-    </div>
-
-    <div class="row g-2 mb-3">
-      <div class="col-md-3">
-        <input class="form-control" placeholder="Teléfono" [(ngModel)]="form.telefono" />
-      </div>
-      <div class="col-md-3">
-        <input class="form-control" type="date" [(ngModel)]="form.fechaIngreso"
-               title="Fecha de ingreso" />
-      </div>
-      <div class="col-md-3">
-        <input class="form-control" type="date" [(ngModel)]="form.fechaSalida"
-               title="Fecha de salida" />
-      </div>
-      <div class="col-md-3">
-        <input class="form-control" placeholder="Notas" [(ngModel)]="form.notas" />
-      </div>
-    </div>
-
-    <button class="btn btn-success me-2" (click)="guardar()">
-      {{ form.id ? 'Actualizar' : 'Crear' }}
+<div class="page">
+  <div class="page-head">
+    <h1 class="page-head__title">Empleados</h1>
+    <button type="button" class="btn btn-success" (click)="nuevo()">
+      <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Nuevo empleado
     </button>
-    <button class="btn btn-secondary" (click)="limpiar()">Limpiar</button>
-  </fieldset>
-
-  <div *ngIf="mensaje" class="alert-inline alert-inline--ok">{{ mensaje }}</div>
-  <div *ngIf="error" class="alert-inline">{{ error }}</div>
-
-  <!-- ---------------------------------------------------------------- filtros -->
-  <div class="row g-2 mb-3">
-    <div class="col-md-5">
-      <input class="form-control" placeholder="Buscar por nombre o código"
-             [(ngModel)]="busqueda" />
-    </div>
-    <div class="col-md-3">
-      <select class="form-select" [(ngModel)]="filtroArea">
-        <option value="">Todas las áreas</option>
-        <option *ngFor="let a of areas" [value]="a">{{ etiquetaArea(a) }}</option>
-      </select>
-    </div>
-    <div class="col-md-2">
-      <div class="form-check form-switch mt-2">
-        <input class="form-check-input" type="checkbox" id="soloActivos" [(ngModel)]="soloActivos" />
-        <label class="form-check-label small" for="soloActivos">Solo activos</label>
-      </div>
-    </div>
-    <div class="col-md-2">
-      <button class="btn btn-outline-primary w-100" [disabled]="loading" (click)="listar()">
-        Refrescar
-      </button>
-    </div>
   </div>
+
+  <div *ngIf="mensaje" class="alert-inline alert-inline--ok" role="status">{{ mensaje }}</div>
+  <div *ngIf="error" class="alert-inline" role="alert">{{ error }}</div>
 
   <!-- ---------------------------------------------------------------- listado -->
-  <div class="table-scroll" *ngIf="empleadosFiltrados.length > 0; else vacio">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Código</th>
-          <th>Nombre</th>
-          <th>Cargo</th>
-          <th>Área</th>
-          <th>Contacto</th>
-          <th>Estado</th>
-          <th class="text-end">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let e of empleadosFiltrados">
-          <td><code>{{ e.codigo }}</code></td>
-          <td>{{ e.nombres }} {{ e.apellidos }}</td>
-          <td>{{ e.cargoNombre || '—' }}</td>
-          <td class="small">{{ etiquetaArea(e.cargoArea) }}</td>
-          <td class="small">{{ e.email || e.telefono || '—' }}</td>
-          <td>
-            <span class="badge" [class.text-bg-success]="e.estado" [class.text-bg-secondary]="!e.estado">
-              {{ e.estado ? 'Activo' : 'Baja' }}
-            </span>
-          </td>
-          <td class="text-end text-nowrap">
-            <button class="btn btn-sm btn-outline-secondary me-1" (click)="editar(e)">
-              Editar
-            </button>
-            <!-- No hay borrado: los partes de perforación referencian estas
-                 filas y eliminarlas dejaría los históricos sin autor. -->
-            <button *ngIf="e.estado" class="btn btn-sm btn-outline-danger"
-                    (click)="cambiarEstado(e, false)">
-              Dar de baja
-            </button>
-            <button *ngIf="!e.estado" class="btn btn-sm btn-outline-success"
-                    (click)="cambiarEstado(e, true)">
-              Reincorporar
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="maestro-detalle" [class.con-ficha]="fichaAbierta">
+    <section class="panel">
+      <div class="panel__head">
+        <div class="toolbar w-100">
+          <div class="toolbar__field">
+            <label for="emp-buscar" class="form-label">Buscar</label>
+            <input id="emp-buscar" class="form-control" type="search" placeholder="Nombre o código"
+                   [(ngModel)]="busqueda" />
+          </div>
+          <div class="toolbar__field">
+            <label for="emp-area" class="form-label">Área</label>
+            <select id="emp-area" class="form-select" [(ngModel)]="filtroArea">
+              <option value="">Todas las áreas</option>
+              <option *ngFor="let a of areas" [value]="a">{{ etiquetaArea(a) }}</option>
+            </select>
+          </div>
+          <div class="form-check form-switch align-self-end mb-2">
+            <input class="form-check-input" type="checkbox" id="soloActivos" [(ngModel)]="soloActivos" />
+            <label class="form-check-label" for="soloActivos">Solo activos</label>
+          </div>
+          <span class="toolbar__spacer"></span>
+          <span class="text-secondary small align-self-end mb-2">{{ empleadosFiltrados.length }} de {{ empleados.length }}</span>
+          <button type="button" class="btn btn-sm btn-outline-secondary align-self-end mb-1" [disabled]="loading" (click)="listar()">
+            <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i>Refrescar
+          </button>
+        </div>
+      </div>
+
+      <div class="table-scroll" *ngIf="empleadosFiltrados.length > 0; else vacio">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Nombre</th>
+              <th>Cargo</th>
+              <th>Área</th>
+              <th>Contacto</th>
+              <th>Estado</th>
+              <th><span class="visually-hidden">Acciones</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let e of empleadosFiltrados" class="fila-editable" [class.fila-seleccionada]="esSeleccionado(e)"
+                (click)="editar(e)">
+              <td class="mono text-nowrap">{{ e.codigo }}</td>
+              <td>{{ e.nombres }} {{ e.apellidos }}</td>
+              <td>{{ e.cargoNombre || '—' }}</td>
+              <td class="small">{{ etiquetaArea(e.cargoArea) }}</td>
+              <td class="small">{{ e.email || e.telefono || '—' }}</td>
+              <td>
+                <span class="chip" [class.chip--ok]="e.estado">
+                  {{ e.estado ? 'Activo' : 'Baja' }}
+                </span>
+              </td>
+              <td class="text-end">
+                <button type="button" class="btn btn-sm btn-outline-primary" (click)="$event.stopPropagation(); editar(e)"
+                        [attr.aria-label]="'Editar ' + e.nombres + ' ' + (e.apellidos ?? '')">Editar</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #vacio>
+        <div class="empty-state">
+          <ng-container *ngIf="loading; else sinCoincidencias">Cargando personal…</ng-container>
+          <ng-template #sinCoincidencias>
+            <ng-container *ngIf="empleados.length; else ninguno">No hay personal que coincida con el filtro.</ng-container>
+            <ng-template #ninguno>Aún no hay personal. <button type="button" class="btn btn-link btn-sm p-0 align-baseline" (click)="nuevo()">Registrar el primero</button></ng-template>
+            <button *ngIf="busqueda || filtroArea || soloActivos" type="button" class="btn btn-link btn-sm p-0 ms-1 align-baseline"
+                    (click)="busqueda = ''; filtroArea = ''; soloActivos = false">Ver todo el personal</button>
+          </ng-template>
+        </div>
+      </ng-template>
+    </section>
+
+    <app-ficha [abierta]="fichaAbierta" [clave]="form.id" [titulo]="form.id ? 'Editar empleado' : 'Nuevo empleado'"
+               [subtitulo]="form.id ? form.codigo : ''" (cerrar)="cerrarFicha()">
+      <form id="emp-formulario" (ngSubmit)="guardar()">
+        @if (errorFormulario) {
+          <div class="alert-inline" role="alert">{{ errorFormulario }}</div>
+        }
+        @if (form.id && !form.estado) {
+          <p class="ficha__nota">Dado de baja. Puedes reincorporarlo desde el pie del panel.</p>
+        }
+
+        <div class="row g-3 mb-3">
+          <div class="col-sm-6">
+            <label for="emp-nombres" class="form-label">Nombres</label>
+            <input id="emp-nombres" name="nombres" class="form-control" [(ngModel)]="form.nombres" maxlength="80" required />
+          </div>
+          <div class="col-sm-6">
+            <label for="emp-apellidos" class="form-label">Apellidos <span class="text-secondary fw-normal">(opcional)</span></label>
+            <input id="emp-apellidos" name="apellidos" class="form-control" [(ngModel)]="form.apellidos" maxlength="80" />
+          </div>
+          <div class="col-sm-6">
+            <label for="emp-codigo" class="form-label">Código</label>
+            <input id="emp-codigo" name="codigo" class="form-control mono" [(ngModel)]="form.codigo" maxlength="15" required
+                   autocapitalize="characters" spellcheck="false" aria-describedby="emp-codigo-ayuda" />
+            <div id="emp-codigo-ayuda" class="form-text">Ej.: PERF-JQUI</div>
+          </div>
+          <div class="col-sm-6">
+            <label for="emp-documento" class="form-label">Documento <span class="text-secondary fw-normal">(opcional)</span></label>
+            <input id="emp-documento" name="documento" class="form-control" inputmode="numeric" [(ngModel)]="form.documento" maxlength="20" />
+          </div>
+        </div>
+
+        <h3 class="ficha__grupo">Puesto</h3>
+        <div class="row g-3 mb-3">
+          <div class="col-12">
+            <label for="emp-cargo" class="form-label">Cargo <span class="text-secondary fw-normal">(opcional)</span></label>
+            <select id="emp-cargo" name="cargoId" class="form-select" [(ngModel)]="form.cargoId">
+              <option [ngValue]="undefined">Sin cargo</option>
+              <option *ngFor="let c of cargos" [ngValue]="c.id">{{ c.nombre }} ({{ etiquetaArea(c.area) }})</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label for="emp-empresa" class="form-label">Empresa <span class="text-secondary fw-normal">(opcional)</span></label>
+            <select id="emp-empresa" name="empresaId" class="form-select" [(ngModel)]="form.empresaId">
+              <option [ngValue]="undefined">Sin empresa</option>
+              <option *ngFor="let e of empresas" [ngValue]="e.id">{{ e.nombre }}</option>
+            </select>
+          </div>
+          <div class="col-sm-6">
+            <label for="emp-ingreso" class="form-label">Fecha de ingreso <span class="text-secondary fw-normal">(opcional)</span></label>
+            <input id="emp-ingreso" name="fechaIngreso" class="form-control" type="date" [(ngModel)]="form.fechaIngreso" />
+          </div>
+          <div class="col-sm-6">
+            <label for="emp-salida" class="form-label">Fecha de salida <span class="text-secondary fw-normal">(opcional)</span></label>
+            <input id="emp-salida" name="fechaSalida" class="form-control" type="date" [(ngModel)]="form.fechaSalida"
+                   [min]="form.fechaIngreso || null" />
+          </div>
+        </div>
+
+        <h3 class="ficha__grupo">Contacto</h3>
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <label for="emp-correo" class="form-label">Correo <span class="text-secondary fw-normal">(opcional)</span></label>
+            <input id="emp-correo" name="email" class="form-control" type="email" [(ngModel)]="form.email" maxlength="120" />
+          </div>
+          <div class="col-sm-6">
+            <label for="emp-telefono" class="form-label">Teléfono <span class="text-secondary fw-normal">(opcional)</span></label>
+            <input id="emp-telefono" name="telefono" class="form-control" type="tel" [(ngModel)]="form.telefono" maxlength="30" />
+          </div>
+          <div class="col-12">
+            <label for="emp-notas" class="form-label">Notas <span class="text-secondary fw-normal">(opcional)</span></label>
+            <textarea id="emp-notas" name="notas" class="form-control" rows="2" [(ngModel)]="form.notas"></textarea>
+          </div>
+        </div>
+      </form>
+
+      <div pie class="d-flex gap-2 flex-wrap">
+        <button type="submit" form="emp-formulario" class="btn btn-success" [disabled]="guardando">
+          {{ guardando ? 'Guardando…' : (form.id ? 'Guardar cambios' : 'Crear empleado') }}
+        </button>
+        <button type="button" class="btn btn-outline-secondary" (click)="cerrarFicha()">Cancelar</button>
+        <!-- No hay borrado: los partes de perforación referencian estas filas y
+             eliminarlas dejaría los históricos sin autor. Se da de baja. -->
+        @if (form.id) {
+          @if (form.estado) {
+            <button type="button" class="btn btn-outline-danger ms-auto" (click)="cambiarEstado(false)">Dar de baja</button>
+          } @else {
+            <button type="button" class="btn btn-outline-success ms-auto" (click)="cambiarEstado(true)">Reincorporar</button>
+          }
+        }
+      </div>
+    </app-ficha>
   </div>
-
-  <ng-template #vacio>
-    <div class="empty-state">
-      No hay personal que coincida con el filtro.
-    </div>
-  </ng-template>
-
 </div>

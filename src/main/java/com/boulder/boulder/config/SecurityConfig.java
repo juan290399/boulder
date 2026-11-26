@@ -2,6 +2,9 @@ package com.boulder.boulder.config;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 
@@ -11,7 +14,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 
 import jakarta.servlet.DispatcherType;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authorization.AuthorizationDecision;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -25,6 +34,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 
 import lombok.RequiredArgsConstructor;
+import com.boulder.boulder.monitoreo.MetricasNegocio;
+import org.springframework.security.web.util.matcher.IpAddressMatcher;
 
 @Configuration
 @EnableMethodSecurity
@@ -34,6 +45,7 @@ public class SecurityConfig {
     private final JwtUtils jwtUtils;
     private final AuthenticationConfiguration authenticationConfiguration;
     private final CuentasActivas cuentasActivas;
+    private final MetricasNegocio metricasNegocio;
 
     /**
      * Orígenes del frontend autorizados. Por defecto, el servidor de desarrollo
@@ -89,7 +101,7 @@ public class SecurityConfig {
         
         AuthenticationManager authManager = authenticationManager();
 
-        JwtAuthenticationFilter jwtAuthFilter = new JwtAuthenticationFilter(authManager, jwtUtils, limiteIntentosLogin());
+        JwtAuthenticationFilter jwtAuthFilter = new JwtAuthenticationFilter(authManager, jwtUtils, limiteIntentosLogin(), metricasNegocio);
         jwtAuthFilter.setFilterProcessesUrl("/api/auth/login");
 
         JwtAuthorizationFilter jwtAuthorizationFilter = new JwtAuthorizationFilter(jwtUtils, cuentasActivas);
@@ -122,6 +134,15 @@ public class SecurityConfig {
                 // Login (atendido por JwtAuthenticationFilter) y auto-registro.
                 .requestMatchers("/api/auth/**").permitAll()
 
+                // Monitoreo: la salud la consulta el balanceador o el script de
+                // vigilancia sin sesión; el detalle y las métricas, solo ADMIN.
+                .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info").permitAll()
+                // Prometheus raspa desde el mismo servidor y no maneja tokens que
+                // vencen: se le abre solo a la interfaz local. Nginx además niega
+                // la ruta desde fuera.
+                .requestMatchers(HttpMethod.GET, "/actuator/prometheus").access(SecurityConfig::desdeEsteServidor)
+                .requestMatchers("/actuator/**").hasRole("ADMIN")
+
                 // El catálogo de personal se lee desde los partes de perforación
                 // y de logueo para poblar sus desplegables, así que la lectura
                 // queda abierta a cualquier sesión. Va ANTES de la regla general
@@ -136,12 +157,14 @@ public class SecurityConfig {
                 // guard del frontend no protege nada, la puerta real es esta.
                 .requestMatchers("/api/base/**").hasRole("ADMIN")
 
-                // Antes estaba en permitAll(): cualquiera en la red podía leer y
-                // borrar partes sin token. Se cerró el 28/09/2026 tras comprobar
-                // que los dos clientes —Angular por su interceptor y GeoLog por
-                // InterceptorAutenticacion— mandan el token en toda petición.
-                // Queda pendiente afinar por rol (hoy basta estar autenticado).
-                .requestMatchers("/api/operacional/**").authenticated()
+                // Lectura con cualquier sesión; escritura según el rol (PermisosEscritura).
+                .requestMatchers("/api/operacional/**", "/api/logueo/**", "/api/importacion/**", "/api/fotos/**")
+                    .access(SecurityConfig::escrituraPorRol)
+
+                // La aplicación Angular empaquetada en el jar (AplicacionWebConfig):
+                // el HTML y los archivos estáticos no llevan datos; los datos los
+                // pide la aplicación al API con su token.
+                .requestMatchers(SecurityConfig::esAplicacionWeb).permitAll()
 
                 .anyRequest().authenticated()
             )
@@ -151,5 +174,34 @@ public class SecurityConfig {
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
  
         return http.build();
+    }
+
+    /** Un GET o HEAD que no va al API ni al monitoreo: la aplicación web o uno de sus archivos. */
+    private static boolean esAplicacionWeb(HttpServletRequest peticion) {
+        String ruta = peticion.getRequestURI().substring(peticion.getContextPath().length());
+        boolean lectura = "GET".equals(peticion.getMethod()) || "HEAD".equals(peticion.getMethod());
+        return lectura && !ruta.startsWith("/api/") && !ruta.startsWith("/actuator");
+    }
+
+    private static final IpAddressMatcher LOCAL_V4 = new IpAddressMatcher("127.0.0.0/8");
+    private static final IpAddressMatcher LOCAL_V6 = new IpAddressMatcher("::1");
+
+    /** La petición sale de la propia máquina (Prometheus o el script de vigilancia). */
+    private static AuthorizationDecision desdeEsteServidor(Supplier<? extends Authentication> autenticacion,
+                                                           RequestAuthorizationContext contexto) {
+        String ip = contexto.getRequest().getRemoteAddr();
+        return new AuthorizationDecision(ip != null && (LOCAL_V4.matches(ip) || LOCAL_V6.matches(ip)));
+    }
+
+    private static AuthorizationDecision escrituraPorRol(Supplier<? extends Authentication> autenticacion,
+                                                         RequestAuthorizationContext contexto) {
+        Authentication a = autenticacion.get();
+        if (a == null || !a.isAuthenticated() || a instanceof AnonymousAuthenticationToken) {
+            return new AuthorizationDecision(false);
+        }
+        HttpServletRequest peticion = contexto.getRequest();
+        String ruta = peticion.getRequestURI().substring(peticion.getContextPath().length());
+        Set<String> roles = a.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
+        return new AuthorizationDecision(PermisosEscritura.permite(peticion.getMethod(), ruta, roles));
     }
 }

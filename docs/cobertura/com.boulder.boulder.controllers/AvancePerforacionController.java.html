@@ -88,7 +88,7 @@ public class AvancePerforacionController {
 
     @DeleteMapping(&quot;/{id}&quot;)
     public ResponseEntity&lt;Void&gt; eliminar(@PathVariable UUID id) {
-<span class="nc" id="L91">        log.warn(&quot;HTTP DELETE - Parte de avance ID: {}&quot;, id);</span>
+<span class="fc" id="L91">        log.warn(&quot;HTTP DELETE - Parte de avance ID: {}&quot;, id);</span>
 <span class="nc" id="L92">        avanceService.eliminar(id);</span>
 <span class="nc" id="L93">        return ResponseEntity.noContent().build();</span>
     }

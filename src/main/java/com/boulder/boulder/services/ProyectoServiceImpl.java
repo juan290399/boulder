@@ -1,6 +1,8 @@
 package com.boulder.boulder.services;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -79,13 +81,18 @@ public class ProyectoServiceImpl implements ProyectoService {
     public ProyectoDTO guardar(ProyectoDTO dto) {
         log.info("Insertando nuevo proyecto en el sistema: {}, Código: {}", dto.getNombre(), dto.getCodigo());
         try {
+            validar(dto, true);
+            String codigo = dto.getCodigo().trim().toUpperCase();
+            if (proyectoRepository.existsByCodigo(codigo)) {
+                throw new IllegalArgumentException("Ya existe un proyecto con el código " + codigo + ".");
+            }
             Empresa empresa = empresaRepository.findById(dto.getEmpresaId())
                     .orElseThrow(() -> new EntityNotFoundException("La Empresa asociada con ID " + dto.getEmpresaId() + " no existe."));
 
             Proyecto proyecto = new Proyecto();
-            proyecto.setCodigo(dto.getCodigo());
-            proyecto.setNombre(dto.getNombre());
-            proyecto.setUbicacion(dto.getUbicacion());
+            proyecto.setCodigo(codigo);
+            proyecto.setNombre(dto.getNombre().trim());
+            proyecto.setUbicacion(enBlanco(dto.getUbicacion()) ? null : dto.getUbicacion().trim());
             proyecto.setSrid(dto.getSrid());
             proyecto.setEmpresa(empresa);
 
@@ -109,15 +116,16 @@ public class ProyectoServiceImpl implements ProyectoService {
                         return new EntityNotFoundException("Proyecto no existente.");
                     });
 
-            
-            if (dto.getEmpresaId() != null && !proyecto.getEmpresa().getId().equals(dto.getEmpresaId())) {
+            // El código no se cambia: lo usan los sondajes y los reportes ya emitidos.
+            validar(dto, false);
+            if (!proyecto.getEmpresa().getId().equals(dto.getEmpresaId())) {
                 Empresa nuevaEmpresa = empresaRepository.findById(dto.getEmpresaId())
                         .orElseThrow(() -> new EntityNotFoundException("La nueva Empresa asociada no existe."));
                 proyecto.setEmpresa(nuevaEmpresa);
             }
 
-            proyecto.setNombre(dto.getNombre());
-            proyecto.setUbicacion(dto.getUbicacion());
+            proyecto.setNombre(dto.getNombre().trim());
+            proyecto.setUbicacion(enBlanco(dto.getUbicacion()) ? null : dto.getUbicacion().trim());
             proyecto.setSrid(dto.getSrid());
 
             Proyecto actualizado = proyectoRepository.save(proyecto);
@@ -127,6 +135,43 @@ public class ProyectoServiceImpl implements ProyectoService {
             log.error("Error al modificar registros de proyecto ID: {}", id, e);
             throw e;
         }
+    }
+
+    /** Zonas UTM del Perú (WGS 84): 17S, 18S y 19S. */
+    private static final Set<Integer> SRID_PERU = Set.of(32717, 32718, 32719);
+
+    /**
+     * Código de 3 letras (solo al crear: después no cambia), nombre, empresa y
+     * un SRID de zona UTM del Perú. Junta todos los problemas en un mensaje.
+     */
+    private static void validar(ProyectoDTO dto, boolean esAlta) {
+        List<String> problemas = new ArrayList<>();
+        if (esAlta) {
+            if (enBlanco(dto.getCodigo())) {
+                problemas.add("el código es obligatorio");
+            } else if (!dto.getCodigo().trim().matches("[A-Za-z]{3}")) {
+                problemas.add("el código debe tener 3 letras");
+            }
+        }
+        if (enBlanco(dto.getNombre())) {
+            problemas.add("el nombre es obligatorio");
+        } else if (dto.getNombre().trim().length() > 50) {
+            problemas.add("el nombre no puede superar los 50 caracteres");
+        }
+        if (dto.getEmpresaId() == null) {
+            problemas.add("la empresa es obligatoria");
+        }
+        if (dto.getSrid() == null || !SRID_PERU.contains(dto.getSrid())) {
+            problemas.add("el SRID debe ser 32717, 32718 o 32719 (UTM 17S, 18S o 19S)");
+        }
+        if (!problemas.isEmpty()) {
+            String texto = String.join("; ", problemas);
+            throw new IllegalArgumentException(Character.toUpperCase(texto.charAt(0)) + texto.substring(1) + ".");
+        }
+    }
+
+    private static boolean enBlanco(String valor) {
+        return valor == null || valor.trim().isEmpty();
     }
 
     private ProyectoDTO convertToDto(Proyecto proyecto) {

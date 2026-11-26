@@ -44,8 +44,8 @@ import jakarta.validation.Valid;
      */
     @PostMapping(&quot;/register&quot;)
     public ResponseEntity&lt;UsuarioDTO&gt; registrar(@Valid @RequestBody RegistroDTO dto) {
-<span class="nc" id="L47">        log.info(&quot;HTTP POST - Auto-registro de la cuenta: {}&quot;, dto.getUsuario());</span>
-<span class="nc" id="L48">        return new ResponseEntity&lt;&gt;(usuarioService.registrar(dto), HttpStatus.CREATED);</span>
+<span class="fc" id="L47">        log.info(&quot;HTTP POST - Auto-registro de la cuenta: {}&quot;, dto.getUsuario());</span>
+<span class="fc" id="L48">        return new ResponseEntity&lt;&gt;(usuarioService.registrar(dto), HttpStatus.CREATED);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

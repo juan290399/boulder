@@ -4,10 +4,10 @@
 
     <div class="app-sidebar__brand">
       <div class="app-sidebar__mark">
-        <i class="bi bi-sliders"></i>
+        <app-marca />
       </div>
       <div>
-        <h1 class="app-sidebar__title">Boulder</h1>
+        <p class="app-sidebar__title">Boulder</p>
         <span class="app-sidebar__subtitle">Administración</span>
       </div>
     </div>
@@ -15,46 +15,39 @@
     <nav class="app-sidebar__nav">
       <div class="app-sidebar__section">Accesos</div>
 
-      <a class="app-sidebar__link" routerLink="/admin/usuarios" routerLinkActive="active">
-        <i class="bi bi-people"></i><span>Usuarios</span>
+      <a class="app-sidebar__link" routerLink="/admin/usuarios" routerLinkActive="active" ariaCurrentWhenActive="page" title="Usuarios">
+        <i aria-hidden="true" class="bi bi-people"></i><span>Usuarios</span>
       </a>
-      <a class="app-sidebar__link" routerLink="/admin/roles" routerLinkActive="active">
-        <i class="bi bi-shield-lock"></i><span>Roles</span>
+      <a class="app-sidebar__link" routerLink="/admin/roles" routerLinkActive="active" ariaCurrentWhenActive="page" title="Roles">
+        <i aria-hidden="true" class="bi bi-shield-lock"></i><span>Roles</span>
       </a>
 
       <div class="app-sidebar__section">Datos maestros</div>
 
-      <a class="app-sidebar__link" routerLink="/admin/empresas" routerLinkActive="active">
-        <i class="bi bi-building"></i><span>Empresas</span>
+      <a class="app-sidebar__link" routerLink="/admin/empresas" routerLinkActive="active" ariaCurrentWhenActive="page" title="Empresas">
+        <i aria-hidden="true" class="bi bi-building"></i><span>Empresas</span>
       </a>
-      <a class="app-sidebar__link" routerLink="/admin/proyectos" routerLinkActive="active">
-        <i class="bi bi-folder2-open"></i><span>Proyectos</span>
+      <a class="app-sidebar__link" routerLink="/admin/proyectos" routerLinkActive="active" ariaCurrentWhenActive="page" title="Proyectos">
+        <i aria-hidden="true" class="bi bi-folder2-open"></i><span>Proyectos</span>
       </a>
-      <a class="app-sidebar__link" routerLink="/admin/empleados" routerLinkActive="active">
-        <i class="bi bi-person-badge"></i><span>Empleados</span>
+      <a class="app-sidebar__link" routerLink="/admin/empleados" routerLinkActive="active" ariaCurrentWhenActive="page" title="Empleados">
+        <i aria-hidden="true" class="bi bi-person-badge"></i><span>Empleados</span>
       </a>
 
       <div class="app-sidebar__section">Geología</div>
 
-      <a class="app-sidebar__link" routerLink="/admin/diccionarios" routerLinkActive="active">
-        <i class="bi bi-journal-bookmark"></i><span>Diccionarios</span>
+      <a class="app-sidebar__link" routerLink="/admin/diccionarios" routerLinkActive="active" ariaCurrentWhenActive="page" title="Diccionarios">
+        <i aria-hidden="true" class="bi bi-journal-bookmark"></i><span>Diccionarios</span>
       </a>
-
-      <!-- Auditoría sigue sin respaldo: no existe tabla que registre los
-           cambios, así que el ítem queda a la vista pero apagado. -->
-      <span class="app-sidebar__link app-sidebar__link--disabled"
-            title="Pendiente: no existe tabla de auditoría">
-        <i class="bi bi-journal-text"></i><span>Auditoría</span>
-      </span>
     </nav>
 
     <div class="app-sidebar__foot">
       <button type="button" class="app-sidebar__link" (click)="irAOperaciones()">
-        <i class="bi bi-arrow-left-right"></i><span>Ir a operaciones</span>
+        <i aria-hidden="true" class="bi bi-arrow-left-right"></i><span>Ir a operaciones</span>
       </button>
       <button type="button" class="app-sidebar__link app-sidebar__link--danger"
               (click)="cerrarSesion()">
-        <i class="bi bi-box-arrow-right"></i><span>Cerrar sesión</span>
+        <i aria-hidden="true" class="bi bi-box-arrow-right"></i><span>Cerrar sesión</span>
       </button>
     </div>
   </aside>
@@ -63,8 +56,7 @@
 
     <header class="app-topbar">
       <div class="topbar__context">
-        <span class="topbar__eyebrow">Administración</span>
-        <span class="topbar__area">Cuentas y datos maestros</span>
+        <span class="topbar__area">Administración</span>
       </div>
 
       <div class="topbar__right">

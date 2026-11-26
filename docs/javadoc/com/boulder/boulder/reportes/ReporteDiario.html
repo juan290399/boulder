@@ -99,9 +99,12 @@ loadScripts(document, 'script');</script>
 <dd><code><span id="param-totalLogueado">totalLogueado</span></code> - metros con logueo geológico en el día</dd>
 <dd><code><span id="param-totalCajas">totalCajas</span></code> - cajas de testigo recibidas en el almacén</dd>
 <dd><code><span id="param-totalMuestras">totalMuestras</span></code> - muestras registradas en el muestreo</dd>
+<dd><code><span id="param-campania">campania</span></code> - resumen de la campaña hasta <code>fecha</code>, por sondaje</dd>
+<dd><code><span id="param-porMaquina">porMaquina</span></code> - metros perforados en el día por máquina</dd>
+<dd><code><span id="param-mensual">mensual</span></code> - metros perforados por sondaje y por mes hasta <code>fecha</code></dd>
 </dl>
 <hr>
-<div class="type-signature"><span class="modifiers">public record </span><span class="element-name type-name-label">ReporteDiario</span>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;fecha, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaSondaje.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaSondaje</a>&gt;&nbsp;sondajes, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.PuntoSerie.html" title="class in com.boulder.boulder.reportes">ReporteDiario.PuntoSerie</a>&gt;&nbsp;ultimosDias, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a>&nbsp;totalPerforado, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a>&nbsp;totalLogueado, int&nbsp;totalCajas, int&nbsp;totalMuestras)
+<div class="type-signature"><span class="modifiers">public record </span><span class="element-name type-name-label">ReporteDiario</span>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;fecha, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaSondaje.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaSondaje</a>&gt;&nbsp;sondajes, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.PuntoSerie.html" title="class in com.boulder.boulder.reportes">ReporteDiario.PuntoSerie</a>&gt;&nbsp;ultimosDias, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a>&nbsp;totalPerforado, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a>&nbsp;totalLogueado, int&nbsp;totalCajas, int&nbsp;totalMuestras, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaCampania.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaCampania</a>&gt;&nbsp;campania, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaMaquina.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaMaquina</a>&gt;&nbsp;porMaquina, <a href="ReporteDiario.Mensual.html" title="class in com.boulder.boulder.reportes">ReporteDiario.Mensual</a>&nbsp;mensual)
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Record.html" title="class or interface in java.lang" class="external-link">Record</a></span></div>
 <div class="block">Reporte diario consolidado de la campaña (pantalla P11, RF15).
 
@@ -121,13 +124,38 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-second">Class</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color"><code>static final record&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="ReporteDiario.CeldaMensual.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReporteDiario.CeldaMensual</a></code></div>
+<div class="col-last even-row-color">
+<div class="block">Metros perforados por un sondaje en un mes; es el dato crudo de la matriz mensual.</div>
+</div>
+<div class="col-first odd-row-color"><code>static final record&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="ReporteDiario.FilaCampania.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaCampania</a></code></div>
+<div class="col-last odd-row-color">
+<div class="block">Un sondaje de la campaña: máquina, fechas de perforación, días, avance total y estado.</div>
+</div>
+<div class="col-first even-row-color"><code>static final record&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="ReporteDiario.FilaMaquina.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaMaquina</a></code></div>
+<div class="col-last even-row-color">
+<div class="block">Metros perforados por una máquina en el día.</div>
+</div>
+<div class="col-first odd-row-color"><code>static final record&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="ReporteDiario.FilaMensual.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaMensual</a></code></div>
+<div class="col-last odd-row-color">
+<div class="block">Fila de la matriz mensual: los metros de un sondaje en cada mes de <a href="ReporteDiario.Mensual.html#meses()"><code>ReporteDiario.Mensual.meses()</code></a>.</div>
+</div>
+<div class="col-first even-row-color"><code>static final record&nbsp;</code></div>
 <div class="col-second even-row-color"><code><a href="ReporteDiario.FilaSondaje.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaSondaje</a></code></div>
 <div class="col-last even-row-color">
 <div class="block">Actividad de un sondaje en el día.</div>
 </div>
 <div class="col-first odd-row-color"><code>static final record&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="ReporteDiario.PuntoSerie.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReporteDiario.PuntoSerie</a></code></div>
+<div class="col-second odd-row-color"><code><a href="ReporteDiario.Mensual.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReporteDiario.Mensual</a></code></div>
 <div class="col-last odd-row-color">
+<div class="block">Matriz de metros perforados por sondaje y por mes.</div>
+</div>
+<div class="col-first even-row-color"><code>static final record&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="ReporteDiario.PuntoSerie.html" class="type-name-link" title="class in com.boulder.boulder.reportes">ReporteDiario.PuntoSerie</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">Metros perforados en un día.</div>
 </div>
 </div>
@@ -141,13 +169,16 @@ loadScripts(document, 'script');</script>
 <div class="summary-table two-column-summary">
 <div class="table-header col-first">Constructor</div>
 <div class="table-header col-last">Description</div>
-<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(java.time.LocalDate,java.util.List,java.util.List,java.math.BigDecimal,java.math.BigDecimal,int,int)" class="member-name-link">ReporteDiario</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;fecha,
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(java.time.LocalDate,java.util.List,java.util.List,java.math.BigDecimal,java.math.BigDecimal,int,int,java.util.List,java.util.List,com.boulder.boulder.reportes.ReporteDiario.Mensual)" class="member-name-link">ReporteDiario</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;fecha,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaSondaje.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaSondaje</a>&gt;&nbsp;sondajes,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.PuntoSerie.html" title="class in com.boulder.boulder.reportes">ReporteDiario.PuntoSerie</a>&gt;&nbsp;ultimosDias,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a>&nbsp;totalPerforado,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a>&nbsp;totalLogueado,
  int&nbsp;totalCajas,
- int&nbsp;totalMuestras)</code></div>
+ int&nbsp;totalMuestras,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaCampania.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaCampania</a>&gt;&nbsp;campania,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaMaquina.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaMaquina</a>&gt;&nbsp;porMaquina,
+ <a href="ReporteDiario.Mensual.html" title="class in com.boulder.boulder.reportes">ReporteDiario.Mensual</a>&nbsp;mensual)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Creates an instance of a <code>ReporteDiario</code> record class.</div>
 </div>
@@ -165,42 +196,80 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="ReporteDiario.html" title="class in com.boulder.boulder.reportes">ReporteDiario</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#de(java.time.LocalDate,java.util.List,java.util.List)" class="member-name-link">de</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;fecha,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="ReporteDiario.FilaCampania.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaCampania</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#campania()" class="member-name-link">campania</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Returns the value of the <a href="#param-campania"><code>campania</code></a> record component.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="ReporteDiario.html" title="class in com.boulder.boulder.reportes">ReporteDiario</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#de(java.time.LocalDate,java.util.List,java.util.List)" class="member-name-link">de</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;fecha,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaSondaje.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaSondaje</a>&gt;&nbsp;filas,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.PuntoSerie.html" title="class in com.boulder.boulder.reportes">ReporteDiario.PuntoSerie</a>&gt;&nbsp;serie)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Arma el reporte: ordena las filas por código y calcula los totales.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#equals(java.lang.Object)" class="member-name-link">equals</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;o)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="ReporteDiario.html" title="class in com.boulder.boulder.reportes">ReporteDiario</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#de(java.time.LocalDate,java.util.List,java.util.List,java.util.List)" class="member-name-link">de</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;fecha,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaSondaje.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaSondaje</a>&gt;&nbsp;filas,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.PuntoSerie.html" title="class in com.boulder.boulder.reportes">ReporteDiario.PuntoSerie</a>&gt;&nbsp;serie,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaCampania.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaCampania</a>&gt;&nbsp;campania)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Igual que <a href="#de(java.time.LocalDate,java.util.List,java.util.List)"><code>de(LocalDate, List, List)</code></a> con el resumen de campaña.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="ReporteDiario.html" title="class in com.boulder.boulder.reportes">ReporteDiario</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#de(java.time.LocalDate,java.util.List,java.util.List,java.util.List,java.util.List,java.util.List)" class="member-name-link">de</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;fecha,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaSondaje.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaSondaje</a>&gt;&nbsp;filas,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.PuntoSerie.html" title="class in com.boulder.boulder.reportes">ReporteDiario.PuntoSerie</a>&gt;&nbsp;serie,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaCampania.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaCampania</a>&gt;&nbsp;campania,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaMaquina.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaMaquina</a>&gt;&nbsp;porMaquina,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.CeldaMensual.html" title="class in com.boulder.boulder.reportes">ReporteDiario.CeldaMensual</a>&gt;&nbsp;mensual)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Igual que <a href="#de(java.time.LocalDate,java.util.List,java.util.List,java.util.List)"><code>de(LocalDate, List, List, List)</code></a> con el avance por máquina y la matriz mensual.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#equals(java.lang.Object)" class="member-name-link">equals</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;o)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Indicates whether some other object is "equal to" this one.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#fecha()" class="member-name-link">fecha</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#fecha()" class="member-name-link">fecha</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <a href="#param-fecha"><code>fecha</code></a> record component.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final int</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#hashCode()" class="member-name-link">hashCode</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final int</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#hashCode()" class="member-name-link">hashCode</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns a hash code value for this object.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="ReporteDiario.FilaSondaje.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaSondaje</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#sondajes()" class="member-name-link">sondajes</a>()</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="ReporteDiario.Mensual.html" title="class in com.boulder.boulder.reportes">ReporteDiario.Mensual</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#mensual()" class="member-name-link">mensual</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Returns the value of the <a href="#param-mensual"><code>mensual</code></a> record component.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="ReporteDiario.FilaMaquina.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaMaquina</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#porMaquina()" class="member-name-link">porMaquina</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Returns the value of the <a href="#param-porMaquina"><code>porMaquina</code></a> record component.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="ReporteDiario.FilaSondaje.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaSondaje</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#sondajes()" class="member-name-link">sondajes</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <a href="#param-sondajes"><code>sondajes</code></a> record component.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#toString()" class="member-name-link">toString</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#toString()" class="member-name-link">toString</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns a string representation of this record class.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#totalCajas()" class="member-name-link">totalCajas</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#totalCajas()" class="member-name-link">totalCajas</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <a href="#param-totalCajas"><code>totalCajas</code></a> record component.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#totalCampania()" class="member-name-link">totalCampania</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Metros perforados en la campaña hasta la fecha del reporte.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#totalLogueado()" class="member-name-link">totalLogueado</a>()</code></div>
@@ -240,7 +309,7 @@ loadScripts(document, 'script');</script>
 <h2>Constructor Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="&lt;init&gt;(java.time.LocalDate,java.util.List,java.util.List,java.math.BigDecimal,java.math.BigDecimal,int,int)">
+<section class="detail" id="&lt;init&gt;(java.time.LocalDate,java.util.List,java.util.List,java.math.BigDecimal,java.math.BigDecimal,int,int,java.util.List,java.util.List,com.boulder.boulder.reportes.ReporteDiario.Mensual)">
 <h3>ReporteDiario</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">ReporteDiario</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;fecha,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaSondaje.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaSondaje</a>&gt;&nbsp;sondajes,
@@ -248,7 +317,10 @@ loadScripts(document, 'script');</script>
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a>&nbsp;totalPerforado,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a>&nbsp;totalLogueado,
  int&nbsp;totalCajas,
- int&nbsp;totalMuestras)</span></div>
+ int&nbsp;totalMuestras,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaCampania.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaCampania</a>&gt;&nbsp;campania,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaMaquina.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaMaquina</a>&gt;&nbsp;porMaquina,
+ <a href="ReporteDiario.Mensual.html" title="class in com.boulder.boulder.reportes">ReporteDiario.Mensual</a>&nbsp;mensual)</span></div>
 <div class="block">Creates an instance of a <code>ReporteDiario</code> record class.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
@@ -259,6 +331,9 @@ loadScripts(document, 'script');</script>
 <dd><code>totalLogueado</code> - the value for the <a href="#param-totalLogueado"><code>totalLogueado</code></a> record component</dd>
 <dd><code>totalCajas</code> - the value for the <a href="#param-totalCajas"><code>totalCajas</code></a> record component</dd>
 <dd><code>totalMuestras</code> - the value for the <a href="#param-totalMuestras"><code>totalMuestras</code></a> record component</dd>
+<dd><code>campania</code> - the value for the <a href="#param-campania"><code>campania</code></a> record component</dd>
+<dd><code>porMaquina</code> - the value for the <a href="#param-porMaquina"><code>porMaquina</code></a> record component</dd>
+<dd><code>mensual</code> - the value for the <a href="#param-mensual"><code>mensual</code></a> record component</dd>
 </dl>
 </section>
 </li>
@@ -271,6 +346,13 @@ loadScripts(document, 'script');</script>
 <h2>Method Details</h2>
 <ul class="member-list">
 <li>
+<section class="detail" id="totalCampania()">
+<h3>totalCampania</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a></span>&nbsp;<span class="element-name">totalCampania</span>()</div>
+<div class="block">Metros perforados en la campaña hasta la fecha del reporte.</div>
+</section>
+</li>
+<li>
 <section class="detail" id="de(java.time.LocalDate,java.util.List,java.util.List)">
 <h3>de</h3>
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="ReporteDiario.html" title="class in com.boulder.boulder.reportes">ReporteDiario</a></span>&nbsp;<span class="element-name">de</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;fecha,
@@ -282,6 +364,41 @@ loadScripts(document, 'script');</script>
 <dd><code>fecha</code> - día del reporte</dd>
 <dd><code>filas</code> - actividad por sondaje, en cualquier orden</dd>
 <dd><code>serie</code> - metros perforados por día</dd>
+<dt>Returns:</dt>
+<dd>el reporte inmutable</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="de(java.time.LocalDate,java.util.List,java.util.List,java.util.List)">
+<h3>de</h3>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="ReporteDiario.html" title="class in com.boulder.boulder.reportes">ReporteDiario</a></span>&nbsp;<span class="element-name">de</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;fecha,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaSondaje.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaSondaje</a>&gt;&nbsp;filas,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.PuntoSerie.html" title="class in com.boulder.boulder.reportes">ReporteDiario.PuntoSerie</a>&gt;&nbsp;serie,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaCampania.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaCampania</a>&gt;&nbsp;campania)</span></div>
+<div class="block">Igual que <a href="#de(java.time.LocalDate,java.util.List,java.util.List)"><code>de(LocalDate, List, List)</code></a> con el resumen de campaña.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>campania</code> - sondajes de la campaña, en cualquier orden</dd>
+<dt>Returns:</dt>
+<dd>el reporte inmutable</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="de(java.time.LocalDate,java.util.List,java.util.List,java.util.List,java.util.List,java.util.List)">
+<h3>de</h3>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="ReporteDiario.html" title="class in com.boulder.boulder.reportes">ReporteDiario</a></span>&nbsp;<span class="element-name">de</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&nbsp;fecha,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaSondaje.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaSondaje</a>&gt;&nbsp;filas,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.PuntoSerie.html" title="class in com.boulder.boulder.reportes">ReporteDiario.PuntoSerie</a>&gt;&nbsp;serie,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaCampania.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaCampania</a>&gt;&nbsp;campania,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaMaquina.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaMaquina</a>&gt;&nbsp;porMaquina,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.CeldaMensual.html" title="class in com.boulder.boulder.reportes">ReporteDiario.CeldaMensual</a>&gt;&nbsp;mensual)</span></div>
+<div class="block">Igual que <a href="#de(java.time.LocalDate,java.util.List,java.util.List,java.util.List)"><code>de(LocalDate, List, List, List)</code></a> con el avance por máquina y la matriz mensual.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>porMaquina</code> - metros del día por máquina, en cualquier orden</dd>
+<dd><code>mensual</code> - metros por sondaje y mes, en cualquier orden</dd>
 <dt>Returns:</dt>
 <dd>el reporte inmutable</dd>
 </dl>
@@ -402,6 +519,39 @@ loadScripts(document, 'script');</script>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>the value of the <a href="#param-totalMuestras"><code>totalMuestras</code></a> record component</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="campania()">
+<h3>campania</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaCampania.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaCampania</a>&gt;</span>&nbsp;<span class="element-name">campania</span>()</div>
+<div class="block">Returns the value of the <a href="#param-campania"><code>campania</code></a> record component.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>the value of the <a href="#param-campania"><code>campania</code></a> record component</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="porMaquina()">
+<h3>porMaquina</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="ReporteDiario.FilaMaquina.html" title="class in com.boulder.boulder.reportes">ReporteDiario.FilaMaquina</a>&gt;</span>&nbsp;<span class="element-name">porMaquina</span>()</div>
+<div class="block">Returns the value of the <a href="#param-porMaquina"><code>porMaquina</code></a> record component.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>the value of the <a href="#param-porMaquina"><code>porMaquina</code></a> record component</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="mensual()">
+<h3>mensual</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="ReporteDiario.Mensual.html" title="class in com.boulder.boulder.reportes">ReporteDiario.Mensual</a></span>&nbsp;<span class="element-name">mensual</span>()</div>
+<div class="block">Returns the value of the <a href="#param-mensual"><code>mensual</code></a> record component.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>the value of the <a href="#param-mensual"><code>mensual</code></a> record component</dd>
 </dl>
 </section>
 </li>

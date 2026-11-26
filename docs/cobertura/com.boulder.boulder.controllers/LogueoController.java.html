@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.boulder.boulder.dto.ResultadoSubidaDTO;
 import com.boulder.boulder.entities.Alteracion;
 import com.boulder.boulder.entities.Estructural;
 import com.boulder.boulder.entities.Litologia;
@@ -43,9 +44,9 @@ import com.boulder.boulder.services.LogueoService;
  */
 @RestController
 @RequestMapping(&quot;/api/logueo&quot;)
-<span class="fc" id="L46">public class LogueoController {</span>
+<span class="fc" id="L47">public class LogueoController {</span>
 
-<span class="fc" id="L48">    private static final Logger log = LoggerFactory.getLogger(LogueoController.class);</span>
+<span class="fc" id="L49">    private static final Logger log = LoggerFactory.getLogger(LogueoController.class);</span>
 
     @Autowired
     private LogueoService logueoService;
@@ -57,36 +58,36 @@ import com.boulder.boulder.services.LogueoService;
     @GetMapping(&quot;/litologia&quot;)
     public ResponseEntity&lt;List&lt;Litologia&gt;&gt; litologia(@RequestParam UUID sondajeId,
             @RequestParam(defaultValue = &quot;false&quot;) boolean incluirEliminados) {
-<span class="nc" id="L60">        log.info(&quot;HTTP GET - Litología del sondaje {}&quot;, sondajeId);</span>
-<span class="nc" id="L61">        return ResponseEntity.ok(logueoService.listarLitologia(sondajeId, incluirEliminados));</span>
+<span class="nc" id="L61">        log.info(&quot;HTTP GET - Litología del sondaje {}&quot;, sondajeId);</span>
+<span class="nc" id="L62">        return ResponseEntity.ok(logueoService.listarLitologia(sondajeId, incluirEliminados));</span>
     }
 
     @GetMapping(&quot;/alteracion&quot;)
     public ResponseEntity&lt;List&lt;Alteracion&gt;&gt; alteracion(@RequestParam UUID sondajeId,
             @RequestParam(defaultValue = &quot;false&quot;) boolean incluirEliminados) {
-<span class="nc" id="L67">        log.info(&quot;HTTP GET - Alteración del sondaje {}&quot;, sondajeId);</span>
-<span class="nc" id="L68">        return ResponseEntity.ok(logueoService.listarAlteracion(sondajeId, incluirEliminados));</span>
+<span class="nc" id="L68">        log.info(&quot;HTTP GET - Alteración del sondaje {}&quot;, sondajeId);</span>
+<span class="nc" id="L69">        return ResponseEntity.ok(logueoService.listarAlteracion(sondajeId, incluirEliminados));</span>
     }
 
     @GetMapping(&quot;/mineralizacion&quot;)
     public ResponseEntity&lt;List&lt;Mineralizacion&gt;&gt; mineralizacion(@RequestParam UUID sondajeId,
             @RequestParam(defaultValue = &quot;false&quot;) boolean incluirEliminados) {
-<span class="nc" id="L74">        log.info(&quot;HTTP GET - Mineralización del sondaje {}&quot;, sondajeId);</span>
-<span class="nc" id="L75">        return ResponseEntity.ok(logueoService.listarMineralizacion(sondajeId, incluirEliminados));</span>
+<span class="nc" id="L75">        log.info(&quot;HTTP GET - Mineralización del sondaje {}&quot;, sondajeId);</span>
+<span class="nc" id="L76">        return ResponseEntity.ok(logueoService.listarMineralizacion(sondajeId, incluirEliminados));</span>
     }
 
     @GetMapping(&quot;/estructural&quot;)
     public ResponseEntity&lt;List&lt;Estructural&gt;&gt; estructural(@RequestParam UUID sondajeId,
             @RequestParam(defaultValue = &quot;false&quot;) boolean incluirEliminados) {
-<span class="nc" id="L81">        log.info(&quot;HTTP GET - Estructural del sondaje {}&quot;, sondajeId);</span>
-<span class="nc" id="L82">        return ResponseEntity.ok(logueoService.listarEstructural(sondajeId, incluirEliminados));</span>
+<span class="nc" id="L82">        log.info(&quot;HTTP GET - Estructural del sondaje {}&quot;, sondajeId);</span>
+<span class="nc" id="L83">        return ResponseEntity.ok(logueoService.listarEstructural(sondajeId, incluirEliminados));</span>
     }
 
     @GetMapping(&quot;/quicklog&quot;)
     public ResponseEntity&lt;List&lt;Quicklog&gt;&gt; quicklog(@RequestParam UUID sondajeId,
             @RequestParam(defaultValue = &quot;false&quot;) boolean incluirEliminados) {
-<span class="nc" id="L88">        log.info(&quot;HTTP GET - Quicklog del sondaje {}&quot;, sondajeId);</span>
-<span class="nc" id="L89">        return ResponseEntity.ok(logueoService.listarQuicklog(sondajeId, incluirEliminados));</span>
+<span class="nc" id="L89">        log.info(&quot;HTTP GET - Quicklog del sondaje {}&quot;, sondajeId);</span>
+<span class="nc" id="L90">        return ResponseEntity.ok(logueoService.listarQuicklog(sondajeId, incluirEliminados));</span>
     }
 
     // ------------------------------------------------------------------
@@ -94,54 +95,54 @@ import com.boulder.boulder.services.LogueoService;
     // ------------------------------------------------------------------
 
     @PutMapping(&quot;/litologia&quot;)
-    public ResponseEntity&lt;Void&gt; subirLitologia(@RequestBody List&lt;Litologia&gt; items,
+    public ResponseEntity&lt;ResultadoSubidaDTO&gt; subirLitologia(@RequestBody List&lt;Litologia&gt; items,
             @RequestHeader(value = &quot;X-Dispositivo&quot;, required = false) String dispositivo,
             @RequestHeader(value = &quot;X-App-Version&quot;, required = false) String versionApp,
             Principal principal) {
-<span class="nc bnc" id="L101" title="All 2 branches missed.">        logueoService.guardarLitologia(items, dispositivo, principal != null ? principal.getName() : null, versionApp);</span>
-<span class="nc" id="L102">        return ResponseEntity.noContent().build();</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">        return responder(logueoService.guardarLitologia(items, dispositivo, principal != null ? principal.getName() : null, versionApp));</span>
     }
 
     @PutMapping(&quot;/alteracion&quot;)
-    public ResponseEntity&lt;Void&gt; subirAlteracion(@RequestBody List&lt;Alteracion&gt; items,
+    public ResponseEntity&lt;ResultadoSubidaDTO&gt; subirAlteracion(@RequestBody List&lt;Alteracion&gt; items,
             @RequestHeader(value = &quot;X-Dispositivo&quot;, required = false) String dispositivo,
             @RequestHeader(value = &quot;X-App-Version&quot;, required = false) String versionApp,
             Principal principal) {
-<span class="nc bnc" id="L110" title="All 2 branches missed.">        logueoService.guardarAlteracion(items, dispositivo, principal != null ? principal.getName() : null, versionApp);</span>
-<span class="nc" id="L111">        return ResponseEntity.noContent().build();</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        return responder(logueoService.guardarAlteracion(items, dispositivo, principal != null ? principal.getName() : null, versionApp));</span>
     }
 
     @PutMapping(&quot;/mineralizacion&quot;)
-    public ResponseEntity&lt;Void&gt; subirMineralizacion(@RequestBody List&lt;Mineralizacion&gt; items,
+    public ResponseEntity&lt;ResultadoSubidaDTO&gt; subirMineralizacion(@RequestBody List&lt;Mineralizacion&gt; items,
             @RequestHeader(value = &quot;X-Dispositivo&quot;, required = false) String dispositivo,
             @RequestHeader(value = &quot;X-App-Version&quot;, required = false) String versionApp,
             Principal principal) {
-<span class="nc bnc" id="L119" title="All 2 branches missed.">        logueoService.guardarMineralizacion(items, dispositivo, principal != null ? principal.getName() : null, versionApp);</span>
-<span class="nc" id="L120">        return ResponseEntity.noContent().build();</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">        return responder(logueoService.guardarMineralizacion(items, dispositivo, principal != null ? principal.getName() : null, versionApp));</span>
     }
 
     @PutMapping(&quot;/estructural&quot;)
-    public ResponseEntity&lt;Void&gt; subirEstructural(@RequestBody List&lt;Estructural&gt; items,
+    public ResponseEntity&lt;ResultadoSubidaDTO&gt; subirEstructural(@RequestBody List&lt;Estructural&gt; items,
             @RequestHeader(value = &quot;X-Dispositivo&quot;, required = false) String dispositivo,
             @RequestHeader(value = &quot;X-App-Version&quot;, required = false) String versionApp,
             Principal principal) {
-<span class="nc bnc" id="L128" title="All 2 branches missed.">        logueoService.guardarEstructural(items, dispositivo, principal != null ? principal.getName() : null, versionApp);</span>
-<span class="nc" id="L129">        return ResponseEntity.noContent().build();</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        return responder(logueoService.guardarEstructural(items, dispositivo, principal != null ? principal.getName() : null, versionApp));</span>
     }
 
     @PutMapping(&quot;/quicklog&quot;)
-    public ResponseEntity&lt;Void&gt; subirQuicklog(@RequestBody List&lt;Quicklog&gt; items,
+    public ResponseEntity&lt;ResultadoSubidaDTO&gt; subirQuicklog(@RequestBody List&lt;Quicklog&gt; items,
             @RequestHeader(value = &quot;X-Dispositivo&quot;, required = false) String dispositivo,
             @RequestHeader(value = &quot;X-App-Version&quot;, required = false) String versionApp,
             Principal principal) {
-<span class="nc bnc" id="L137" title="All 2 branches missed.">        logueoService.guardarQuicklog(items, dispositivo, principal != null ? principal.getName() : null, versionApp);</span>
-<span class="nc" id="L138">        return ResponseEntity.noContent().build();</span>
+<span class="pc bpc" id="L134" title="1 of 2 branches missed.">        return responder(logueoService.guardarQuicklog(items, dispositivo, principal != null ? principal.getName() : null, versionApp));</span>
+    }
+
+    /** 204 si el lote entró completo; 422 con las filas rechazadas si no. Las demás quedan guardadas. */
+    private static ResponseEntity&lt;ResultadoSubidaDTO&gt; responder(ResultadoSubidaDTO r) {
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">        return r.completo() ? ResponseEntity.noContent().build() : ResponseEntity.unprocessableEntity().body(r);</span>
     }
 
     /** Tablets de GeoLog y cuándo sincronizó cada una por última vez. */
     @GetMapping(&quot;/dispositivos&quot;)
     public ResponseEntity&lt;List&lt;java.util.Map&lt;String, Object&gt;&gt;&gt; dispositivos() {
-<span class="fc" id="L144">        return ResponseEntity.ok(logueoService.dispositivos());</span>
+<span class="fc" id="L145">        return ResponseEntity.ok(logueoService.dispositivos());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

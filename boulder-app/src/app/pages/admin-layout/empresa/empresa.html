@@ -1,84 +1,140 @@
 <div class="page">
-  <div class="panel panel__body">
-    <h1 class="page-head__title mb-4">Empresas</h1>
-
-    <div class="row g-2 mb-3">
-      <div class="col-md-2">
-        <input class="form-control" placeholder="Código" [(ngModel)]="form.codigo" />
-      </div>
-      <div class="col-md-4">
-        <input class="form-control" placeholder="Razón social" [(ngModel)]="form.nombre" />
-      </div>
-      <div class="col-md-2">
-        <input class="form-control" placeholder="RUC" [(ngModel)]="form.ruc" />
-      </div>
-      <div class="col-md-4">
-        <input class="form-control" placeholder="Dirección" [(ngModel)]="form.direccion" />
-      </div>
-    </div>
-
-    <div class="row g-2 mb-3">
-      <div class="col-md-3">
-        <input class="form-control" placeholder="Teléfono" [(ngModel)]="form.telefono" />
-      </div>
-      <div class="col-md-4">
-        <input class="form-control" placeholder="Correo" [(ngModel)]="form.correo" />
-      </div>
-    </div>
-
-    <div class="mb-4">
-      <button class="btn btn-success me-2" (click)="guardar()">
-        {{ form.id ? 'Actualizar' : 'Crear' }}
-      </button>
-      <button class="btn btn-secondary" (click)="limpiar()">Limpiar</button>
-    </div>
-
-    <div *ngIf="mensaje" class="alert-inline alert-inline--info">{{ mensaje }}</div>
-
-    <hr class="my-3" />
-
-    <div class="row g-2 mb-3">
-      <div class="col-md-6">
-        <div class="input-group">
-          <input class="form-control" placeholder="Buscar por RUC" [(ngModel)]="busquedaRuc" />
-          <button class="btn btn-primary" (click)="buscarPorRuc()">Buscar</button>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="input-group">
-          <input class="form-control" placeholder="Buscar por ID" [(ngModel)]="busquedaId" />
-          <button class="btn btn-primary" (click)="buscarPorId()">Buscar</button>
-        </div>
-      </div>
-    </div>
-
-    <button class="btn btn-outline-primary mb-3" [disabled]="loading" (click)="listar()">
-      Refrescar listado
+  <div class="page-head">
+    <h1 class="page-head__title">Empresas</h1>
+    <button type="button" class="btn btn-success" (click)="nueva()">
+      <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Nueva empresa
     </button>
+  </div>
 
-    <div class="table-scroll" *ngIf="empresas.length > 0; else vacio">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Código</th><th>Razón social</th><th>RUC</th><th>Dirección</th><th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let e of empresas">
-            <td>{{ e.codigo }}</td>
-            <td>{{ e.nombre }}</td>
-            <td>{{ e.ruc || '—' }}</td>
-            <td>{{ e.direccion || '—' }}</td>
-            <td class="text-end">
-              <button class="btn btn-sm btn-outline-primary" (click)="editar(e)">Editar</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+  <div *ngIf="mensaje" class="alert-inline alert-inline--ok" role="status">{{ mensaje }}</div>
+  <div *ngIf="error" class="alert-inline" role="alert">{{ error }}</div>
 
-    <ng-template #vacio>
-      <div class="empty-state">No hay empresas para mostrar.</div>
-    </ng-template>
+  <div class="maestro-detalle" [class.con-ficha]="fichaAbierta">
+    <section class="panel">
+      <div class="panel__head">
+        <div class="toolbar w-100">
+          <div class="toolbar__field">
+            <label for="emp-filtro" class="form-label">Buscar</label>
+            <input id="emp-filtro" class="form-control" type="search" placeholder="Nombre, código o RUC"
+                   [(ngModel)]="filtro" />
+          </div>
+          <span class="toolbar__spacer"></span>
+          <span class="text-secondary small align-self-end mb-2">{{ empresasVisibles.length }} de {{ empresas.length }}</span>
+          <button type="button" class="btn btn-sm btn-outline-secondary align-self-end mb-1" [disabled]="loading" (click)="verTodos()">
+            <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i>{{ filtrado ? 'Ver todas' : 'Refrescar' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="table-scroll" *ngIf="empresasVisibles.length > 0; else vacio">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Empresa</th><th>RUC</th><th>Dirección</th><th>Contacto</th><th><span class="visually-hidden">Acciones</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let e of empresasVisibles" class="fila-editable" [class.fila-seleccionada]="esSeleccionada(e)"
+                (click)="editar(e)">
+              <td>
+                <div class="fw-semibold">{{ e.nombre }}</div>
+                <div class="mono small text-secondary">{{ e.codigo }}</div>
+              </td>
+              <td class="mono">{{ e.ruc || '—' }}</td>
+              <td>{{ e.direccion || '—' }}</td>
+              <td class="small">
+                <div *ngIf="e.telefono">{{ e.telefono }}</div>
+                <div *ngIf="e.correo" class="text-secondary">{{ e.correo }}</div>
+                <span *ngIf="!e.telefono && !e.correo" class="text-secondary">—</span>
+              </td>
+              <td class="text-end">
+                <button type="button" class="btn btn-sm btn-outline-primary" (click)="$event.stopPropagation(); editar(e)"
+                        [attr.aria-label]="'Editar ' + e.nombre">Editar</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #vacio>
+        <div class="empty-state">
+          <span *ngIf="loading">Cargando empresas…</span>
+          <span *ngIf="!loading && (filtrado || filtro)">{{ sinCoincidencias || 'Ninguna empresa coincide con la búsqueda.' }}
+            <button type="button" class="btn btn-link btn-sm p-0 align-baseline" (click)="verTodos()">Ver todas</button></span>
+          <span *ngIf="!loading && !filtrado && !filtro">Aún no hay empresas. <button type="button" class="btn btn-link btn-sm p-0 align-baseline" (click)="nueva()">Crear la primera</button></span>
+        </div>
+      </ng-template>
+
+      <!-- Búsquedas exactas en el servidor (por RUC y por ID): se dejan a mano
+           pero plegadas, porque el filtro de arriba cubre el uso normal. -->
+      <details class="busqueda-exacta">
+        <summary>Búsqueda exacta por RUC o ID</summary>
+        <div class="row g-2 mt-1">
+          <div class="col-md-6">
+            <label for="emp-buscar-ruc" class="form-label">RUC</label>
+            <div class="input-group">
+              <input id="emp-buscar-ruc" class="form-control mono" inputmode="numeric" maxlength="11" [(ngModel)]="busquedaRuc"
+                     (keyup.enter)="buscarPorRuc()" />
+              <button type="button" class="btn btn-outline-primary" (click)="buscarPorRuc()">Buscar</button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label for="emp-buscar-id" class="form-label">ID</label>
+            <div class="input-group">
+              <input id="emp-buscar-id" class="form-control mono" [(ngModel)]="busquedaId" (keyup.enter)="buscarPorId()" />
+              <button type="button" class="btn btn-outline-primary" (click)="buscarPorId()">Buscar</button>
+            </div>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <app-ficha [abierta]="fichaAbierta" [clave]="form.id" [titulo]="form.id ? 'Editar empresa' : 'Nueva empresa'"
+               [subtitulo]="form.id ? form.codigo : ''" (cerrar)="cerrarFicha()">
+      <form id="emp-formulario" (ngSubmit)="guardar()">
+        @if (errorFormulario) {
+          <div class="alert-inline" role="alert">{{ errorFormulario }}</div>
+        }
+
+        <div class="mb-3">
+          <label for="emp-nombre" class="form-label">Razón social</label>
+          <input id="emp-nombre" name="nombre" class="form-control" [(ngModel)]="form.nombre" maxlength="100" required />
+        </div>
+        <div class="row g-3 mb-3">
+          <div class="col-sm-5">
+            <label for="emp-codigo" class="form-label">Código</label>
+            <input id="emp-codigo" name="codigo" class="form-control mono" [(ngModel)]="form.codigo" maxlength="50" required
+                   autocapitalize="characters" spellcheck="false" />
+          </div>
+          <div class="col-sm-7">
+            <label for="emp-ruc" class="form-label">RUC</label>
+            <input id="emp-ruc" name="ruc" class="form-control mono" inputmode="numeric" maxlength="11" pattern="\d{11}" required
+                   [(ngModel)]="form.ruc" aria-describedby="emp-ruc-ayuda" />
+            <div id="emp-ruc-ayuda" class="form-text">11 dígitos.</div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="emp-direccion" class="form-label">Dirección <span class="text-secondary fw-normal">(opcional)</span></label>
+          <input id="emp-direccion" name="direccion" class="form-control" [(ngModel)]="form.direccion" />
+        </div>
+        <div class="row g-3">
+          <div class="col-sm-5">
+            <label for="emp-telefono" class="form-label">Teléfono <span class="text-secondary fw-normal">(opcional)</span></label>
+            <input id="emp-telefono" name="telefono" class="form-control" type="tel" [(ngModel)]="form.telefono" maxlength="50" />
+          </div>
+          <div class="col-sm-7">
+            <label for="emp-correo" class="form-label">Correo <span class="text-secondary fw-normal">(opcional)</span></label>
+            <input id="emp-correo" name="correo" class="form-control" type="email" [(ngModel)]="form.correo" maxlength="100" />
+          </div>
+        </div>
+      </form>
+
+      <div pie class="d-flex gap-2">
+        <button type="submit" form="emp-formulario" class="btn btn-success" [disabled]="guardando">
+          {{ guardando ? 'Guardando…' : (form.id ? 'Guardar cambios' : 'Crear empresa') }}
+        </button>
+        <button type="button" class="btn btn-outline-secondary" (click)="cerrarFicha()">Cancelar</button>
+      </div>
+    </app-ficha>
   </div>
 </div>
