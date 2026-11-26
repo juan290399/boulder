@@ -32,9 +32,9 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th>Plataforma</th><th>Proyecto</th>
-              <th class="num">Este</th><th class="num">Norte</th><th class="num">Elev.</th>
-              <th>Estado</th>
+              <th>Plataforma</th><th class="col-secundaria">Proyecto</th>
+              <th class="num">Este</th><th class="num">Norte</th><th class="num col-secundaria">Elev.</th>
+              <th>Estado</th><th>En uso</th>
               @if (puedeEditar) { <th><span class="visually-hidden">Acciones</span></th> }
             </tr>
           </thead>
@@ -45,15 +45,16 @@
                 <div class="mono fw-semibold text-nowrap">{{ pl.codigo }}</div>
                 <div class="small text-secondary">{{ pl.nombre }}</div>
               </td>
-              <td>{{ nombreProyecto(pl.proyectoId) }}</td>
-              <td class="num">{{ pl.este ?? '—' }}</td>
-              <td class="num">{{ pl.norte ?? '—' }}</td>
-              <td class="num">{{ pl.elevacion ?? '—' }}</td>
+              <td class="col-secundaria">{{ nombreProyecto(pl.proyectoId) }}</td>
+              <td class="num">{{ coord(pl.este) }}</td>
+              <td class="num">{{ coord(pl.norte) }}</td>
+              <td class="num col-secundaria">{{ coord(pl.elevacion) }}</td>
               <td>
                 <span class="chip" [ngClass]="estadoDe(pl.estado)?.chip ?? ''">
                   {{ estadoDe(pl.estado)?.rotulo ?? (pl.estado || '—') }}
                 </span>
               </td>
+              <td class="small text-nowrap" [title]="(enUso.get(pl.id!) ?? []).join(', ')">{{ resumenEnUso(pl.id) }}</td>
               @if (puedeEditar) {
                 <td class="text-end">
                   <button type="button" class="btn btn-sm btn-outline-primary" (click)="$event.stopPropagation(); editar(pl)"
@@ -101,6 +102,9 @@
         @if (errorFormulario) {
           <div class="alert-inline" role="alert">{{ errorFormulario }}</div>
         }
+        @if (form.id && enUso.get(form.id)?.length) {
+          <p class="ficha__nota">En uso por {{ enUso.get(form.id)!.join(', ') }} (en perforación).</p>
+        }
 
         <div class="row g-3 mb-3">
           <div class="col-sm-5">
@@ -127,6 +131,10 @@
         </div>
 
         <h3 class="ficha__grupo">Coordenadas UTM</h3>
+        <p class="form-text mt-0 mb-2">
+          {{ zonaDelProyecto ? zonaDelProyecto + ', la del proyecto.' : 'Elige el proyecto para ver su zona UTM.' }}
+          Este entre 160 000 y 840 000 m; norte entre 0 y 10 000 000 m.
+        </p>
         <div class="row g-3 mb-3">
           <div class="col-6">
             <label for="pla-este" class="form-label">Este (m)</label>

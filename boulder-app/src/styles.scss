@@ -871,7 +871,7 @@ body {
 
   > .panel { margin: 0; }
 
-  &.con-ficha { grid-template-columns: minmax(0, 1fr) minmax(340px, 420px); }
+  &.con-ficha { grid-template-columns: minmax(0, 1fr) minmax(340px, 400px); }
 }
 
 .ficha--vacia { display: none !important; }
@@ -906,7 +906,7 @@ body {
 .ficha__titulos { flex: 1 1 auto; min-width: 0; }
 .ficha__titulo { margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--bo-ink); }
 .ficha__subtitulo { margin: 0.15rem 0 0; font-size: 0.8rem; color: var(--bo-ink-2); }
-.ficha__volver { display: none; flex: 1 0 100%; padding: 0; text-align: left; }
+.ficha__volver { display: none; flex: 1 0 100%; padding: 0; text-align: left; min-height: 24px; }
 
 .ficha__body { padding: 1.25rem; overflow-y: auto; }
 
@@ -940,9 +940,14 @@ body {
   .maestro-detalle.con-ficha > .panel { display: none; }
   .ficha { position: static; }
   .ficha__caja { max-height: none; }
-  .ficha__volver { display: inline-block; }
+  .ficha__volver { display: inline-flex; align-items: center; }
   .ficha__cerrar { display: none; }
 }
+
+/* Columnas que sobran mientras la ficha está abierta (la lista queda angosta):
+   se ocultan para que la tabla no se desborde y «Editar» siga a la vista. */
+.maestro-detalle.con-ficha .col-secundaria { display: none; }
+@media (max-width: 1199.98px) { .maestro-detalle .col-secundaria { display: none; } }
 
 /* Filas que abren su registro en la ficha. */
 .data-table tbody tr.fila-editable { cursor: pointer; }

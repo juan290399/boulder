@@ -9,6 +9,8 @@ import { Plataforma as PlataformaModel, Proyecto } from '../../../models/operaci
 import { AuthService } from '../../../services/auth.service';
 import { mensajeDeError } from '../../../util/interfaz';
 import { Ficha } from '../../../components/ficha/ficha';
+import { SondajeService } from '../../../services/sondaje.service';
+import { ZONAS_UTM } from '../../admin-layout/proyecto/proyecto';
 
 const FORM_VACIO = (): PlataformaModel => ({
   proyectoId: '',
@@ -43,6 +45,9 @@ export class Plataforma implements OnInit {
   private readonly service = inject(PlataformaService);
   readonly puedeEditar = inject(AuthService).puedeMantenerMaestros();
   private readonly proyectoService = inject(ProyectoService);
+  private readonly sondajeService = inject(SondajeService);
+  /** Sondajes en perforación por plataforma: «en uso». */
+  enUso = new Map<string, string[]>();
   private readonly cdr = inject(ChangeDetectorRef);
 
   readonly estados = ESTADOS_PLATAFORMA;
@@ -72,6 +77,17 @@ export class Plataforma implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err) => this.fallo('No se pudieron cargar los proyectos', err),
+    });
+    // Qué sondaje tiene hoy cada plataforma: los que no tienen fecha de fin.
+    this.sondajeService.listar().subscribe({
+      next: (sondajes) => {
+        this.enUso = new Map();
+        for (const s of sondajes.filter(x => !x.fechaFin && x.plataformaId)) {
+          this.enUso.set(s.plataformaId!, [...(this.enUso.get(s.plataformaId!) ?? []), s.nombre || s.codigo]);
+        }
+        this.cdr.detectChanges();
+      },
+      error: () => { /* sin «en uso»: la lista sigue sirviendo */ },
     });
     this.listar();
   }
@@ -176,6 +192,24 @@ export class Plataforma implements OnInit {
       next: (p) => { this.filtrado = true; this.setLista(p ? [p] : []); },
       error: (err) => this.sinResultados(err, 'No hay ninguna plataforma con ese ID.'),
     });
+  }
+
+  /** Coordenada con 2 decimales (centímetros) y sin separador de miles. */
+  coord(v?: number | null): string {
+    return v === null || v === undefined ? '—' : v.toFixed(2);
+  }
+
+  /** Zona UTM del proyecto elegido en la ficha, para rotular las coordenadas. */
+  get zonaDelProyecto(): string | null {
+    const srid = this.proyectos.find(p => p.id === this.form.proyectoId)?.srid;
+    return ZONAS_UTM.find(z => z.srid === srid)?.etiqueta ?? null;
+  }
+
+  /** «DDH-037, DDH-033 +2»: hasta dos nombres cortos y cuántos más hay. */
+  resumenEnUso(id?: string): string {
+    const lista = (id && this.enUso.get(id)) || [];
+    if (!lista.length) { return '—'; }
+    return lista.slice(0, 2).join(', ') + (lista.length > 2 ? ` +${lista.length - 2}` : '');
   }
 
   estadoDe(valor?: string | null) {

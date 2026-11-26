@@ -8,6 +8,7 @@ import { Maquina as MaquinaModel } from '../../../models/operacional';
 import { AuthService } from '../../../services/auth.service';
 import { mensajeDeError } from '../../../util/interfaz';
 import { Ficha } from '../../../components/ficha/ficha';
+import { SondajeService } from '../../../services/sondaje.service';
 
 const FORM_VACIO = (): MaquinaModel => ({
   codigo: '',
@@ -37,6 +38,9 @@ export class Maquina implements OnInit {
   private readonly service = inject(MaquinaService);
   readonly puedeEditar = inject(AuthService).puedeMantenerMaestros();
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly sondajeService = inject(SondajeService);
+  /** Sondajes en perforación por máquina: «en uso». */
+  enUso = new Map<string, string[]>();
 
   readonly estados = ESTADOS_MAQUINA;
   maquinas: MaquinaModel[] = [];
@@ -56,6 +60,17 @@ export class Maquina implements OnInit {
   sinCoincidencias = '';
 
   ngOnInit(): void {
+    // Qué sondaje perfora hoy cada máquina: los que no tienen fecha de fin.
+    this.sondajeService.listar().subscribe({
+      next: (sondajes) => {
+        this.enUso = new Map();
+        for (const s of sondajes.filter(x => !x.fechaFin && x.maquinaId)) {
+          this.enUso.set(s.maquinaId!, [...(this.enUso.get(s.maquinaId!) ?? []), s.nombre || s.codigo]);
+        }
+        this.cdr.detectChanges();
+      },
+      error: () => { /* sin «en uso»: la lista sigue sirviendo */ },
+    });
     this.listar();
   }
 
@@ -156,6 +171,13 @@ export class Maquina implements OnInit {
 
   chipEstado(valor?: string | null): string {
     return this.estados.find(e => e.valor.toLowerCase() === (valor ?? '').toLowerCase())?.chip ?? '';
+  }
+
+  /** «DDH-037, DDH-033 +2»: hasta dos nombres cortos y cuántos más hay. */
+  resumenEnUso(id?: string): string {
+    const lista = (id && this.enUso.get(id)) || [];
+    if (!lista.length) { return '—'; }
+    return lista.slice(0, 2).join(', ') + (lista.length > 2 ? ` +${lista.length - 2}` : '');
   }
 
   private setLista(data: MaquinaModel[]): void {

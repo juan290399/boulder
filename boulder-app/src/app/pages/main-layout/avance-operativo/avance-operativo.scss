@@ -115,7 +115,8 @@
 
 /* ------------------------------------------------- detalle de un sondaje */
 
-.volver { margin-bottom: 0.25rem; text-decoration: none; }
+/* Mínimo de 24 px de alto (WCAG 2.5.8). */
+.volver { display: inline-flex; align-items: center; min-height: 24px; margin-bottom: 0.25rem; text-decoration: none; }
 
 .detalle-resumen {
   margin: 0.2rem 0 0;

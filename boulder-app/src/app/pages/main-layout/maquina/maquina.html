@@ -24,9 +24,9 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th>Máquina</th><th>Tipo</th><th>Marca</th>
+              <th>Máquina</th><th class="col-secundaria">Tipo</th><th class="col-secundaria">Marca</th>
               <th class="num">PQ (m)</th><th class="num">HQ (m)</th><th class="num">NQ (m)</th>
-              <th>Estado</th>
+              <th>Estado</th><th>En uso</th>
               @if (puedeEditar) { <th><span class="visually-hidden">Acciones</span></th> }
             </tr>
           </thead>
@@ -37,8 +37,8 @@
                 <div class="fw-semibold">{{ m.nombre }}</div>
                 <div class="mono small text-secondary">{{ m.codigo }}</div>
               </td>
-              <td>{{ m.tipo || '—' }}</td>
-              <td>{{ m.marca || '—' }}</td>
+              <td class="col-secundaria">{{ m.tipo || '—' }}</td>
+              <td class="col-secundaria">{{ m.marca || '—' }}</td>
               <td class="num">{{ m.alcancePq || '—' }}</td>
               <td class="num">{{ m.alcanceHq || '—' }}</td>
               <td class="num">{{ m.alcanceNq || '—' }}</td>
@@ -47,6 +47,7 @@
                   {{ m.estado || '—' }}
                 </span>
               </td>
+              <td class="small text-nowrap" [title]="(enUso.get(m.id!) ?? []).join(', ')">{{ resumenEnUso(m.id) }}</td>
               @if (puedeEditar) {
                 <td class="text-end">
                   <button type="button" class="btn btn-sm btn-outline-primary" (click)="$event.stopPropagation(); editar(m)"
@@ -93,6 +94,9 @@
       <form id="maq-formulario" (ngSubmit)="guardar()">
         @if (errorFormulario) {
           <div class="alert-inline" role="alert">{{ errorFormulario }}</div>
+        }
+        @if (form.id && enUso.get(form.id)?.length) {
+          <p class="ficha__nota">Perforando {{ enUso.get(form.id)!.join(', ') }}.</p>
         }
 
         <div class="row g-3 mb-3">

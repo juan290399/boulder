@@ -32,8 +32,8 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th>Sondaje</th><th>Proyecto</th>
-              <th class="num">Az. (°)</th><th class="num">Inc. (°)</th>
+              <th>Sondaje</th><th class="col-secundaria">Proyecto</th>
+              <th class="num col-secundaria">Az. (°)</th><th class="num col-secundaria">Inc. (°)</th>
               <th class="num">Prof. actual (m)</th><th class="num">Prof. programada (m)</th><th>Perforación</th>
               @if (puedeEditar) { <th><span class="visually-hidden">Acciones</span></th> }
             </tr>
@@ -45,9 +45,9 @@
                 <div class="mono fw-semibold text-nowrap">{{ s.codigo }}</div>
                 <div class="small text-secondary">{{ s.nombre }}</div>
               </td>
-              <td>{{ nombreProyecto(s.proyectoId) }}</td>
-              <td class="num">{{ s.azimutSetup ?? '—' }}</td>
-              <td class="num">{{ s.inclinacionSetup ?? '—' }}</td>
+              <td class="col-secundaria">{{ nombreProyecto(s.proyectoId) }}</td>
+              <td class="num col-secundaria">{{ s.azimutSetup ?? '—' }}</td>
+              <td class="num col-secundaria">{{ s.inclinacionSetup ?? '—' }}</td>
               <td class="num">{{ s.profundidadActual ?? 0 }}</td>
               <td class="num">{{ s.profundidadFinal ?? '—' }}</td>
               <td class="text-nowrap">
