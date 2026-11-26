@@ -1,6 +1,8 @@
 package com.boulder.boulder.services;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -90,14 +92,20 @@ public class PlataformaServiceImpl implements PlataformaService {
     public PlataformaDTO guardar(PlataformaDTO dto) {
         log.info("Registrando nueva plataforma. Código: {}, Proyecto ID: {}", dto.getCodigo(), dto.getProyectoId());
         try {
+            validar(dto, true);
+            // Código sin espacios y en mayúsculas: lo cruzan partes y plantillas.
+            String codigo = dto.getCodigo().trim().toUpperCase(Locale.ROOT);
+            if (plataformaRepository.existsByCodigo(codigo)) {
+                throw new IllegalArgumentException("Ya existe una plataforma con el código " + codigo + ".");
+            }
             Proyecto proyecto = proyectoRepository.findById(dto.getProyectoId())
                     .orElseThrow(() -> new EntityNotFoundException("El Proyecto asociado con ID " + dto.getProyectoId() + " no existe."));
 
             Plataforma plataforma = new Plataforma();
-            plataforma.setCodigo(dto.getCodigo());
-            plataforma.setNombre(dto.getNombre());
-            plataforma.setEstado(dto.getEstado() != null ? dto.getEstado() : "DISPONIBLE");
+            plataforma.setCodigo(codigo);
             plataforma.setProyecto(proyecto);
+            plataforma.setEstado(limpio(dto.getEstado()) != null ? dto.getEstado().trim() : "En construccion");
+            copiar(dto, plataforma);
 
             Plataforma guardada = plataformaRepository.save(plataforma);
             log.info("Plataforma guardada correctamente. ID: {}, Código: {}", guardada.getId(), guardada.getCodigo());
@@ -119,14 +127,19 @@ public class PlataformaServiceImpl implements PlataformaService {
                         return new EntityNotFoundException("Plataforma no encontrada.");
                     });
 
-            if (dto.getProyectoId() != null && !plataforma.getProyecto().getId().equals(dto.getProyectoId())) {
+            validar(dto, false);
+            if (dto.getProyectoId() != null
+                    && (plataforma.getProyecto() == null || !dto.getProyectoId().equals(plataforma.getProyecto().getId()))) {
                 Proyecto nuevoProyecto = proyectoRepository.findById(dto.getProyectoId())
                         .orElseThrow(() -> new EntityNotFoundException("El nuevo Proyecto asociado no existe."));
                 plataforma.setProyecto(nuevoProyecto);
             }
-
-            plataforma.setNombre(dto.getNombre());
-            plataforma.setEstado(dto.getEstado());
+            if (limpio(dto.getEstado()) != null) {
+                plataforma.setEstado(dto.getEstado().trim());
+            }
+            // Antes solo se guardaban el nombre y el estado: las coordenadas,
+            // el tipo, la ubicación y las pozas editadas se perdían sin aviso.
+            copiar(dto, plataforma);
 
             Plataforma actualizada = plataformaRepository.save(plataforma);
             log.info("Plataforma {} actualizada correctamente", actualizada.getCodigo());
@@ -137,6 +150,73 @@ public class PlataformaServiceImpl implements PlataformaService {
         }
     }
 
+    /** Campos que el formulario edita, iguales en el alta y en la edición. */
+    private static void copiar(PlataformaDTO dto, Plataforma plataforma) {
+        plataforma.setNombre(dto.getNombre().trim());
+        plataforma.setEste(dto.getEste());
+        plataforma.setNorte(dto.getNorte());
+        plataforma.setElevacion(dto.getElevacion());
+        plataforma.setEjeMayor(dto.getEjeMayor());
+        plataforma.setEjeMinor(dto.getEjeMinor());
+        plataforma.setEjeZ(dto.getEjeZ());
+        plataforma.setArea(dto.getArea());
+        plataforma.setNumeroPozas(dto.getNumeroPozas() != null ? dto.getNumeroPozas() : 0);
+        plataforma.setTipo(limpio(dto.getTipo()));
+        plataforma.setUbicacion(limpio(dto.getUbicacion()));
+        plataforma.setNotas(limpio(dto.getNotas()));
+    }
+
+    /**
+     * Lo que la base exige y no sabe explicar: sin esto el alta fallaba siempre
+     * con «Falta un dato obligatorio» (las coordenadas no se copiaban).
+     */
+    private static void validar(PlataformaDTO dto, boolean esAlta) {
+        List<String> problemas = new ArrayList<>();
+        if (esAlta) {
+            if (enBlanco(dto.getCodigo())) {
+                problemas.add("falta el código");
+            } else if (dto.getCodigo().trim().length() > 8) {
+                problemas.add("el código no puede superar los 8 caracteres");
+            }
+            if (dto.getProyectoId() == null) {
+                problemas.add("falta el proyecto");
+            }
+        }
+        if (enBlanco(dto.getNombre())) {
+            problemas.add("falta el nombre");
+        } else if (dto.getNombre().trim().length() > 50) {
+            problemas.add("el nombre no puede superar los 50 caracteres");
+        }
+        if (dto.getEste() == null) {
+            problemas.add("falta la coordenada este");
+        }
+        if (dto.getNorte() == null) {
+            problemas.add("falta la coordenada norte");
+        }
+        if (dto.getElevacion() == null) {
+            problemas.add("falta la elevación");
+        }
+        if (dto.getNumeroPozas() != null && dto.getNumeroPozas() < 0) {
+            problemas.add("el número de pozas no puede ser negativo");
+        }
+        lanzarSiHay(problemas);
+    }
+
+    private static void lanzarSiHay(List<String> problemas) {
+        if (!problemas.isEmpty()) {
+            String texto = String.join("; ", problemas);
+            throw new IllegalArgumentException(Character.toUpperCase(texto.charAt(0)) + texto.substring(1) + ".");
+        }
+    }
+
+    private static boolean enBlanco(String valor) {
+        return valor == null || valor.isBlank();
+    }
+
+    private static String limpio(String valor) {
+        return valor == null || valor.isBlank() ? null : valor.trim();
+    }
+
     private PlataformaDTO convertToDto(Plataforma plataforma) {
         PlataformaDTO dto = new PlataformaDTO();
         dto.setId(plataforma.getId());
@@ -144,6 +224,17 @@ public class PlataformaServiceImpl implements PlataformaService {
         dto.setCodigo(plataforma.getCodigo());
         dto.setNombre(plataforma.getNombre());
         dto.setEstado(plataforma.getEstado());
+        dto.setEste(plataforma.getEste());
+        dto.setNorte(plataforma.getNorte());
+        dto.setElevacion(plataforma.getElevacion());
+        dto.setEjeMayor(plataforma.getEjeMayor());
+        dto.setEjeMinor(plataforma.getEjeMinor());
+        dto.setEjeZ(plataforma.getEjeZ());
+        dto.setArea(plataforma.getArea());
+        dto.setNumeroPozas(plataforma.getNumeroPozas());
+        dto.setTipo(plataforma.getTipo());
+        dto.setUbicacion(plataforma.getUbicacion());
+        dto.setNotas(plataforma.getNotas());
         
         if (plataforma.getProyecto() != null) {
             dto.setProyectoId(plataforma.getProyecto().getId());
