@@ -128,7 +128,7 @@
               <td class="num">
                 {{ fila.etapas[0].profundidad | number:'1.0-2' }} m
                 <div class="text-muted small text-nowrap">
-                  {{ fila.fechaFin ? 'fin ' + fila.fechaFin : 'en perforación' }}
+                  {{ fila.fechaFin ? 'fin ' + fila.fechaFin : (fila.fechaInicio ? 'en perforación' : 'programado') }}
                 </div>
               </td>
 
